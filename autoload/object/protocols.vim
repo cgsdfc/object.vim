@@ -60,3 +60,16 @@ function! object#protocols#repr(obj)
   call maktaba#ensure#IsFuncref(a:obj.__repr__)
   return maktaba#ensure#IsString(a:obj.__repr__())
 endfunction
+
+function! object#protocols#len(obj)
+  if maktaba#value#IsString(a:obj)
+    return len(a:obj)
+  endif
+  if !object#protocols#hasattr(a:obj, '__len__')
+    return len(maktaba#ensure#IsCollection(a:obj))
+  endif
+  call maktaba#ensure#IsFuncref(a:obj.__len__)
+  return maktaba#ensure#IsNumber(a:obj.__len__())
+endfunction
+
+
