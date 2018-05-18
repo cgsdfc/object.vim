@@ -1,4 +1,4 @@
-let s:type_pattern = '\v[a-zA-Z_][a-zA-Z0-9_]*'
+let s:type_pattern = '\v^[a-zA-Z_][a-zA-Z0-9_]*$'
 
 function! object#except#format(type, msg, args)
   return printf('%s: %s', a:type, empty(a:args) ?
@@ -11,7 +11,7 @@ function! object#except#BaseException(type, msg, args)
   let args = maktaba#ensure#IsList(a:args)
 
   if a:type !~ s:type_pattern
-    throw object#ValueError('%s is not a pattern of identifier', a:type)
+    throw object#ValueError('%s is not a pattern of identifier', string(a:type))
   endif
 
   return object#except#format(a:type, a:msg, a:args)

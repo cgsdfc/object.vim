@@ -1,1 +1,62 @@
-Execute():
+" vim:ft=vim
+
+Execute(BaseException() should allow to create new exceptions);
+function! UserDefinedError(msg, ...)
+  return object#BaseException('UserDefinedError', a:msg, a:000)
+endfunction
+
+let err = UserDefinedError('some errors (%d)', 4)
+Assert err =~# '^UserDefinedError: some errors (4)$'
+
+Assert UserDefinedError('message') =~# '^UserDefinedError: message$'
+try
+  throw UserDefinedError('ops')
+catch/UserDefinedError/
+  Assert v:exception =~# 'ops'
+endtry
+
+Execute(Built-in exceptions works fine);
+let exceptions = [ 'Exception', 'ValueError', 'TypeError', 'AttributeError']
+for x in exceptions
+  try
+    throw object#{x}('error (%d)', 1)
+  catch
+    Assert v:exception =~# printf('%s: error (1)', x)
+  endtry
+endfor
+
+Execute(BaseException() should throw WrongType if any of its arguments goes wrong);
+let input = [
+      \ [ 1, '', []],
+      \ [ '', 1, []],
+      \ [ '', '', 1],
+      \ [ 1, 1, 1],
+      \ ]
+
+for [type, msg, args] in input
+  try
+    call object#BaseException(type, msg, args)
+  catch
+    Log v:exception
+    Assert v:exception =~# 'ERROR(WrongType)'
+  endtry
+endfor
+
+Execute(BaseException() should throw ValueError if the type argument failed to match a pattern);
+let input = [ 
+      \ '999',
+      \ ' ValueError',
+      \ 'ValueError ',
+      \ ' ValueError ',
+      \ '^_^',
+      \ '$Exception',
+      \ ]
+
+for x in input
+  try
+    call object#BaseException(x, '', [])
+  catch/ValueError/
+    Log v:exception
+    Assert v:exception =~# 'identifier'
+  endtry
+endfor

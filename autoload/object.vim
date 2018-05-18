@@ -165,8 +165,19 @@ endfunction
 
 ""
 " From object#except
+"   BaseException
+"   Exception
 "   ValueError
 "   TypeError
+"   AttributeError
+
+function! object#BaseException(...) abort 
+  return call('object#except#BaseException', a:000)
+endfunction
+
+function! object#Exception(...) abort
+  return call('object#except#Exception', a:000)
+endfunction
 
 function! object#ValueError(...) abort
   return call('object#except#ValueError', a:000)
