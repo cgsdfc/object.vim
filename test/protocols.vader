@@ -1,4 +1,4 @@
-"
+" vim:ft=vim
 " Test setattr()
 "
 
@@ -65,5 +65,48 @@ try
   call object#hasattr({}, [])
 catch
   Assert v:exception=~# 'ERROR(WrongType)'
+endtry
+
+Execute(repr() can hook into __repr__());
+let cls = {}
+function! cls.__repr__()
+  return '<repr>'
+endfunction
+
+AssertEqual object#repr(cls), '<repr>'
+
+Execute(repr() should fail back on string() when object has no __repr__());
+let input = [
+      \ ['1', 1],
+      \ ["''", ''], 
+      \ [ "{'name': 1}", {'name': 1}],
+      \ ['[]', []],
+      \ [ 'v:none', v:none],
+      \ ['{}', {}],
+      \ [ "'string'", 'string'],
+      \ ]
+
+for [should, x] in input
+  AssertEqual should, object#repr(x) 
+endfor
+
+Execute(repr() should throw WrongType when __repr__ is not a Funcref);
+let cls = { '__repr__': [] }
+try
+  call object#repr(cls)
+catch
+  Assert v:exception=~#'ERROR(WrongType)'
+endtry
+
+Execute(repr() should throw WrongType when __repr__() returns something not String);
+let cls = {}
+function! cls.__repr__()
+  return []
+endfunction
+try
+  call object#repr(cls)
+catch
+  Log v:exception
+  Assert v:exception=~#'ERROR(WrongType)'
 endtry
 

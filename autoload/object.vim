@@ -130,6 +130,10 @@ function! object#hasattr(...) abort
   return call('object#protocols#hasattr', a:000)
 endfunction
 
+function! object#repr(...) abort
+  return call('object#protocols#repr', a:000)
+endfunction
+
 ""
 " len(object)
 " Return the length of {object}. If {object} is a |List|

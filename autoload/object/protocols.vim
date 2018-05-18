@@ -52,3 +52,11 @@ function! object#protocols#hasattr(obj, name)
   let name = maktaba#ensure#IsString(a:name)
   return maktaba#value#IsDict(a:obj) && has_key(a:obj, name)
 endfunction
+
+function! object#protocols#repr(obj)
+  if !object#protocols#hasattr(a:obj, '__repr__')
+    return string(a:obj)
+  endif
+  call maktaba#ensure#IsFuncref(a:obj.__repr__)
+  return maktaba#ensure#IsString(a:obj.__repr__())
+endfunction
