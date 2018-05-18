@@ -1,0 +1,6 @@
+Execute(Test class object):
+  let object = object#types#object_()
+  let type = object#types#type_()
+  let None = object#types#None
+  echo object
+

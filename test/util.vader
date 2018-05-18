@@ -1,0 +1,17 @@
+Before:
+let
+Execute(ensure_argc() works with argc <= atmost):
+  function! F(...)
+    let argc = object#util#ensure_argc(1, a:0)
+    return argc
+  endfunction
+
+  AssertEqual F(), 0
+  AssertEqual F(1), 1
+  AssertThrow call F(1,2)
+  AssertThrow call F(1,2,3)
+
+  try
+F(1,2)
+catch
+AssertEqual

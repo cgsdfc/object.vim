@@ -1,0 +1,69 @@
+"
+" Test setattr()
+"
+
+Execute(setattr() should set attribute with a Dict);
+let bar = {}
+call object#setattr(bar, 'weight', 10)
+AssertEqual bar.weight, 10
+call object#setattr(bar, 'weight', 'heavy')
+AssertEqual bar.weight, 'heavy'
+
+Execute(setattr() should throw WrongType when {object} is not a Dict or {name} is not a String);
+let wrong_types = [[ 'str', 'attr'], [ {}, 1 ], [ 'str', 1 ]]
+for [obj, name] in wrong_types
+  try
+    call object#setattr(obj, name, 1)
+  catch
+    Assert v:exception =~# 'ERROR(WrongType)'
+  endtry
+endfor
+
+Execute(setattr() should be able to hook into __setattr__());
+let cls = { 'speed' : 100, 'duration' : 10 }
+function! cls.__setattr__(name, val)
+  if a:name is# 'speed'
+    throw 'speed is readonly'
+  endif
+  if a:name is# 'duration' && a:val >= 0
+    " Only accept positive duration
+    let self.duration = a:val
+  endif
+endfunction
+
+try
+  call object#setattr(cls, 'speed', 20)
+catch
+  Assert v:exception is# 'speed is readonly'
+endtry
+
+call object#setattr(cls, 'duration', -1)
+AssertEqual cls.duration, 10
+
+call object#setattr(cls, 'duration', 20)
+AssertEqual cls.duration, 20
+
+"
+" Test hasattr()
+"
+
+Execute(hasattr() returns 1 when object is a Dict and it has that attribute);
+let obj = { 'count' : 22, 'line' : 100, 'pos' : 10 }
+Assert object#hasattr(obj, 'count')
+Assert object#hasattr(obj, 'line')
+Assert object#hasattr(obj, 'pos')
+
+Execute(hasattr() should return 0 when object is not a Dict or does not have that attribute);
+Assert !object#hasattr([], 'length')
+Assert !object#hasattr('', 'toupper')
+Assert !object#hasattr(30, 'digits')
+
+Assert !object#hasattr({'gender' : 'male'}, 'age')
+
+Execute(hasattr() should throw WrongType with non-String name);
+try
+  call object#hasattr({}, [])
+catch
+  Assert v:exception=~# 'ERROR(WrongType)'
+endtry
+
