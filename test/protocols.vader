@@ -11,12 +11,10 @@ AssertEqual bar.weight, 'heavy'
 
 Execute(setattr() should throw WrongType when {object} is not a Dict or {name} is not a String);
 let wrong_types = [[ 'str', 'attr'], [ {}, 1 ], [ 'str', 1 ]]
+
 for [obj, name] in wrong_types
-  try
-    call object#setattr(obj, name, 1)
-  catch
-    Assert v:exception =~# 'ERROR(WrongType)'
-  endtry
+  AssertThrows call object#setattr(g:obj, g:name, 1)
+  Assert g:vader_exception =~# 'ERROR(WrongType)'
 endfor
 
 Execute(setattr() should be able to hook into __setattr__());
@@ -31,11 +29,8 @@ function! cls.__setattr__(name, val)
   endif
 endfunction
 
-try
-  call object#setattr(cls, 'speed', 20)
-catch
-  Assert v:exception is# 'speed is readonly'
-endtry
+AssertThrows call object#setattr(g:cls, 'speed', 20)
+Assert g:vader_exception is# 'speed is readonly'
 
 call object#setattr(cls, 'duration', -1)
 AssertEqual cls.duration, 10
@@ -61,11 +56,8 @@ Assert !object#hasattr(30, 'digits')
 Assert !object#hasattr({'gender' : 'male'}, 'age')
 
 Execute(hasattr() should throw WrongType with non-String name);
-try
-  call object#hasattr({}, [])
-catch
-  Assert v:exception=~# 'ERROR(WrongType)'
-endtry
+AssertThrows call object#hasattr({}, [])
+Assert g:vader_exception =~# 'ERROR(WrongType)'
 
 Execute(repr() can hook into __repr__());
 let cls = {}
@@ -92,22 +84,18 @@ endfor
 
 Execute(repr() should throw WrongType when __repr__ is not a Funcref);
 let cls = { '__repr__': [] }
-try
-  call object#repr(cls)
-catch
-  Assert v:exception=~#'ERROR(WrongType)'
-endtry
+
+AssertThrows call object#repr(g:cls)
+Assert g:vader_exception=~#'ERROR(WrongType)'
 
 Execute(repr() should throw WrongType when __repr__() returns something not String);
 let cls = {}
 function! cls.__repr__()
   return []
 endfunction
-try
-  call object#repr(cls)
-catch
-  Assert v:exception=~#'ERROR(WrongType)'
-endtry
+
+AssertThrows call object#repr(g:cls)
+Assert g:vader_exception=~#'ERROR(WrongType)'
 
 Execute(len() should use __len__() if available);
 let cls = {}
@@ -141,10 +129,8 @@ if has('float')
 endif
 
 for X in input
-  try
-    call object#len(X)
-  catch/WrongType/
-  endtry
+  AssertThrows call object#len(g:X)
+  Assert g:vader_exception =~# 'WrongType'
 endfor
 
 Execute(len() should throw WrongType if __len__() returns non-number);
@@ -152,8 +138,9 @@ let cls = {}
 function! cls.__len__()
   return 'bad'
 endfunction
+
 AssertThrows call object#len(g:cls)
-Log g:vader_exception
+Assert g:vader_exception =~# 'WrongType'
 
 Execute(dir() should only accept Dict);
 let input = [
@@ -163,6 +150,6 @@ let input = [
       \ ]
 
 for x in input
-  AssertThrows call object#dir(x)
-  Log g:vader_exception
+  AssertThrows call object#dir(g:x)
+  Assert g:vader_exception =~# 'WrongType'
 endfor
