@@ -141,7 +141,10 @@ if has('float')
 endif
 
 for X in input
-  AssertThrows call object#len(X)
+  try
+    call object#len(X)
+  catch/WrongType/
+  endtry
 endfor
 
 Execute(len() should throw WrongType if __len__() returns non-number);
@@ -149,4 +152,17 @@ let cls = {}
 function! cls.__len__()
   return 'bad'
 endfunction
-AssertThrows call object#len(cls)
+AssertThrows call object#len(g:cls)
+Log g:vader_exception
+
+Execute(dir() should only accept Dict);
+let input = [
+      \ 1,
+      \ 'str',
+      \ [],
+      \ ]
+
+for x in input
+  AssertThrows call object#dir(x)
+  Log g:vader_exception
+endfor

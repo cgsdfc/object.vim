@@ -72,4 +72,11 @@ function! object#protocols#len(obj)
   return maktaba#ensure#IsNumber(a:obj.__len__())
 endfunction
 
-
+function! object#protocols#dir(obj)
+  let obj = maktaba#ensure#IsDict(a:obj)
+  if !has_key(obj, '__dir__')
+    return keys(obj)
+  endif
+  call maktaba#ensure#IsFuncref(a:obj.__dir__)
+  return maktaba#ensure#IsList(obj.__dir__())
+endfunction
