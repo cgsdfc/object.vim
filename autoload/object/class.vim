@@ -49,7 +49,6 @@ function! object#class#type_init(cls, name, bases, dict)
 endfunction
 
 ""
-" class(name[,bases])
 " Define a class that has a name and optional base class(es).
 " >
 "   let Widget = object#class('Widget')
@@ -110,7 +109,6 @@ function! object#class#class_init(cls, name, bases)
 endfunction
 
 ""
-" new(cls[, args])
 " Create a new instance of {cls} by applying optional [args].
 "
 function! object#class#new(cls, ...)
@@ -120,8 +118,6 @@ function! object#class#new(cls, ...)
   return obj
 endfunction
 
-""
-" Stage 1
 function! object#class#rawnew(cls)
   let obj = {
         \ '__class__': a:cls,
@@ -130,8 +126,7 @@ function! object#class#rawnew(cls)
   return obj
 endfunction
 
-""
-" @private
+"
 " Find the base class of {obj} that matches {cls}. Return v:none
 " if not found.
 function! object#class#find_base(obj, cls)
@@ -159,8 +154,7 @@ function! object#class#ensure_object(x)
 endfunction
 
 ""
-" type(object)
-" Return the class of {object}.
+" Return the class of {obj}.
 "
 function! object#class#type(obj)
   call object#class#ensure_object(a:obj)
@@ -168,9 +162,8 @@ function! object#class#type(obj)
 endfunction
 
 ""
-" super(cls, object, method)
 " Return a partial |Funcref| that binds the dict of {method}
-" of the base class {cls} of {object} to {object}
+" of the base class {cls} of {obj} to {obj}
 " Examples:
 " >
 "   call object#super(Base, self, '__init__')(...)
@@ -192,8 +185,7 @@ function! object#class#super(cls, obj, method)
   return function(method, obj)
 endfunction
 
-""
-" @private
+"
 " Visit the parents of {cls} and itself in a depth-first
 " manner until any of them satisfies the {Predicate}.
 function! object#class#any_parent(cls, Predicate)
@@ -221,8 +213,7 @@ function! object#class#isinstance_pred(obj, cls)
 endfunction
 
 ""
-" isinstance(object, cls)
-" Return whether {object} is an instance of {cls}.
+" Return whether {obj} is an instance of {cls}.
 "
 function! object#class#isinstance(obj, cls)
   let cls = object#class#ensure_class(a:cls)
@@ -232,7 +223,6 @@ function! object#class#isinstance(obj, cls)
 endfunction
 
 ""
-" issubclass(cls, base)
 " Return wheter {cls} is a subclass of {base}.
 "
 function! object#class#issubclass(cls, base)

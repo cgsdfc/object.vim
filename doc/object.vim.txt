@@ -17,8 +17,7 @@ A vimscript library that provides object protocols for Vim similar to Python.
 FUNCTIONS                                               *object.vim-functions*
 
 object#class#class({name}, [bases])                     *object#class#class()*
-  class(name[,bases]) Define a class that has a name and optional base
-  class(es).
+  Define a class that has a name and optional base class(es).
 >
     let Widget = object#class('Widget')
     let Widget = object#class('Widget', [...])
@@ -39,30 +38,27 @@ object#class#class({name}, [bases])                     *object#class#class()*
 
 
 object#class#new({cls}, [args])                           *object#class#new()*
-  new(cls[, args]) Create a new instance of {cls} by applying optional [args].
+  Create a new instance of {cls} by applying optional [args].
 
 
-object#class#rawnew({cls})                             *object#class#rawnew()*
-  Stage 1
-
-object#class#type({object})                              *object#class#type()*
-  type(object) Return the class of {object}.
+object#class#type({obj})                                 *object#class#type()*
+  Return the class of {obj}.
 
 
-object#class#super({method}, {cls}, {object})           *object#class#super()*
-  super(cls, object, method) Return a partial |Funcref| that binds the dict of
-  {method} of the base class {cls} of {object} to {object} Examples:
+object#class#super({cls}, {obj}, {method})              *object#class#super()*
+  Return a partial |Funcref| that binds the dict of {method} of the base class
+  {cls} of {obj} to {obj} Examples:
 >
     call object#super(Base, self, '__init__')(...)
 <
 
 
-object#class#isinstance({object}, {cls})           *object#class#isinstance()*
-  isinstance(object, cls) Return whether {object} is an instance of {cls}.
+object#class#isinstance({obj}, {cls})              *object#class#isinstance()*
+  Return whether {obj} is an instance of {cls}.
 
 
 object#class#issubclass({cls}, {base})             *object#class#issubclass()*
-  issubclass(cls, base) Return wheter {cls} is a subclass of {base}.
+  Return wheter {cls} is a subclass of {base}.
 
 
 object#mapping#hash({obj})                             *object#mapping#hash()*
@@ -70,8 +66,9 @@ object#mapping#hash({obj})                             *object#mapping#hash()*
   special variables like |v:none| and |v:false|, or an object with __hash__()
   defined.
 
-  Throws ERROR(TypeError)
-  Throws ERROR(WrongType)
+  Throws ERROR(TypeError) if {obj} is a |List|, |Float| or |Dict|.
+  Throws ERROR(WrongType) if __hash__ is not a |Funcref| or returns
+  something NAN (Not A Number).
 
 
 object#mapping#getitem({obj}, {key})                *object#mapping#getitem()*

@@ -65,6 +65,14 @@ for x in input
 endfor
 AssertEqual 1, object#hash(v:true)
 
+Execute(hash() should treat Funcref as if they are string()'ed);
+let input = [ 'empty', 'len', 'items', 'values' ]
+for x in input
+  let X = function(x)
+  let hash = object#hash(X)
+  AssertEqual hash, object#hash(string(X))
+endfor
+
 Execute(hash() should throw TypeError with Float, List and Dict without __hash__());
 " Hashing Float is very complicated and no supported now plus the pitfalls of
 " using a Float key.
@@ -109,6 +117,60 @@ endfunction
 let cls.__hash__ = function('Hash')
 AssertThrows call object#hash(g:cls)
 Assert g:vader_exception =~# 'WrongType'
+
+"
+" Test getitem() and setitem()
+"
+
+Execute(getitem() works with String, List and Dict without __getitem__);
+let input = [
+      \ [ 'str', 0, 's' ],
+      \ [ [ 1, 2, 3, ], 1, 2 ],
+      \ [ { 'a': 1, 'b': 2 }, 'b', 2 ],
+      \ ]
+for [mapping, key, val] in input
+  AssertEqual object#getitem(mapping, key), val
+endfor
+
+Execute(getitem() works with __getitem__);
+let cls = { 'data': {} }
+function! cls.__getitem__(key)
+  return self.data[a:key]
+endfunction
+
+function! cls.add(x, val)
+  let self.data[a:x] = a:val
+endfunction
+
+let input = [
+      \ [ 'apple', 'red' ],
+      \ [ 'banana', 'yellow' ],
+      \ [ 'oringe', 'oringe' ],
+      \ ]
+
+for [key, val] in input
+  call cls.add(key, val)
+endfor
+
+for [key, val] in input
+  AssertEqual object#getitem(cls, key), val
+endfor
+
+Execute(getitem() throws TypeError if the type of obj doesn't support it);
+let input = [
+      \ '1', v:none, v:false, v:true, function('empty'), 
+      \ ]
+for X in input
+  AssertThrows call object#getitem(g:x, 0)
+  Assert g:vader_exception =~# 'TypeError'
+endfor
+
+Execute(getitem() throws WrongType if __getitem__ is not Funcref);
+let cls = { '__getitem__' : 1 }
+AssertThrows call object#getitem(g:cls, 2)
+Assert g:vader_exception =~# 'WrongType'
+
+
 
 "TODO: Draw some graph to show that the sha256/djb2 hash is well distributed.
 " vim:ft=vim
