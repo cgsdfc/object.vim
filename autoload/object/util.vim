@@ -4,5 +4,3 @@ function! object#util#ensure_argc(atmost, x)
   endif
   throw object#TypeError('takes at most %d arguments (%d given)', a:atmost, a:x)
 endfunction
-
-

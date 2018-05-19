@@ -1,0 +1,26 @@
+Before;
+let test_dir = fnamemodify(g:vader_file, ':h')
+let lipsum_path = maktaba#path#Join([test_dir, 'data', 'lipsum.txt'])
+let input = map(readfile(lipsum_path), 'split(v:val)')
+
+Execute(Confirm the bitwidth of the Vim runtime);
+let info = object#mapping#nrinfo()
+Log printf('Bitwidth of Number %s', info.width)
+Log printf('Max of Number %s', info.max)
+Log printf('Has cryptv %s', has('cryptv')?'yes':'no')
+
+Execute(strhash_sha256() should always return non-negative nr);
+for line in input
+  for word in line
+    Assert object#mapping#strhash_sha256(word) >= 0
+  endfor
+endfor
+
+Execute(strhash_djb2() should always return non-negative nr);
+for line in input
+  for word in line
+    Assert object#mapping#strhash_djb2(word) >= 0
+  endfor
+endfor
+
+" vim:ft=vim
