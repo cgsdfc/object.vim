@@ -9,7 +9,7 @@ AssertThrows call object#class('Boy', g:object, 'hey')
 Assert g:vader_exception =~# 'TypeError'
 Log g:vader_exception
 
-Execute(class() throws ValueError if name is not an iden);
+Execute(class() throws ValueError if name is not an identifier);
 AssertThrows call object#class('$var')
 Assert g:vader_exception =~# 'ValueError'
 Log g:vader_exception
@@ -39,9 +39,28 @@ for x in [ [object, object], [type, type] ]
 endfor
 
 Execute(When there is no bases given or an empty base list, class() sets base to object);
-
 for x in [ "object#class('Man')",  "object#class('Man', [])" ]
   let cls = eval(x)
   Assert cls.__base__ is# object
   Assert cls.__bases__ ==# [object]
 endfor
+
+Execute(New cls should have working repr());
+let cls = object#class('X')
+AssertEqual object#repr(cls), "<type 'X'>"
+
+Execute(New cls has expected instance relationship);
+let cls = object#class('X')
+Assert cls.__class__ is# type
+
+Execute(class() can handle one single base);
+let X = object#class('X')
+let Y = object#class('Y', X)
+Assert Y.__base__ is# X
+Assert Y.__bases__ ==# [X]
+
+Execute(class() can handle a List of bases);
+let bases = map([ 'A', 'B', 'C', ], 'object#class(v:val)')
+let D = object#class('D', bases)
+Assert D.__base__ is# bases[0]
+Assert D.__bases__ is# bases

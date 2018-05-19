@@ -45,9 +45,11 @@ function! object#class#ensure_bases(x)
   while i < N-1
     let j = i + 1
     while j < N
-      if base[i] isnot# base[j] | continue | endif
+      if base[i] isnot# base[j]
+        let j += 1
+        continue
+      endif
       throw object#TypeError('duplicate base class %s', string(base[i].__name__))
-      let j += 1
     endwhile
     let i += 1
   endwhile
