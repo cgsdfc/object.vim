@@ -1,23 +1,40 @@
+let s:object_class = object#object_()
+let s:type_class = object#type_()
+let s:None = object#None()
 
 let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__']
 
+"
+" A valid class is a valid object that is an instance of type.
+"
 function! object#class#is_valid_class(x)
-  return object#hasattr(a:x, '__name__')
+  return object#class#is_valid_object(a:x) && a:x.__class__ is# s:type_class
 endfunction
 
+"
+" Every valid object is a |Dict| with a __class__ attribute.
+"
 function! object#class#is_valid_object(x)
   return object#hasattr(a:x, '__class__')
 endfunction
 
 function! object#class#is_method(Key, Val)
-  return type(a:Val) == type(function('empty')) &&
-        \ index(a:Key, s:special_attrs) < 0
+  " Any method should be valid identifier.
+  let Key = object#util#ensure_identifier(a:Key)
+  return index(s:special_attrs, Key) < 0 && maktaba#value#IsFuncref(a:Val)
 endfunction
 
+"
+" Extract methods from {cls}.
+"
 function! object#class#methods(cls)
   return filter(copy(a:cls), 'object#class#is_method(v:key, v:val)')
 endfunction
 
+"
+" Ensure that {x} is one valid class or a list of
+" non-duplicate classes.
+"
 function! object#class#ensure_bases(x)
   let base = map(a:x, 'object#class#ensure_class(v:val)')
   let N = len(base)
@@ -29,8 +46,7 @@ function! object#class#ensure_bases(x)
     let j = i + 1
     while j < N
       if base[i] isnot# base[j] | continue | endif
-      throw object#TypeError('duplicate base class %s',
-            \ object#types#quoted_typename(base[i]))
+      throw object#TypeError('duplicate base class %s', string(base[i].__name__))
       let j += 1
     endwhile
     let i += 1
@@ -38,13 +54,17 @@ function! object#class#ensure_bases(x)
   return base
 endfunction
 
+"
+" Implementation of type.__init__. Initialize {cls} with class name,
+" base classes and attributes.
+" {bases} must be a List of classes.
+"
 function! object#class#type_init(cls, name, bases, dict)
-  let name = maktaba#ensure#IsString('name', a:name)
+  let name = maktaba#ensure#IsString(a:name)
   let bases = maktaba#ensure#IsList(a:bases)
-  let bases = object#class#ensure_bases(a:bases)
   let dict = maktaba#ensure#IsDict(a:dict)
-
   call object#class#class_init(a:cls, name, bases)
+  let dict = map(a:dict, 'object#util#ensure_identifier(v:key)')
   call extend(a:cls, dict, 'force')
 endfunction
 
@@ -54,34 +74,40 @@ endfunction
 "   let Widget = object#class('Widget')
 "   let Widget = object#class('Widget', [...])
 " <
-" [bases] should be a |Dict| or a |List| of |Dict| that was defined by |class()|.
-" {name} should be a |String| of valid identifier in Vim
-" ([_a-zA-Z][_a-zA-Z0-9]*).
+" [bases] should be a |Dict| or a |List| of |Dict| that was defined by class().
+" If no [bases] are given or empty(bases), the new class will subclass object.
+" {name} should be a |String| of valid identifier in Vim.
 " The return value is special |Dict| to which methods can be added to and from
-" which instance can be created by |object#new()|.
+" which instance can be created by new().
 " Methods can be added by:
 " >
 "   function! Widget.say_yes()
+"     ...
+"   endfunction
+" <
+" or
+" >
 "   let Widget.say_yes = function('widget#say_yes')
 " <
 "
 " Inheritance is possible. The methods of base classes are added from left to
-" right across the [bases] when |class()| is called. The methods defined for
+" right across the [bases] when class() is called. The methods defined for
 " this class effectively override those from bases.
 "
 function! object#class#class(name, ...)
-  let name = maktab#ensure#IsString(a:name)
-  let argc = object#class#ensure_argc(1, a:0)
+  let name = maktaba#ensure#IsString(a:name)
+  let argc = object#util#ensure_argc(1, a:0)
+
+  " Figure out the bases list
   if !argc
-    " Implicitly subclass object
     let bases = [s:object_class]
-  elseif maktab#value#IsList(a:1)
+  elseif maktaba#value#IsList(a:1)
     if empty(a:1)
-      throw object#TypeError("'bases' should not be empty")
+      let bases = [s:object_class]
+    else
+      let bases = a:1
     endif
-    let bases = a:1
-  elseif maktab#value#IsDict(a:1)
-    " Single base
+  elseif maktaba#value#IsDict(a:1)
     let bases = [a:1]
   else
     throw object#TypeError("'bases' should be a class or a List of classes")
@@ -95,16 +121,16 @@ function! object#class#class(name, ...)
   return cls
 endfunction
 
-""
-" @private
+"
+" Implemente the inheritance system.
+"
 function! object#class#class_init(cls, name, bases)
-  let cls.__name__ = name
-  let cls.__bases__ = bases
-  let cls.__base__ = bases[0]
+  let a:cls.__name__ = object#util#ensure_identifier(a:name)
+  let a:cls.__bases__ = object#class#ensure_bases(a:bases)
+  let a:cls.__base__ = a:bases[0]
 
-  for x in bases
-    let methods = object#class#methods(x)
-    call extend(cls, methods, 'keep')
+  for x in a:bases
+    call extend(a:cls, object#class#methods(x), 'keep')
   endfor
 endfunction
 
@@ -113,26 +139,22 @@ endfunction
 "
 function! object#class#new(cls, ...)
   let cls = object#class#ensure_class(a:cls)
-  let obj = object#class#rawnew(cls)
-  call call(obj.__init__, a:000)
-  return obj
-endfunction
-
-function! object#class#rawnew(cls)
   let obj = {
         \ '__class__': a:cls,
         \ }
   call extend(obj, object#class#methods(a:cls))
+  call call(obj.__init__, a:000)
   return obj
 endfunction
 
 "
 " Find the base class of {obj} that matches {cls}. Return v:none
 " if not found.
+"
 function! object#class#find_base(obj, cls)
   let bases = a:obj.__class__.__bases__
   for x in bases
-    if a:cls is# x
+    if x is# a:cls
       return x
     endif
   endfor
@@ -154,11 +176,18 @@ function! object#class#ensure_object(x)
 endfunction
 
 ""
-" Return the class of {obj}.
+" type(obj) -> class of obj.
+" type(name, bases, dict) -> a new type.
 "
-function! object#class#type(obj)
-  call object#class#ensure_object(a:obj)
-  return object#getattr(a:obj, '__class__')
+function! object#class#type(...)
+  if a:0 == 1
+    let obj = object#class#ensure_object(a:1)
+    return object#getattr(obj, '__class__')
+  endif
+  if a:0 == 3
+    return object#new(s:type_class, a:1, a:2, a:3)
+  endif
+  throw object#TypeError('type() takes 1 or 3 arguments (%d given)', a:0)
 endfunction
 
 ""
@@ -172,16 +201,15 @@ endfunction
 function! object#class#super(cls, obj, method)
   let cls = object#class#ensure_class(a:cls)
   let obj = object#class#ensure_object(a:obj)
-  let method = maktab#ensure#IsString(a:method)
+  let method = object#util#ensure_identifier(
+        \ maktaba#ensure#IsString(a:method))
 
   let cls = object#class#find_base(obj, cls)
   if cls is# v:none
-    throw object#ValueError('object has no base class %s',
-          \ string(cls.__name__))
+    throw object#ValueError('object has no base class %s', object#types#name(cls))
   endif
 
   let method = object#getattr(cls, method)
-  " Create a partial so that dict become obj.
   return function(method, obj)
 endfunction
 
@@ -192,11 +220,10 @@ function! object#class#any_parent(cls, Predicate)
   if a:Predicate(a:cls)
     return 1
   endif
-  if a:cls is# s:none_class
+  if a:cls is# s:None
     return 0
   endif
-  let parents = a:cls.__bases__
-  for p in parents
+  for p in a:cls.__bases__
     if object#class#any_parent(p, a:Predicate)
       return 1
     endif
