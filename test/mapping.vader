@@ -1,4 +1,5 @@
 Before;
+" Fetch the dummy text as test input
 let test_dir = fnamemodify(g:vader_file, ':h')
 let lipsum_path = maktaba#path#Join([test_dir, 'data', 'lipsum.txt'])
 let input = map(readfile(lipsum_path), 'split(v:val)')
@@ -9,18 +10,60 @@ Log printf('Bitwidth of Number %s', info.width)
 Log printf('Max of Number %s', info.max)
 Log printf('Has cryptv %s', has('cryptv')?'yes':'no')
 
+"
+" Test strhash_sha256() and strhash_djb2()
+"
+
 Execute(strhash_sha256() should always return non-negative nr);
 for line in input
   for word in line
-    Assert object#mapping#strhash_sha256(word) >= 0
+    let hash = object#mapping#strhash_sha256(word)
+    Assert hash >= 0
   endfor
 endfor
 
 Execute(strhash_djb2() should always return non-negative nr);
 for line in input
   for word in line
-    Assert object#mapping#strhash_djb2(word) >= 0
+    let hash =object#mapping#strhash_djb2(word)
+    Assert hash >= 0
   endfor
 endfor
 
+Execute(strhash_sha256() should be equal if the input values are equal);
+for line in input
+  for word in line
+    let x = object#mapping#strhash_sha256(word)
+    let y = object#mapping#strhash_sha256(word)
+    AssertEqual x, y, 'strhash_sha256() should be a function!'
+  endfor
+endfor
+
+Execute(strhash_djb2() should be equal if the input values are equal);
+for line in input
+  for word in line
+    let x = object#mapping#strhash_djb2(word)
+    let y = object#mapping#strhash_djb2(word)
+    AssertEqual x, y, 'strhash_djb2() should be a function!'
+  endfor
+endfor
+
+"
+" Test hash()
+"
+
+Execute(hash(Number) should be non-negative);
+for i in range(-500, 500)
+  let hash = object#hash(i)
+  Assert hash >= 0
+endfor
+
+Execute(hash() with special variables);
+let input = [ v:null, v:none, v:false, ]
+for x in input
+  AssertEqual 0, object#hash(x)
+endfor
+AssertEqual 1, object#hash(v:true)
+
+"TODO: Draw some graph to show that the sha256/djb2 hash is well distributed.
 " vim:ft=vim

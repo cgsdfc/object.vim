@@ -93,15 +93,15 @@ endfunction
 " setitem()
 
 function! object#hash(...) abort
-  return call('object#protocols#hash', a:000)
+  return call('object#mapping#hash', a:000)
 endfunction
 
 function! object#getitem(...) abort
-  return call('object#protocols#getitem', a:000)
+  return call('object#mapping#getitem', a:000)
 endfunction
 
 function! object#setitem(...) abort
-  return call('object#protocols#setitem', a:000)
+  return call('object#mapping#setitem', a:000)
 endfunction
 
 ""
