@@ -84,6 +84,7 @@ function! object#mapping#hash(obj)
     return 1
   endif
   if object#protocols#hasattr(a:obj, '__hash__')
+    call maktaba#ensure#IsFuncref(a:obj.__hash__)
     return maktaba#ensure#IsNumber(a:obj.__hash__())
   endif
   throw object#TypeError('hash() not available for %s object',

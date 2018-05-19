@@ -65,5 +65,50 @@ for x in input
 endfor
 AssertEqual 1, object#hash(v:true)
 
+Execute(hash() should throw TypeError with Float, List and Dict without __hash__());
+" Hashing Float is very complicated and no supported now plus the pitfalls of
+" using a Float key.
+let input = [ [], {}, ]
+if has('float')
+  call add(input, 1.0)
+endif
+for x in input
+  AssertThrows call object#hash(g:x)
+  Assert g:vader_exception =~# 'TypeError'
+endfor
+
+Execute(hash() should hook into __hash__);
+let cls = {
+      \ 'email': 'somebody@someplace.com',
+      \ 'door': 213,
+      \ }
+
+function! cls.__hash__()
+  return self.door
+endfunction
+
+AssertEqual cls.door, object#hash(cls)
+
+function! cls.__hash__()
+  return object#hash(self.email)
+endfunction
+
+AssertEqual object#hash(cls), object#hash(cls.email)
+
+Execute(hash() should throw WrongType if __hash__ is not a Funcref or return something non-Number);
+let cls = {
+      \ '__hash__': 0
+      \ }
+AssertThrows call object#hash(g:cls)
+Assert g:vader_exception =~# 'WrongType'
+
+function! Hash() dict
+  return 'not a number (NAN)'
+endfunction
+
+let cls.__hash__ = function('Hash')
+AssertThrows call object#hash(g:cls)
+Assert g:vader_exception =~# 'WrongType'
+
 "TODO: Draw some graph to show that the sha256/djb2 hash is well distributed.
 " vim:ft=vim

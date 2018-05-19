@@ -129,7 +129,7 @@ let input = [
       \ v:false,
       \ ]
 if has('float')
-  let input += [ 1.0 ]
+  call add(input, 1.0)
 endif
 
 for X in input
