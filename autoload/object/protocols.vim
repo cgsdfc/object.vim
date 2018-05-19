@@ -4,7 +4,7 @@ function! object#protocols#has(obj, name)
   return has_key(a:obj, a:name) && maktaba#value#IsFuncref(a:obj[a:name])
 endfunction
 
-"
+""
 " Get the attribute {name} from {obj}.
 " Note: The __getattr__() hook overrides the dictionary lookup
 " completely. That means it is not consulted after dictionary lookup
@@ -31,6 +31,9 @@ function! object#protocols#getattr(obj, name, ...)
         \ object#types#name(obj), string(name))
 endfunction
 
+""
+" setattr(obj, name, val)
+" Set the {name} attribute of {obj} to {val}.
 "
 " Set attribute {name} to {val} for {obj}
 function! object#protocols#setattr(obj, name, val)
@@ -45,6 +48,9 @@ function! object#protocols#setattr(obj, name, val)
   let obj[name] = a:val
 endfunction
 
+""
+" hasattr(obj, name)
+" Return whether {obj} has attribute {name}.
 "
 " Test whether {obj} has attribute {name}.
 " Return false if {obj} is not a |Dict|.
@@ -61,6 +67,11 @@ function! object#protocols#repr(obj)
   return maktaba#ensure#IsString(a:obj.__repr__())
 endfunction
 
+""
+" len(obj)
+" Return the length of {obj}. If {obj} is a |List|
+" or a |Dict|, |len()| will be called. Otherwise, the __len__()
+" of {obj} will be called.
 function! object#protocols#len(obj)
   if maktaba#value#IsString(a:obj)
     return len(a:obj)
@@ -72,6 +83,11 @@ function! object#protocols#len(obj)
   return maktaba#ensure#IsNumber(a:obj.__len__())
 endfunction
 
+""
+" dir(obj)
+" Return a |List| of names of all attributes from {obj}. If
+" {obj} defines __dir__(), it is called instead.
+"
 function! object#protocols#dir(obj)
   let obj = maktaba#ensure#IsDict(a:obj)
   if !has_key(obj, '__dir__')

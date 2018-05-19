@@ -1,0 +1,122 @@
+*vim-object.txt*
+                                                     *object.vim* *vim-object*
+
+==============================================================================
+CONTENTS                                                 *vim-object-contents*
+  1. Introduction...........................................|vim-object-intro|
+  2. Functions..........................................|vim-object-functions|
+  3. Exceptions........................................|vim-object-exceptions|
+
+==============================================================================
+INTRODUCTION                                                *vim-object-intro*
+
+A vimscript library that provides object protocols for Vim similar to Python.
+
+
+==============================================================================
+FUNCTIONS                                               *vim-object-functions*
+
+object#class#class({name}, [bases])                     *object#class#class()*
+  class(name[,bases]) Define a class that has a name and optional base
+  class(es).
+>
+    let Widget = object#class('Widget')
+    let Widget = object#class('Widget', [...])
+<
+  [bases] should be a |Dict| or a |List| of |Dict| that was defined by
+  |class()|. {name} should be a |String| of valid identifier in Vim
+  ([_a-zA-Z][_a-zA-Z0-9]*). The return value is special |Dict| to which
+  methods can be added to and from which instance can be created by
+  |object#new()|. Methods can be added by:
+>
+    function! Widget.say_yes()
+    let Widget.say_yes = function('widget#say_yes')
+<
+
+  Inheritance is possible. The methods of base classes are added from left to
+  right across the [bases] when |class()| is called. The methods defined for
+  this class effectively override those from bases.
+
+
+object#class#new({cls}, [args])                           *object#class#new()*
+  new(cls[, args]) Create a new instance of {cls} by applying optional [args].
+
+
+object#class#rawnew({cls})                             *object#class#rawnew()*
+  Stage 1
+
+object#class#type({object})                              *object#class#type()*
+  type(object) Return the class of {object}.
+
+
+object#class#super({method}, {cls}, {object})           *object#class#super()*
+  super(cls, object, method) Return a partial |Funcref| that binds the dict of
+  {method} of the base class {cls} of {object} to {object} Examples:
+>
+    call object#super(Base, self, '__init__')(...)
+<
+
+
+object#class#isinstance({object}, {cls})           *object#class#isinstance()*
+  isinstance(object, cls) Return whether {object} is an instance of {cls}.
+
+
+object#class#issubclass({cls}, {base})             *object#class#issubclass()*
+  issubclass(cls, base) Return wheter {cls} is a subclass of {base}.
+
+
+object#mapping#hash({object})                          *object#mapping#hash()*
+  hash(object) Return the hash value of {object}. TODO
+
+object#mapping#getitem({key}, {object})             *object#mapping#getitem()*
+  getitem(object, key) Return the value at {key} in {object} as if {object} is
+  a mapping. If {object} is a |List| or |Dict|, operator[] of Vim will be
+  used.
+
+object#mapping#setitem({key}, {object}, {value})    *object#mapping#setitem()*
+  setitem(object, key, value) Set the value at {key} of {object} to {value}.
+  If {object} is a |List| or |Dict|, let {object}[{key}] = {value} will be
+  used. Otherwise, __setitem__() of {object} will be used.
+
+object#protocols#getattr({obj}, {name})           *object#protocols#getattr()*
+  Get the attribute {name} from {obj}. Note: The __getattr__() hook overrides
+  the dictionary lookup completely. That means it is not consulted after
+  dictionary lookup failed but used directly if there is a usable one.
+
+
+object#protocols#setattr({obj}, {name}, {val})    *object#protocols#setattr()*
+  setattr(obj, name, val) Set the {name} attribute of {obj} to {val}.
+
+  Set attribute {name} to {val} for {obj}
+
+object#protocols#hasattr({obj}, {name})           *object#protocols#hasattr()*
+  hasattr(obj, name) Return whether {obj} has attribute {name}.
+
+  Test whether {obj} has attribute {name}. Return false if {obj} is not a
+  |Dict|.
+
+object#protocols#len({obj})                           *object#protocols#len()*
+  len(obj) Return the length of {obj}. If {obj} is a |List| or a |Dict|,
+  |len()| will be called. Otherwise, the __len__() of {obj} will be called.
+
+object#protocols#dir({obj})                           *object#protocols#dir()*
+  dir(obj) Return a |List| of names of all attributes from {obj}. If {obj}
+  defines __dir__(), it is called instead.
+
+
+object#types#object()                                  *object#types#object()*
+  object() Create a plain object.
+
+object#types#object_()                                *object#types#object_()*
+  object_() Return the object class
+
+object#types#type_()                                    *object#types#type_()*
+  type_() Return the type class
+
+==============================================================================
+EXCEPTIONS                                             *vim-object-exceptions*
+
+                                                       *ERROR(AttributeError)*
+
+
+vim:tw=78:ts=8:ft=help:norl:

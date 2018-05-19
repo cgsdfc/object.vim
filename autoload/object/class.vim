@@ -48,6 +48,28 @@ function! object#class#type_init(cls, name, bases, dict)
   call extend(a:cls, dict, 'force')
 endfunction
 
+""
+" class(name[,bases])
+" Define a class that has a name and optional base class(es).
+" >
+"   let Widget = object#class('Widget')
+"   let Widget = object#class('Widget', [...])
+" <
+" [bases] should be a |Dict| or a |List| of |Dict| that was defined by |class()|.
+" {name} should be a |String| of valid identifier in Vim
+" ([_a-zA-Z][_a-zA-Z0-9]*).
+" The return value is special |Dict| to which methods can be added to and from
+" which instance can be created by |object#new()|.
+" Methods can be added by:
+" >
+"   function! Widget.say_yes()
+"   let Widget.say_yes = function('widget#say_yes')
+" <
+"
+" Inheritance is possible. The methods of base classes are added from left to
+" right across the [bases] when |class()| is called. The methods defined for
+" this class effectively override those from bases.
+"
 function! object#class#class(name, ...)
   let name = maktab#ensure#IsString(a:name)
   let argc = object#class#ensure_argc(1, a:0)
@@ -88,8 +110,9 @@ function! object#class#class_init(cls, name, bases)
 endfunction
 
 ""
-" @private
-" Stage 2
+" new(cls[, args])
+" Create a new instance of {cls} by applying optional [args].
+"
 function! object#class#new(cls, ...)
   let cls = object#class#ensure_class(a:cls)
   let obj = object#class#rawnew(cls)
@@ -136,7 +159,8 @@ function! object#class#ensure_object(x)
 endfunction
 
 ""
-" @private
+" type(object)
+" Return the class of {object}.
 "
 function! object#class#type(obj)
   call object#class#ensure_object(a:obj)
@@ -144,7 +168,13 @@ function! object#class#type(obj)
 endfunction
 
 ""
-" @private
+" super(cls, object, method)
+" Return a partial |Funcref| that binds the dict of {method}
+" of the base class {cls} of {object} to {object}
+" Examples:
+" >
+"   call object#super(Base, self, '__init__')(...)
+" <
 "
 function! object#class#super(cls, obj, method)
   let cls = object#class#ensure_class(a:cls)
@@ -191,7 +221,9 @@ function! object#class#isinstance_pred(obj, cls)
 endfunction
 
 ""
-" @private
+" isinstance(object, cls)
+" Return whether {object} is an instance of {cls}.
+"
 function! object#class#isinstance(obj, cls)
   let cls = object#class#ensure_class(a:cls)
   let obj = object#class#ensure_object(a:obj)
@@ -200,7 +232,8 @@ function! object#class#isinstance(obj, cls)
 endfunction
 
 ""
-" @private
+" issubclass(cls, base)
+" Return wheter {cls} is a subclass of {base}.
 "
 function! object#class#issubclass(cls, base)
   let cls = object#class#ensure_class(a:cls)

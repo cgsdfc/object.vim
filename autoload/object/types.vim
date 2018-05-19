@@ -55,14 +55,23 @@ function! s:type_class.__init__(name, bases, dict)
   call object#class#type_init(self, a:name, a:bases, a:dict)
 endfunction
 
+""
+" object()
+" Create a plain object.
 function! object#types#object()
   return object#new(s:object_class)
 endfunction
 
+""
+" object_()
+" Return the object class
 function! object#types#object_()
   return s:object_class
 endfunction
 
+""
+" type_()
+" Return the type class
 function! object#types#type_()
   return s:type_class
 endfunction

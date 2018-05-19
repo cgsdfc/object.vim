@@ -29,6 +29,8 @@ function! object#except#TypeError(msg, ...)
   return object#except#BaseException('TypeError', a:msg, a:000)
 endfunction
 
+""
+" @exception
 function! object#except#AttributeError(msg, ...)
   return object#except#BaseException('AttributeError', a:msg, a:000)
 endfunction
