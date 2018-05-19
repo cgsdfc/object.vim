@@ -1,5 +1,6 @@
 "
 " Any better way to guess the bitwidth of Number?
+"TODO: Draw some graph to show that the sha256/djb2 hash is well distributed.
 "
 let s:INT32_MAX = 2147483647
 let s:INT64_MAX = 9223372036854775807
@@ -125,11 +126,13 @@ function! object#mapping#getitem(obj, key)
 endfunction
 
 ""
-" Set the value at {key} of {obj} to {value}.
-" If {obj} is a |List| or |Dict|, let {obj}[{key}] = {value}
-" will be used. Otherwise, __setitem__() of {obj} will be used.
+" Set the value at {key} of {obj} to {val}.
+" If {obj} is a |List| or a |Dict| without __setitem__(),
+" |let| will be uesd.
+" Otherwise, __setitem__() of {obj} will be used.
+"
 function! object#mapping#setitem(obj, key, val)
-  if maktaba#value#IsString(a:obj) || maktaba#value#IsList(a:obj)
+  if maktaba#value#IsList(a:obj)
     let a:obj[a:key] = a:val
     return
   endif

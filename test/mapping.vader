@@ -170,7 +170,60 @@ let cls = { '__getitem__' : 1 }
 AssertThrows call object#getitem(g:cls, 2)
 Assert g:vader_exception =~# 'WrongType'
 
+"
+" setitem()
+"
 
+Execute(setitem() should work with builtin types supporting operator[]);
+let input = [
+      \ [ range(4), 0, -1 ],
+      \ [ { 'a': 1, 'b': 2 }, 'a', 2 ],
+      \ ]
 
-"TODO: Draw some graph to show that the sha256/djb2 hash is well distributed.
+for [obj, key, val] in input
+  call object#setitem(obj, key, val)
+  AssertEqual obj[key], val
+endfor
+
+Execute(setitem() can hook into __setitem__);
+let cls = {
+      \ 'data': range(10),
+      \ }
+function! cls.__setitem__(key, val)
+  let self.data[a:key] = a:val
+endfunction
+
+for x in reverse(range(10))
+  call object#setitem(cls, x, x)
+  AssertEqual cls.data[x], x
+endfor
+
+function! cls.__setitem__(key, val)
+  throw 'cannot setitem'
+endfunction
+
+AssertThrows call object#setitem(g:cls, 4, 1)
+AssertEqual 'cannot setitem', g:vader_exception
+
+Execute(setitem() throws TypeError with types like String, Number or Boolean);
+let input = [
+      \ 'str', 1, v:false, v:true, v:none, v:null,
+      \ ]
+if has('float')
+  call add(input, 1.0)
+endif
+
+for x in input
+  AssertThrows call object#setitem(g:x, 0, 0)
+  Assert g:vader_exception =~# 'TypeError'
+endfor
+
+Execute(setitem() throws WrongType when __setitem__ is not a Funcref);
+let cls = {
+      \ '__setitem__' : 'not a Funcref',
+      \ }
+AssertThrows call object#setitem(g:cls, 0, 0)
+Assert g:vader_exception =~# 'WrongType'
+Log g:vader_exception
+
 " vim:ft=vim
