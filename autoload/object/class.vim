@@ -80,7 +80,7 @@ function! object#class#class(name, ...)
       throw object#TypeError("'bases' should not be empty")
     endif
     let bases = a:1
-  elseif maktab#value#IsDic(a:1)
+  elseif maktab#value#IsDict(a:1)
     " Single base
     let bases = [a:1]
   else

@@ -138,6 +138,12 @@ endfunction
 "   object()
 "   object_()
 "   type_()
+"   NoneType()
+"   None()
+
+function! object#NoneType(...) abort
+  return call('object#types#NoneType', a:000)
+endfunction
 
 function! object#object(...) abort
   return call('object#types#object', a:000)
@@ -150,3 +156,31 @@ endfunction
 function! object#type_(...) abort
   return call('object#types#type_', a:000)
 endfunction
+
+function! object#None(...) abort
+  return call('object#types#None', a:000)
+endfunction
+
+""
+" From object#iter
+"   iter()
+"   next()
+"   all()
+"   any()
+
+function! object#iter(...) abort
+  return call('object#iter#iter', a:000)
+endfunction
+
+function! object#next(...) abort
+  return call('object#iter#next', a:000)
+endfunction
+
+function! object#all(...) abort
+  return call('object#iter#all', a:000)
+endfunction
+
+function! object#any(...) abort
+  return call('object#iter#any', a:000)
+endfunction
+

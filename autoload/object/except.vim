@@ -17,14 +17,20 @@ function! object#except#BaseException(type, msg, args)
   return object#except#format(a:type, a:msg, a:args)
 endfunction
 
+""
+" @exception
 function! object#except#Exception(msg, ...)
   return object#except#BaseException('Exception', a:msg, a:000)
 endfunction
 
+""
+" @exception
 function! object#except#ValueError(msg, ...)
   return object#except#BaseException('ValueError', a:msg, a:000)
 endfunction
 
+""
+" @exception
 function! object#except#TypeError(msg, ...)
   return object#except#BaseException('TypeError', a:msg, a:000)
 endfunction
@@ -34,3 +40,10 @@ endfunction
 function! object#except#AttributeError(msg, ...)
   return object#except#BaseException('AttributeError', a:msg, a:000)
 endfunction
+
+""
+" @exception
+function! object#except#StopIteration()
+  return 'StopIteration:'
+endfunction
+
