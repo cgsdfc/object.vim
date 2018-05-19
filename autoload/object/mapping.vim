@@ -1,6 +1,6 @@
 "
 " Any better way to guess the bitwidth of Number?
-"TODO: Draw some graph to show that the sha256/djb2 hash is well distributed.
+"TODO: Add performance test for the strhash().
 "
 let s:INT32_MAX = 2147483647
 let s:INT64_MAX = 9223372036854775807
@@ -68,10 +68,13 @@ else
 endif
 
 "
-" Wrap {nr} if it is negative
+" Wrap {nr} if it is negative. Since there is no unsigned
+" type in Vim, the sign digit will be cut off when turning
+" a negative signed number to an unsigned one. Thus, -1 will
+" be turned into INT_MAX but not UINT_MAX (if present).
 "
 function! object#mapping#unsigned(nr)
-  return a:nr >= 0 ? a:nr : s:INT_MAX + a:nr
+  return a:nr >= 0 ? a:nr : s:INT_MAX + a:nr + 1
 endfunction
 
 ""
