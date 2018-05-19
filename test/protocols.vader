@@ -1,7 +1,5 @@
-" vim:ft=vim
 " Test setattr()
 "
-
 Execute(setattr() should set attribute with a Dict);
 let bar = {}
 call object#setattr(bar, 'weight', 10)
@@ -59,6 +57,9 @@ Execute(hasattr() should throw WrongType with non-String name);
 AssertThrows call object#hasattr({}, [])
 Assert g:vader_exception =~# 'ERROR(WrongType)'
 
+"
+" repr()
+"
 Execute(repr() can hook into __repr__());
 let cls = {}
 function! cls.__repr__()
@@ -97,6 +98,9 @@ endfunction
 AssertThrows call object#repr(g:cls)
 Assert g:vader_exception=~#'ERROR(WrongType)'
 
+"
+" Test len()
+"
 Execute(len() should use __len__() if available);
 let cls = {}
 function! cls.__len__()
@@ -142,6 +146,9 @@ endfunction
 AssertThrows call object#len(g:cls)
 Assert g:vader_exception =~# 'WrongType'
 
+"
+" Test dir()
+"
 Execute(dir() should only accept Dict);
 let input = [
       \ 1,
@@ -153,3 +160,24 @@ for x in input
   AssertThrows call object#dir(g:x)
   Assert g:vader_exception =~# 'WrongType'
 endfor
+
+Execute(dir() return keys() for ordinary Dict but hooks into __dir__());
+let x = {
+      \ 'root': '/path/to/somewhere/',
+      \ 'has_permisson': 'true',
+      \ 'last_access': '/path/to/somefile',
+      \ 'refcnt': 10,
+      \ }
+
+AssertEqual keys(x), object#dir(x), 'if the Dict has no __dir__(), use key()'
+
+let cls = {
+      \ 'x': x
+      \ }
+function! cls.__dir__()
+  return object#dir(self.x)
+endfunction
+
+AssertEqual keys(x), object#dir(cls)
+
+" vim:ft=vim
