@@ -1,4 +1,6 @@
+"
 " Any better way to guess the bitwidth of Number?
+"
 let s:INT32_MAX = 2147483647
 let s:INT64_MAX = 9223372036854775807
 
@@ -13,14 +15,15 @@ endif
 let s:HEX_WIDTH = s:INT_WIDTH / 4
 
 "
-" Wrap overflowed product into 2-complement value
+" Multiply 2 non-negative Numbers.
+" Wrap overflowed product into 2-complement value.
 "
 function! object#mapping#xmult(x, y)
   return object#mapping#unsigned(a:x * a:y)
 endfunction
 
 "
-" Return info about Number.
+" Return INT_WIDTH and INT_MAX in a |Dict|.
 "
 function! object#mapping#nrinfo()
   return {
@@ -43,13 +46,17 @@ function! object#mapping#strhash_djb2(str)
   return hash
 endfunction
 
-function! object#mapping#strhash_sha256(str)
-  " Since all Number of Vimscirpt is signed, we can only use
-  " 31 bits which is 7 hex bits plus the inclusive slice of Vim.
-    return str2nr(sha256(a:str)[: s:HEX_WIDTH-2], 16)
-endfunction
 
 if has('cryptv')
+  "
+  " The sha256 hash
+  "
+  function! object#mapping#strhash_sha256(str)
+    " Since all Number of Vimscirpt is signed, we can only use
+    " 31 bits which is 7 hex bits plus the inclusive slice of Vim.
+    return str2nr(sha256(a:str)[: s:HEX_WIDTH-2], 16)
+  endfunction
+
   function! object#mapping#strhash(str)
     return object#mapping#strhash_sha256(a:str)
   endfunction
@@ -60,13 +67,21 @@ else
 endif
 
 "
-" Return a none-negative number as hash value for {nr}.
+" Wrap {nr} if it is negative
+"
 function! object#mapping#unsigned(nr)
   return a:nr >= 0 ? a:nr : s:INT_MAX + a:nr
 endfunction
 
 ""
-" Return the hash value of {obj}.
+" Return the hash value of {obj}. {obj} can be a |Number|, a
+" |String| or special variables like |v:none| and |v:false|,
+" or an object with __hash__() defined.
+"
+" @throws TypeError if {obj} is a |List|, |Float| or |Dict|.
+" @throws WrongType if __hash__ is not a |Funcref| or returns
+" something NAN (Not A Number).
+"
 function! object#mapping#hash(obj)
   if maktaba#value#IsNumber(a:obj)
     return object#mapping#unsigned(a:obj)

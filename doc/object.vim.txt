@@ -1,20 +1,20 @@
-*vim-object.txt*
-                                                     *object.vim* *vim-object*
+*object.vim.txt*
+                                                     *object.vim* *object.vim*
 
 ==============================================================================
-CONTENTS                                                 *vim-object-contents*
-  1. Introduction...........................................|vim-object-intro|
-  2. Functions..........................................|vim-object-functions|
-  3. Exceptions........................................|vim-object-exceptions|
+CONTENTS                                                 *object.vim-contents*
+  1. Introduction...........................................|object.vim-intro|
+  2. Functions..........................................|object.vim-functions|
+  3. Exceptions........................................|object.vim-exceptions|
 
 ==============================================================================
-INTRODUCTION                                                *vim-object-intro*
+INTRODUCTION                                                *object.vim-intro*
 
 A vimscript library that provides object protocols for Vim similar to Python.
 
 
 ==============================================================================
-FUNCTIONS                                               *vim-object-functions*
+FUNCTIONS                                               *object.vim-functions*
 
 object#class#class({name}, [bases])                     *object#class#class()*
   class(name[,bases]) Define a class that has a name and optional base
@@ -65,18 +65,23 @@ object#class#issubclass({cls}, {base})             *object#class#issubclass()*
   issubclass(cls, base) Return wheter {cls} is a subclass of {base}.
 
 
-object#mapping#hash({object})                          *object#mapping#hash()*
-  hash(object) Return the hash value of {object}. TODO
+object#mapping#hash({obj})                             *object#mapping#hash()*
+  Return the hash value of {obj}. {obj} can be a |Number|, a |String| or
+  special variables like |v:none| and |v:false|, or an object with __hash__()
+  defined.
 
-object#mapping#getitem({key}, {object})             *object#mapping#getitem()*
-  getitem(object, key) Return the value at {key} in {object} as if {object} is
-  a mapping. If {object} is a |List| or |Dict|, operator[] of Vim will be
-  used.
+  Throws ERROR(TypeError)
+  Throws ERROR(WrongType)
 
-object#mapping#setitem({key}, {object}, {value})    *object#mapping#setitem()*
-  setitem(object, key, value) Set the value at {key} of {object} to {value}.
-  If {object} is a |List| or |Dict|, let {object}[{key}] = {value} will be
-  used. Otherwise, __setitem__() of {object} will be used.
+
+object#mapping#getitem({obj}, {key})                *object#mapping#getitem()*
+  Return the value at {key} in {obj} as if {obj} is a mapping. If {obj} is a
+  |List| or |Dict|, operator[] of Vim will be used.
+
+object#mapping#setitem({key}, {obj}, {value})       *object#mapping#setitem()*
+  Set the value at {key} of {obj} to {value}. If {obj} is a |List| or |Dict|,
+  let {obj}[{key}] = {value} will be used. Otherwise, __setitem__() of {obj}
+  will be used.
 
 object#protocols#getattr({obj}, {name})           *object#protocols#getattr()*
   Get the attribute {name} from {obj}. Note: The __getattr__() hook overrides
@@ -114,7 +119,7 @@ object#types#type_()                                    *object#types#type_()*
   type_() Return the type class
 
 ==============================================================================
-EXCEPTIONS                                             *vim-object-exceptions*
+EXCEPTIONS                                             *object.vim-exceptions*
 
                                                        *ERROR(AttributeError)*
 

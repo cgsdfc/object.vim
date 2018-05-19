@@ -58,7 +58,7 @@ for i in range(-500, 500)
   Assert hash >= 0
 endfor
 
-Execute(hash() with special variables);
+Execute(hash() works with special variables);
 let input = [ v:null, v:none, v:false, ]
 for x in input
   AssertEqual 0, object#hash(x)
