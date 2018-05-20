@@ -108,11 +108,29 @@ endfunction
 " |List| and |Dict|, non empty is true. For special
 " variables, v:none, v:false, v:null is false and v:true
 " is true. For numbers, 0 is false and non-zero is true.
-" Hook into __bool__.
+" For floats, 0.0 is false and everything else if true.
 "
-function! object#protocols#bool(obj)
+" Hook into __bool__. 
+"
+if has('float')
+  function! object#protocols#bool(obj)
+    if maktaba#value#IsFloat(a:obj)
+      return a:obj !=# 0
+    endif
+    return object#protocols#bool_nofloat(a:obj)
+  endfunction
+else
+  function! object#protocols#bool(obj)
+    return object#protocols#bool_nofloat(a:obj)
+  endfunction
+endif
+
+function! object#protocols#bool_nofloat(obj)
   try
-    return !!a:obj
+    " If we directly return !!a:obj, the exception cannot
+    " be caught.
+    let x = !!a:obj
+    return x
   catch/E745: Using a List as a Number/
     return !empty(a:obj)
   catch/E728: Using a Dictionary as a Number/
@@ -124,3 +142,4 @@ function! object#protocols#bool(obj)
     call object#protocols#not_avail('bool', a:obj)
   endtry
 endfunction
+

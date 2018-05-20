@@ -35,6 +35,9 @@ endfunction
 " Return an iterator from {obj}.
 "
 function! object#iter#iter(obj)
+  if object#hasattr(a:obj, '__next__')
+    return a:obj
+  endif
   if maktaba#value#IsList(a:obj)
     return object#new(s:list_iter, a:obj)
   endif
@@ -55,37 +58,39 @@ function! object#iter#next(obj)
   return maktab#ensure#IsFuncref(object#getattr(a:obj, '__next__'))()
 endfunction
 
-function! object#iter#any(iterable)
+function! object#iter#any(iter)
+  let iter = object#iter#iter(a:iter)
   try
     while 1
-      let item = object#iter#next(a:iterable)
-      if item | return 1 | endif
+      let item = object#iter#next(iter)
+      if object#bool(item) | return 1 | endif
     endwhile
   catch/StopIteration/
     return 0
   endtry
 endfunction
 
-function! object#iter#all(iterable)
+function! object#iter#all(iter)
+  let iter = object#iter#iter(a:iter)
   try
     while 1
-      let item = object#iter#next(a:iterable)
-      if !item | return 0 | endif
+      let item = object#iter#next(iter)
+      if !object#bool(item) | return 0 | endif
     endwhile
   catch/StopIteration/
     return 1
   endtry
 endfunction
 
-function! object#iter#map(expr, iterable)
+function! object#iter#map(expr, iter)
 
 endfunction
 
-function! object#iter#sum(iterable)
+function! object#iter#sum(iter)
 
 endfunction
 
-function! object#iter#filter(expr, iterable)
+function! object#iter#filter(expr, iter)
 
 endfunction
 

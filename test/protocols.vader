@@ -234,4 +234,20 @@ endfunction
 
 AssertEqual keys(x), object#dir(cls)
 
+"
+" bool()
+"
+
+Execute(bool() works with Number, List, Dict and special variables);
+let input = [
+      \ [ 0, 0], [ 1, 1 ], [ -1, 1],
+      \ [v:false, 0], [v:true, 1], [v:null, 0], [v:none, 0],
+      \ [ [], 0 ], [ [0], 1 ],
+      \ [ {}, 0 ], [ {'a':1}, 1],
+      \ [ 0.0, 0 ], [ -0.0, 0], [ 1.2, 1], [ 0.000001, 1],
+      \ ]
+for [x, y] in input
+  AssertEqual object#bool(x), y
+endfor
+
 " vim:ft=vim

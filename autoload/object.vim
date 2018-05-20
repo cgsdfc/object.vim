@@ -61,6 +61,7 @@ endfunction
 "   hasattr()
 "   repr()
 "   len()
+"   bool()
 
 function! object#dir(...)
   return call('object#protocols#dir', a:000)
@@ -84,6 +85,10 @@ endfunction
 
 function! object#len(...) abort
   return call('object#protocols#len', a:000)
+endfunction
+
+function! object#bool(...) abort
+  return call('object#protocols#bool', a:000)
 endfunction
 
 ""
@@ -167,6 +172,9 @@ endfunction
 "   next()
 "   all()
 "   any()
+"   map()
+"   filter()
+"   sum()
 
 function! object#iter(...) abort
   return call('object#iter#iter', a:000)
