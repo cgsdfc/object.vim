@@ -3,6 +3,7 @@ Before;
 let object = object#object_()
 let type = object#type_()
 let None = object#None()
+let X = object#class('X')
 
 Execute(class() throws TypeError with argc > 2);
 AssertThrows call object#class('Boy', g:object, 'hey')
@@ -38,6 +39,11 @@ for x in [ [object, object], [type, type] ]
   Log g:vader_exception
 endfor
 
+"
+" Test inheritance in terms of subclass relationship
+" and simple builtin methods.
+"
+
 Execute(When there is no bases given or an empty base list, class() sets base to object);
 for x in [ "object#class('Man')",  "object#class('Man', [])" ]
   let cls = eval(x)
@@ -45,16 +51,14 @@ for x in [ "object#class('Man')",  "object#class('Man', [])" ]
   Assert cls.__bases__ ==# [object]
 endfor
 
-Execute(New cls should have working repr());
-let cls = object#class('X')
-AssertEqual object#repr(cls), "<type 'X'>"
+Execute(New cls should work with repr());
+AssertEqual object#repr(X), "<type 'X'>"
 
 Execute(New cls has expected instance relationship);
-let cls = object#class('X')
-Assert cls.__class__ is# type
+Assert X.__class__ is# type
+Assert X.__name__ is# 'X'
 
 Execute(class() can handle one single base);
-let X = object#class('X')
 let Y = object#class('Y', X)
 Assert Y.__base__ is# X
 Assert Y.__bases__ ==# [X]
@@ -69,8 +73,11 @@ let E = object#class('E', [D])
 Assert E.__base__ is# D
 Assert E.__bases__ ==# [D]
 
-Execute(New cls can be instantiated with new());
-let X = object#class('X')
+"
+" Test new() 
+"
+
+Execute(New cls can be instantiated with new() with default __init__ and __repr__);
 let x = object#new(X)
 Assert x.__class__ is# X
 AssertEqual object#repr(x), "<'X' object>"
@@ -79,3 +86,32 @@ Log object#dir(X)
 Log object#repr(x)
 Log object#repr(X)
 
+Execute(new() can hook into __init__ and __repr__);
+function! X.__init__(name, size)
+  let name = maktaba#ensure#IsString(a:name)
+  let size = maktaba#ensure#IsNumber(a:size)
+  let self.name = name
+  let self.size = size
+  Log '__init__ called'
+endfunction
+
+function! X.__repr__()
+  return printf('X(name=%s, size=%d)', self.name, self.size)
+endfunction
+
+let x = object#new(X, 'var', 4)
+AssertEqual x.name, 'var'
+AssertEqual x.size, 4
+Assert object#repr(x) is# 'X(name=var, size=4)'
+Log object#repr(x)
+
+AssertThrows call object#new(g:X, 1, 4)
+Assert g:vader_exception =~# 'WrongType'
+
+"
+" Test methods extraction
+"
+
+Execute(is_method() throws ValueError if the method name isn't identifier);
+
+Execute(methods() extracts correct methods);
