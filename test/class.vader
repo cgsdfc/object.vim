@@ -64,3 +64,18 @@ let bases = map([ 'A', 'B', 'C', ], 'object#class(v:val)')
 let D = object#class('D', bases)
 Assert D.__base__ is# bases[0]
 Assert D.__bases__ is# bases
+
+let E = object#class('E', [D])
+Assert E.__base__ is# D
+Assert E.__bases__ ==# [D]
+
+Execute(New cls can be instantiated with new());
+let X = object#class('X')
+let x = object#new(X)
+Assert x.__class__ is# X
+AssertEqual object#repr(x), "<'X' object>"
+Log object#dir(x)
+Log object#dir(X)
+Log object#repr(x)
+Log object#repr(X)
+
