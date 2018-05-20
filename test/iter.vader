@@ -1,0 +1,30 @@
+Before;
+
+Execute(iter() should return corresponding iterator for String and List);
+for i in [range(10), 'this is a str']
+  let x = object#iter(i)
+  Log object#repr(x)
+  Log object#dir(x)
+endfor
+
+Execute(list_iter);
+let seq = range(10)
+let iter = object#iter(seq)
+for x in seq
+  AssertEqual object#next(iter), x
+endfor
+AssertThrows call object#next(g:iter)
+Assert g:vader_exception=~#'StopIteration'
+
+Execute(str_iter);
+let seq = 'this is a string'
+let iter = object#iter(seq)
+let [i, N] = [0, len(seq)]
+while i < N
+  AssertEqual object#next(iter), seq[i]
+  let i+=1
+endwhile
+AssertThrows call object#next(g:iter)
+Assert g:vader_exception=~#'StopIteration'
+
+" vim:ft=vim

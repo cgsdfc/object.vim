@@ -45,17 +45,19 @@ function! object#iter#iter(obj)
     return object#new(s:str_iter, a:obj)
   endif
   if object#hasattr(a:obj, '__iter__')
-    return maktaba#ensure#IsFuncref(a:obj.__iter__)()
+    return object#protocols#call(a:obj.__iter__)
   endif
-  throw object#TypeError('iter() not available for %s object',
-        \ object#types#name(a:obj))
+  call object#protocols#not_avail('iter', a:obj)
 endfunction
 
 ""
 " Retrieve the next item from the iterator {obj}.
 "
 function! object#iter#next(obj)
-  return maktab#ensure#IsFuncref(object#getattr(a:obj, '__next__'))()
+  if object#hasattr(a:obj, '__next__')
+    return object#protocols#call(a:obj.__next__)
+  endif
+  call object#protocols#not_avail('next', a:obj)
 endfunction
 
 function! object#iter#any(iter)
@@ -82,12 +84,45 @@ function! object#iter#all(iter)
   endtry
 endfunction
 
+function! object#iter#dict(iter)
+  let iter = object#iter(a:iter)
+  let dict = {}
+  try
+    while 1
+      let item = object#next(iter)
+      let dict[item[0]] = item[1]
+    endwhile
+  catch /StopIteration/
+    return dict
+  endtry
+endfunction
+
+function! object#iter#list(iter)
+  let iter = object#iter(a:iter)
+  let list = []
+  try
+    while 1
+      call add(list, object#next(iter))
+    endwhile
+  catch /StopIteration/
+    return list
+  endtry
+endfunction
+
 function! object#iter#map(expr, iter)
 
 endfunction
 
 function! object#iter#sum(iter)
-
+  let iter = object#iter(a:iter)
+  let x = object#next(iter)
+  try
+    while 1
+      let x += object#next(iter)
+    endwhile
+  catch /StopIteration/
+    return x
+  endtry
 endfunction
 
 function! object#iter#filter(expr, iter)

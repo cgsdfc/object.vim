@@ -116,6 +116,7 @@ endfunction
 "   ValueError
 "   TypeError
 "   AttributeError
+"   StopIteration
 
 function! object#BaseException(...) abort 
   return call('object#except#BaseException', a:000)
@@ -131,6 +132,10 @@ endfunction
 
 function! object#TypeError(...) abort
   return call('object#except#TypeError', a:000)
+endfunction
+
+function! object#StopIteration(...) abort
+  return call('object#except#StopIteration', a:000)
 endfunction
 
 function! object#AttributeError(...) abort
