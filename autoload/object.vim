@@ -180,6 +180,8 @@ endfunction
 "   map()
 "   filter()
 "   sum()
+"   list()
+"   dict()
 
 function! object#iter(...) abort
   return call('object#iter#iter', a:000)
@@ -195,5 +197,13 @@ endfunction
 
 function! object#any(...) abort
   return call('object#iter#any', a:000)
+endfunction
+
+function! object#list(...) abort
+  return call('object#iter#list', a:000)
+endfunction
+
+function! object#dict(...) abort
+  return call('object#iter#dict', a:000)
 endfunction
 
