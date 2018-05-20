@@ -1,5 +1,7 @@
 let s:list_iter = object#class('list_iter')
 let s:str_iter = object#class('str_iter')
+let s:enum_iter = object#class('enumerate')
+let s:zip_iter = object#class('zip_iter')
 
 function! s:list_iter.__init__(list)
   let self.idx = 0
@@ -11,7 +13,7 @@ function! s:list_iter.__next__()
     let item = self.list[self.idx]
     let self.idx += 1
     return item
-  catch/E684: list index out of range:/
+  catch /E684: list index out of range:/
     throw object#StopIteration()
   endtry
 endfunction
@@ -29,6 +31,25 @@ function! s:str_iter.__next__()
     return item
   endif
   throw object#StopIteration()
+endfunction
+
+function! s:enum_iter.__init__(iter, start)
+  let self.iter = a:iter
+  let self.idx = a:start
+endfunction
+
+function! s:enum_iter.__next__()
+  let item = [self.idx, object#next(self.iter)]
+  let self.idx += 1
+  return item
+endfunction
+
+function! s:zip_iter.__init__(iters)
+  let self.iters = a:iters
+endfunction
+
+function! s:zip_iter.__next__()
+  return map(copy(self.iters), 'object#next(v:val)')
 endfunction
 
 ""
@@ -67,7 +88,7 @@ function! object#iter#any(iter)
       let item = object#iter#next(iter)
       if object#bool(item) | return 1 | endif
     endwhile
-  catch/StopIteration/
+  catch /StopIteration/
     return 0
   endtry
 endfunction
@@ -79,7 +100,7 @@ function! object#iter#all(iter)
       let item = object#iter#next(iter)
       if !object#bool(item) | return 0 | endif
     endwhile
-  catch/StopIteration/
+  catch /StopIteration/
     return 1
   endtry
 endfunction
@@ -129,3 +150,20 @@ function! object#iter#filter(expr, iter)
 
 endfunction
 
+""
+" iterator for index, value of iterable.
+" Take an optional [start].
+"
+function! object#iter#enumerate(iter, ...)
+  let argc = object#util#ensure_argc(1, a:0)
+  let iter = object#iter(a:iter)
+  let start =  argc ? maktaba#ensure#IsNumber(a:1) : 0
+  return object#new(s:enum_iter, iter, start)
+endfunction
+
+function! object#iter#zip(iter, ...)
+  let iter = object#iter(a:iter)
+  if !a:0 | return iter | endif
+  let iters = [iter] + a:000
+  return object#new(s:zip_iter, iters)
+endfunction
