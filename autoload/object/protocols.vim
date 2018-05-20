@@ -1,7 +1,18 @@
 "
-" Test whether {obj} has an attribute {name} which is a |Funcref|.
-function! object#protocols#has(obj, name)
-  return has_key(a:obj, a:name) && maktaba#value#IsFuncref(a:obj[a:name])
+" Call a __protocol__ function {X} (ensure {X} is a Funcref)
+"
+function! object#protocols#call(X, ...)
+  return call(maktaba#ensure#IsFuncref(a:X), a:000)
+endfunction
+
+"
+" Indicate the the {func} is not available for {obj} because of
+" lack of hooks or invcompatible type. {func} is the name of the
+" function without parentheses.
+"
+function! object#protocols#not_avail(func, obj)
+  throw object#TypeError('%s() not available for %s object', a:func,
+        \ object#types#name(a:obj))
 endfunction
 
 ""
@@ -15,8 +26,8 @@ function! object#protocols#getattr(obj, name, ...)
   let name = maktaba#ensure#IsString(a:name)
   let argc = object#util#ensure_argc(1, a:0)
 
-  if object#protocols#has(obj, '__getattr__')
-    return obj.__getattr__(name)
+  if object#protocols#hasattr(a:obj, '__getattr__')
+    return object#protocols#call(a:obj.__getattr__, name) 
   endif
 
   if has_key(obj, name)
@@ -32,16 +43,14 @@ function! object#protocols#getattr(obj, name, ...)
 endfunction
 
 ""
-" setattr(obj, name, val)
 " Set the {name} attribute of {obj} to {val}.
 "
-" Set attribute {name} to {val} for {obj}
 function! object#protocols#setattr(obj, name, val)
   let obj = maktaba#ensure#IsDict(a:obj)
   let name = maktaba#ensure#IsString(a:name)
 
-  if object#protocols#has(obj, '__setattr__')
-    call obj.__setattr__(name, a:val)
+  if object#protocols#hasattr(obj, '__setattr__')
+    call object#protocols#call(obj.__setattr__, name, a:val)
     return
   endif
 
@@ -49,29 +58,29 @@ function! object#protocols#setattr(obj, name, val)
 endfunction
 
 ""
-" hasattr(obj, name)
-" Return whether {obj} has attribute {name}.
-"
 " Test whether {obj} has attribute {name}.
 " Return false if {obj} is not a |Dict|.
+"
 function! object#protocols#hasattr(obj, name)
   let name = maktaba#ensure#IsString(a:name)
   return maktaba#value#IsDict(a:obj) && has_key(a:obj, name)
 endfunction
 
+""
+" Generate string representation for {obj}. Fail back on |string()|
+"
 function! object#protocols#repr(obj)
   if !object#protocols#hasattr(a:obj, '__repr__')
     return string(a:obj)
   endif
-  call maktaba#ensure#IsFuncref(a:obj.__repr__)
-  return maktaba#ensure#IsString(a:obj.__repr__())
+  return maktaba#ensure#IsString(object#protocols#call(a:obj.__repr__))
 endfunction
 
 ""
-" len(obj)
 " Return the length of {obj}. If {obj} is a |List|
 " or a |Dict|, |len()| will be called. Otherwise, the __len__()
 " of {obj} will be called.
+"
 function! object#protocols#len(obj)
   if maktaba#value#IsString(a:obj)
     return len(a:obj)
@@ -79,12 +88,10 @@ function! object#protocols#len(obj)
   if !object#protocols#hasattr(a:obj, '__len__')
     return len(maktaba#ensure#IsCollection(a:obj))
   endif
-  call maktaba#ensure#IsFuncref(a:obj.__len__)
-  return maktaba#ensure#IsNumber(a:obj.__len__())
+  return maktaba#ensure#IsNumber(object#protocols#call(a:obj.__len__))
 endfunction
 
 ""
-" dir(obj)
 " Return a |List| of names of all attributes from {obj}. If
 " {obj} defines __dir__(), it is called instead.
 "
@@ -93,6 +100,27 @@ function! object#protocols#dir(obj)
   if !has_key(obj, '__dir__')
     return keys(obj)
   endif
-  call maktaba#ensure#IsFuncref(a:obj.__dir__)
-  return maktaba#ensure#IsList(obj.__dir__())
+  return maktaba#ensure#IsList(object#protocols#call(obj.__dir__))
+endfunction
+
+""
+" Test whether {obj} is true. For collections like
+" |List| and |Dict|, non empty is true. For special
+" variables, v:none, v:false, v:null is false and v:true
+" is true. For numbers, 0 is false and non-zero is true.
+" Hook into __bool__.
+"
+function! object#protocols#bool(obj)
+  try
+    return !!a:obj
+  catch/E745: Using a List as a Number/
+    return !empty(a:obj)
+  catch/E728: Using a Dictionary as a Number/
+    if object#protocols#hasattr(a:obj, '__bool__')
+      return object#protocols#call(a:obj.__bool__)
+    endif
+    return !empty(a:obj)
+  catch
+    call object#protocols#not_avail('bool', a:obj)
+  endtry
 endfunction

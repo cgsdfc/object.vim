@@ -103,11 +103,9 @@ function! object#mapping#hash(obj)
     return 1
   endif
   if object#protocols#hasattr(a:obj, '__hash__')
-    call maktaba#ensure#IsFuncref(a:obj.__hash__)
-    return maktaba#ensure#IsNumber(a:obj.__hash__())
+    return maktaba#ensure#IsNumber(object#protocols#call(a:obj.__hash__))
   endif
-  throw object#TypeError('hash() not available for %s object',
-        \ object#types#name(a:obj))
+  call object#protocols#not_avail('hash', a:obj)
 endfunction
 
 ""
@@ -121,11 +119,9 @@ function! object#mapping#getitem(obj, key)
     if !has_key(a:obj, '__getitem__')
       return a:obj[a:key]
     endif
-    call maktaba#ensure#IsFuncref(a:obj.__getitem__)
-    return a:obj.__getitem__(a:key)
+    return object#protocols#call(a:obj.__getitem__, a:key)
   endif
-  throw object#TypeError('getitem() not available for %s object',
-        \ object#types#name(a:obj))
+  call object#protocols#not_avail('getitem', a:obj)
 endfunction
 
 ""
@@ -144,10 +140,8 @@ function! object#mapping#setitem(obj, key, val)
       let a:obj[a:key] = a:val
       return
     endif
-    call maktaba#ensure#IsFuncref(a:obj.__setitem__)
-    call a:obj.__setitem__(a:key, a:val)
+    call object#protocols#call(a:obj.__setitem__, a:key, a:val)
     return
   endif
-  throw object#TypeError('setitem() not available for %s object',
-        \ object#types#name(a:obj))
+  call object#protocols#not_avail('setitem', a:obj)
 endfunction
