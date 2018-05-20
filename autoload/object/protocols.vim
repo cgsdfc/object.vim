@@ -135,11 +135,12 @@ function! object#protocols#bool_nofloat(obj)
     return !empty(a:obj)
   catch/E728: Using a Dictionary as a Number/
     if object#protocols#hasattr(a:obj, '__bool__')
-      return object#protocols#call(a:obj.__bool__)
+      " Thing returned from bool() should be canonical, so as __bool__.
+      " Prevent user from mistakenly return something like 1.0
+      return maktaba#ensure#IsBool(object#protocols#call(a:obj.__bool__))
     endif
     return !empty(a:obj)
   catch
     call object#protocols#not_avail('bool', a:obj)
   endtry
 endfunction
-

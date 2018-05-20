@@ -250,4 +250,22 @@ for [x, y] in input
   AssertEqual object#bool(x), y
 endfor
 
+Execute(bool() hooks into __bool__);
+let cls = { 'nr' : 2 }
+function! cls.__bool__()
+  return self.nr > 0
+endfunction
+
+Assert object#bool(cls)
+let cls.nr = 0
+Assert !object#bool(cls)
+
+Execute(bool() throws BadValue (by maktaba#ensure#IsBool()) if __bool__ returns neither 0 nor 1);
+let cls = {}
+function! cls.__bool__()
+  return 3
+endfunction
+AssertThrows call object#bool(g:cls)
+Assert g:vader_exception =~# 'BadValue'
+
 " vim:ft=vim
