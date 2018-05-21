@@ -151,7 +151,7 @@ function! object#file#flush() dict
   endif
   try
     writefile(self._written, self.name, s:write_flags(self.mode))
-  catch
+  catch /E482/
     throw object#IOError('cannot create file %s', string(self.name))
   endtry
 endfunction
@@ -168,10 +168,10 @@ function! object#file#close() dict
   endif
   let self.closed = 1
   call self.flush()
-  if has_key(self._read)
+  if has_key(self, '_read')
     unlet self._buffer
   endif
-  if has_key(self._written)
+  if has_key(self, '_written')
     unlet self._written
   endif
 endfunction
@@ -286,7 +286,7 @@ endfunction
 " Extract flags to |readfile()| from mode string.
 "
 function! s:read_flags(mode)
-  return stridx(mode, 'b')>0?'b':''
+  return stridx(a:mode, 'b')>0?'b':''
 endfunction
 
 "
@@ -315,16 +315,18 @@ endfunction
 " Lazily read all the lines from {file}.
 "
 function! s:lazy_readfile(file)
-  call s:read_mode(self)
+  call s:read_mode(a:file)
   if has_key(a:file, '_read')
     return
   endif
   try
     let lines = readfile(a:file.name, s:read_flags(a:file.mode))
-    let a:file._read = object#iter(lines)
-  catch
+  catch /E484/
+    throw object#IOError('cannot open file %s', string(a:file.name))
+  catch /E485/
     throw object#IOError('cannot read file %s', string(a:file.name))
   endtry
+  let a:file._read = object#iter(lines)
 endfunction
 
 "

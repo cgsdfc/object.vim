@@ -67,7 +67,9 @@ Assert 'r' !~# writable
 "
 
 Execute(pravite attrs not showing up);
-Log object#dir(f)
+for x in object#dir(f)
+  Assert x !~# private_attrs
+endfor
 
 Execute(setattr() on file obj should throw AttributeError);
 AssertThrows call object#setattr(g:f, 'x', 1)
@@ -78,3 +80,35 @@ for x in object#dir(f)
 endfor
 
 Execute(read() returns all the lines);
+let data = split(repeat('a', 10))
+let temp = tempname()
+call writefile(data, temp)
+try
+  let f = object#open(temp)
+  AssertEqual f.read(), join(data, "\n")
+catch
+  Log v:exception
+  Log 'Test failed'
+finally
+  call delete(temp)
+endtry
+
+Execute(a second call to f.read() should return '');
+call f.read()
+AssertEqual '', f.read()
+
+Execute(f.readline() should retrieve each line without tailing NL);
+let data = map(range(10), 'string(v:val)')
+let temp = tempname()
+call writefile(data, temp)
+try
+  let f = object#open(temp, 'r')
+  for x in data
+    AssertEqual x, f.readline()
+  endfor
+  AssertEqual f.readline(), ''
+catch
+  Log v:exception
+finally
+  call delete(temp)
+endtry
