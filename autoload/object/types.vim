@@ -1,5 +1,5 @@
 ""
-" @section types, types
+" @section Types, types
 " Define a minimal set of fundamental types as the basic of the type
 " hierarchy.
 " They are:

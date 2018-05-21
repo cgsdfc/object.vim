@@ -1,5 +1,5 @@
 ""
-" @section class, class
+" @section Class, class
 " functions for creating both classes and instances and testing their
 " relationships.
 " Inheritance is possible. The methods of base classes are added from left to

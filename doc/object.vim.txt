@@ -4,20 +4,29 @@
 ==============================================================================
 CONTENTS                                                 *object.vim-contents*
   1. Introduction...........................................|object.vim-intro|
-  2. class..................................................|object.vim-class|
-  3. Mapping..............................................|object.vim-mapping|
-  4. Iterator................................................|object.vim-iter|
-  5. file....................................................|object.vim-file|
-  6. types..................................................|object.vim-types|
-  7. Dictionaries...........................................|object.vim-dicts|
-  8. Functions..........................................|object.vim-functions|
-  9. Exceptions........................................|object.vim-exceptions|
+  2. Protocols..........................................|object.vim-protocols|
+  3. Class..................................................|object.vim-class|
+  4. Mapping..............................................|object.vim-mapping|
+  5. Iterator................................................|object.vim-iter|
+  6. File....................................................|object.vim-file|
+  7. Types..................................................|object.vim-types|
+  8. Dictionaries...........................................|object.vim-dicts|
+  9. Functions..........................................|object.vim-functions|
+  10. Exceptions.......................................|object.vim-exceptions|
 
 ==============================================================================
 INTRODUCTION                                                *object.vim-intro*
 
 A vimscript library that provides object protocols for Vim similar to Python.
 
+
+==============================================================================
+PROTOCOLS                                               *object.vim-protocols*
+
+A set of basic hookable functions that inspect and operate on different
+properties of an object. A protocol in this context means an global function
+that has well defined behaviours for built-in types and can be overriden by
+the corresponding methods with double underscores names.
 
 ==============================================================================
 CLASS                                                       *object.vim-class*

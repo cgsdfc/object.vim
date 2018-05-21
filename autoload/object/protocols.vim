@@ -1,3 +1,11 @@
+""
+" @section Protocols, protocols
+" A set of basic hookable functions that inspect and operate on different
+" properties of an object. A protocol in this context means an global function
+" that has well defined behaviours for built-in types and can be overriden by
+" the corresponding methods with double underscores names.
+
+
 "
 " Call a __protocol__ function {X} (ensure {X} is a Funcref)
 "

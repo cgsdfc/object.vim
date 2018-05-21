@@ -1,5 +1,5 @@
 ""
-" @section file, file
+" @section File, file
 " A simple interface to the |readfile()| and |writefile()| functions.
 "
 " Features:
