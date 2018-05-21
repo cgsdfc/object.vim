@@ -37,9 +37,7 @@ function! object#protocols#getattr(obj, name, ...)
   if argc == 1
     return a:1
   endif
-
-  throw object#AttributeError('%s object has no attribute %s',
-        \ object#types#name(obj), string(name))
+  call object#except#throw_noattr(obj, name)
 endfunction
 
 ""

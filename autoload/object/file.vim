@@ -191,8 +191,11 @@ endfunction
 " @throws AttributeError if anyone attempts to setattr for a file object.
 "
 function! object#file#__setattr__(name, val) dict
-  throw object#AttributeError('%s object attribute %s is readonly',
-        \ object#types#name(self), string(a:name))
+  let typename = object#types#name(self)
+  if !has_key(self, a:name)
+    call object#except#throw_noattr(self, a:name)
+  endif
+  call object#except#throw_readonly_attr(self, a:name)
 endfunction
 
 ""

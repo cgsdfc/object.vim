@@ -47,3 +47,14 @@ function! object#except#IOError(msg, ...)
   return object#except#BaseException('IOError', a:msg, a:000)
 endfunction
 
+" Helper to throw 'no attribute'
+"
+function! object#except#throw_noattr(obj, name)
+  throw object#AttributeError('%s object has no attribute %s',
+        \ object#types#name(a:obj), string(a:name))
+endfunction
+
+function! object#except#throw_readonly_attr(obj, name)
+  throw object#AttributeError('%s object attribute %s is readonly',
+        \ object#types#name(a:obj), string(a:name))
+endfunction

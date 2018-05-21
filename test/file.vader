@@ -2,11 +2,20 @@
 Before;
 let lipsum = maktaba#path#Join([fnamemodify(g:vader_file, ':h'), 'data', 'lipsum.txt'])
 let [mode_pattern, readable, writable, private_attrs] = object#file#patterns()
+let f=object#open(lipsum)
+let file_ = object#file_()
+
+"
+" open()
+"
 
 Execute(open() without mode default for reading);
-let f=object#open(lipsum)
 AssertEqual f.mode, 'r'
 AssertEqual lipsum, f.name
+
+"
+" mode string
+"
 
 Execute(valid mode strings);
 let valid_modes = [
@@ -52,5 +61,20 @@ endfor
 
 Execute(not writable/readonly modes);
 Assert 'r' !~# writable
+
+"
+" dir(file)
+"
+
+Execute(pravite attrs not showing up);
+Log object#dir(f)
+
+Execute(setattr() on file obj should throw AttributeError);
+AssertThrows call object#setattr(g:f, 'x', 1)
+Assert g:vader_exception =~# 'AttributeError.*no attribute'
+for x in object#dir(f)
+  AssertThrows call object#setattr(g:f, g:x, 1)
+  Assert g:vader_exception =~# 'AttributeError.*readonly'
+endfor
 
 Execute(read() returns all the lines);
