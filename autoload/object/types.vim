@@ -1,9 +1,16 @@
 ""
-" Top classes definition without the object#class()
-" facilities.
-"   object(NoneType) -> type
-"   type(object) -> type
-"   NoneType(type) -> type
+" @section types, types
+" Define a minimal set of fundamental types as the basic of the type
+" hierarchy.
+" They are:
+"   * object(None): The base class of all the rest of classes. The base class of it is
+"     None, the only instance of the NoneType.
+"
+"   * type(object): The class of all the types for both built-in and user
+"     definded ones. In other words, every class is an instance of type.
+"
+"   * NoneType(type): The class of the None object, the place holder for
+"   absence of sensible values, such as the base class of object.
 
 "
 " Get the typename of {obj}. If {obj} is a type,

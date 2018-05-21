@@ -2,7 +2,7 @@
 " @section Introduction, intro
 " @stylized object
 " @library
-" @order intro version mapping iter file dicts functions exceptions
+" @order intro version mapping iter file types dicts functions exceptions
 " A vimscript library that provides object protocols for Vim similar to
 " Python.
 "
@@ -63,7 +63,7 @@ endfunction
 "   len()
 "   bool()
 
-function! object#dir(...)
+function! object#dir(...) abort
   return call('object#protocols#dir', a:000)
 endfunction
 
@@ -118,7 +118,7 @@ endfunction
 "   AttributeError
 "   StopIteration
 
-function! object#BaseException(...) abort 
+function! object#BaseException(...) abort
   return call('object#except#BaseException', a:000)
 endfunction
 
@@ -221,11 +221,11 @@ endfunction
 "   open()
 "   file_()
 
-function! object#open(...)
+function! object#open(...) abort
   return call('object#file#open', a:000)
 endfunction
 
-function! object#file_(...)
+function! object#file_(...) abort
   return call('object#file#file_', a:000)
 endfunction
 

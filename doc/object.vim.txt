@@ -7,9 +7,10 @@ CONTENTS                                                 *object.vim-contents*
   2. Mapping..............................................|object.vim-mapping|
   3. Iterator................................................|object.vim-iter|
   4. file....................................................|object.vim-file|
-  5. Dictionaries...........................................|object.vim-dicts|
-  6. Functions..........................................|object.vim-functions|
-  7. Exceptions........................................|object.vim-exceptions|
+  5. types..................................................|object.vim-types|
+  6. Dictionaries...........................................|object.vim-dicts|
+  7. Functions..........................................|object.vim-functions|
+  8. Exceptions........................................|object.vim-exceptions|
 
 ==============================================================================
 INTRODUCTION                                                *object.vim-intro*
@@ -79,6 +80,20 @@ Examples:
   3
 <
 This is rooted at the nature of |readfile()| and |writefile()|.
+
+==============================================================================
+TYPES                                                       *object.vim-types*
+
+Define a minimal set of fundamental types as the basic of the type hierarchy.
+They are:
+  * object(None): The base class of all the rest of classes. The base class of
+    it is None, the only instance of the NoneType.
+
+  * type(object): The class of all the types for both built-in and user
+    definded ones. In other words, every class is an instance of type.
+
+  * NoneType(type): The class of the None object, the place holder for absence
+    of sensible values, such as the base class of object.
 
 ==============================================================================
 DICTIONARIES                                                *object.vim-dicts*
@@ -198,6 +213,16 @@ object#class#issubclass({cls}, {base})             *object#class#issubclass()*
   Return wheter {cls} is a subclass of {base}.
 
 
+object#except#BaseException({type}, {msg}, {args})
+                                               *object#except#BaseException()*
+  Generate exception for a specific {type}. User can call BaseException to
+  define their own exception functions. Examples:
+>
+    function! MyException(msg, ...)
+      return object#BaseException('MyException', a:msg, a:000)
+    endfunction
+<
+
 object#file#open({name}, [mode])                          *object#file#open()*
   Open a file. The [mode] can be 'r', 'w' or 'a' for reading (default),
   writing or appending. The file will be created if it doesn't exist when
@@ -307,16 +332,24 @@ object#types#None()                                      *object#types#None()*
 EXCEPTIONS                                             *object.vim-exceptions*
 
                                                             *ERROR(Exception)*
+Generic exception.
 
                                                            *ERROR(ValueError)*
+The value of function arguments went wrong.
 
                                                             *ERROR(TypeError)*
+Unsupported operation for a type or wrong number of arguments passed to a
+function.
 
                                                        *ERROR(AttributeError)*
+The object has no such attribute or the attribute is readonly.
 
                                                         *ERROR(StopIteration)*
+The end of iteration. Thrown by __iter__ usually.
 
                                                               *ERROR(IOError)*
+File not writable or readable. Operation on a closed file. Thrown by file
+objects usually.
 
 
 vim:tw=78:ts=8:ft=help:norl:
