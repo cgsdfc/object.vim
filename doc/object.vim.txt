@@ -22,14 +22,16 @@ A simple interface to the |readfile()| and |writefile()| functions.
 
 Features:
   * Lazy reading and writing.
-  * Line-oriented reading and writing.
+  * Line-oriented readline(), writeline() available.
   * Mode string syntax like 'a', 'w' or '+', 'b'.
 
 Limitations:
-  * The file cannot be unbuffered.
+  * The file is always buffered.
+  * The content of the file object is insensitive to external changes to the
+    underlying file.
   * The file is unseekable. All reading or writing happens essentially at the
     current line number.
-  * No context manager. Must call f.close() explicitly.
+  * No context manager available. Must call f.close() explicitly.
 
 
 file.read()                                                      *file.read()*
@@ -157,11 +159,11 @@ object#class#issubclass({cls}, {base})             *object#class#issubclass()*
   Return wheter {cls} is a subclass of {base}.
 
 
-object#file#open({mode})                                  *object#file#open()*
-  Open a file. The {mode} can be 'r', 'w' or 'a' for reading (default),
+object#file#open({name}, [mode])                          *object#file#open()*
+  Open a file. The [mode] can be 'r', 'w' or 'a' for reading (default),
   writing or appending. The file will be created if it doesn't exist when
   opened for writing or appending; it will be truncated when opened for
-  writing. Add a 'b' to the {mode} for binary files. Add a '+' to the {mode}
+  writing. Add a 'b' to the [mode] for binary files. Add a '+' to the [mode]
   to allow simultaneous reading and writing.
 
 
