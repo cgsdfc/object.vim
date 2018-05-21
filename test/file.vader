@@ -4,14 +4,22 @@ let lipsum = maktaba#path#Join([fnamemodify(g:vader_file, ':h'), 'data', 'lipsum
 let [mode_pattern, readable, writable, private_attrs] = object#file#patterns()
 let f=object#open(lipsum)
 let file_ = object#file_()
+let bad_modes = [
+      \ '+r', 'u', '@', ' r',
+      \ "U+",
+      \ ]
 let read_family = ['read', 'readline', 'readlines']
 let write_family = ['write', 'writeline', 'writelines']
 
 " Helper to put some text in a tempfile.
 "
 function! MakeTempfile(list)
+  if !exists('g:tempfile_list')
+    let g:tempfile_list = []
+  endif
   let t = tempname()
   call writefile(a:list, t)
+  call add(g:tempfile_list, t)
   return t
 endfunction
 
@@ -22,6 +30,11 @@ endfunction
 function! MakeUnreadable(f)
   call setfperm(a:f , "-w-r-----")
 endfunction
+
+After;
+if exists('g:tempfile_list')
+  call map(g:tempfile_list, 'delete(v:val)')
+endif
 
 "
 " basic open()
@@ -49,10 +62,6 @@ for x in valid_modes
 endfor
 
 Execute(bad mode strings);
-let bad_modes = [
-      \ '+r', 'u', '@', ' r',
-      \ "U+",
-      \ ]
 for x in bad_modes
   Assert x !~# mode_pattern
 endfor
@@ -110,8 +119,6 @@ try
 catch
   Log v:exception
   Log 'Test failed'
-finally
-  call delete(t)
 endtry
 
 Execute(a second call to f.read() should return '');
@@ -129,13 +136,15 @@ try
   AssertEqual f.readline(), ''
 catch
   Log v:exception
-finally
-  call delete(t)
 endtry
 
 Execute(f.readlines() returns a list of all lines in f, which is equal to readfile());
 AssertEqual f.readlines(), readfile(lipsum)
 AssertEqual f.readlines(), []
+
+"
+" read*() throwing IOError
+"
 
 Execute(open()'ing an unreadable file throws IOError);
 " chmod -r lipsum.txt
@@ -146,8 +155,6 @@ try
   AssertThrows call object#open(g:t, 'r')
 catch
   throw v:exception
-finally
-  call delete(t)
 endtry
 Assert g:vader_exception =~# 'IOError'
 
@@ -163,3 +170,10 @@ for x in read_family
   AssertThrows call g:f[g:x]()
   Assert g:vader_exception =~# 'IOError'
 endfor
+
+Execute(open() throws ValueError for bad mode string);
+for x in bad_modes
+  AssertThrows call object#open(MakeEmptyTempfile(), x)
+  Assert g:vader_exception =~# 'ValueError'
+endfor
+
