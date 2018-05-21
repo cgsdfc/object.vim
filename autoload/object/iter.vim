@@ -1,3 +1,11 @@
+""
+" @section Iterator, iter
+" Iterator protocol.
+" Provide functions that produce and manipulate iterators and iterators for
+" built-in types like |List| and |String|.
+"
+" Features:
+
 let s:list_iter = object#class('list_iter')
 let s:str_iter = object#class('str_iter')
 let s:enum_iter = object#class('enumerate')
@@ -8,12 +16,13 @@ function! s:list_iter.__init__(list)
   let self.list = a:list
 endfunction
 
+" When the list index goes out of range, Vim throws E684.
 function! s:list_iter.__next__()
   try
     let item = self.list[self.idx]
     let self.idx += 1
     return item
-  catch /E684: list index out of range:/
+  catch /E684/
     throw object#StopIteration()
   endtry
 endfunction
@@ -21,12 +30,13 @@ endfunction
 function! s:str_iter.__init__(str)
   let self.idx = 0
   let self.str = a:str
-  let self.len = len(a:str)
 endfunction
 
+" When the index to a string goes out of range, Vim
+" return an empty string, which is an indicator of StopIteration.
 function! s:str_iter.__next__()
-  if self.idx < self.len
-    let item = self.str[self.idx]
+  let item = self.str[self.idx]
+  if item isnot# ''
     let self.idx += 1
     return item
   endif
@@ -52,11 +62,23 @@ function! s:zip_iter.__next__()
   return map(copy(self.iters), 'object#next(v:val)')
 endfunction
 
+function! s:ensure_iter(x)
+  if object#hasattr(a:x, '__iter__') && maktaba#value#IsFuncref(a:x.__iter__)
+    return a:x
+  endif
+  throw object#TypeError('object is not an iterator')
+endfunction
+
 ""
-" Return an iterator from {obj}.
+" Return an iterator from {obj}. If {obj} is already an iterator, it is
+" returned as it. Built-in |List| and |String| have iterators. An __iter__
+" method of {obj} that returns an iterator will be used if possible.
 "
+" @throws WrongType if {obj} has an unusable __next__.
+" @throws TypeError if the __iter__ of {obj} does not return an iterator.
 function! object#iter#iter(obj)
   if object#hasattr(a:obj, '__next__')
+    call maktaba#ensure#IsFuncref(a:obj.__next__)
     return a:obj
   endif
   if maktaba#value#IsList(a:obj)
@@ -66,14 +88,13 @@ function! object#iter#iter(obj)
     return object#new(s:str_iter, a:obj)
   endif
   if object#hasattr(a:obj, '__iter__')
-    return object#protocols#call(a:obj.__iter__)
+    return s:ensure_iter(object#protocols#call(a:obj.__iter__))
   endif
   call object#protocols#not_avail('iter', a:obj)
 endfunction
 
 ""
 " Retrieve the next item from the iterator {obj}.
-"
 function! object#iter#next(obj)
   if object#hasattr(a:obj, '__next__')
     return object#protocols#call(a:obj.__next__)
@@ -81,6 +102,9 @@ function! object#iter#next(obj)
   call object#protocols#not_avail('next', a:obj)
 endfunction
 
+""
+" Return true iff any item from {iter} is true. Truthness is evaluated using
+" object#bool(). {iter} can be anything iterable.
 function! object#iter#any(iter)
   let iter = object#iter#iter(a:iter)
   try
@@ -93,6 +117,9 @@ function! object#iter#any(iter)
   endtry
 endfunction
 
+""
+" Return true iff all item from {iter} is true. Truthness is evaluated using
+" object#bool(). {iter} can be anything iterable.
 function! object#iter#all(iter)
   let iter = object#iter#iter(a:iter)
   try
@@ -105,8 +132,13 @@ function! object#iter#all(iter)
   endtry
 endfunction
 
-function! object#iter#dict(iter)
-  let iter = object#iter(a:iter)
+""
+" Turn an iterator that returns 2-list into a |Dict|.
+" If no [iter] is given, an empty |Dict| is returned.
+function! object#iter#dict(...)
+  let argc = object#util#ensure_argc(1, a:0)
+  if !argc | return {} | endif
+  let iter = object#iter(a:1)
   let dict = {}
   try
     while 1
@@ -118,8 +150,13 @@ function! object#iter#dict(iter)
   endtry
 endfunction
 
-function! object#iter#list(iter)
-  let iter = object#iter(a:iter)
+""
+" Turn an iterator into a |List|.
+" If no [iter] is given, an empty |List| is returned.
+function! object#iter#list(...)
+  let argc = object#util#ensure_argc(1, a:0)
+  if !argc | return [] | endif
+  let iter = object#iter(a:1)
   let list = []
   try
     while 1
@@ -128,6 +165,27 @@ function! object#iter#list(iter)
   catch /StopIteration/
     return list
   endtry
+endfunction
+
+""
+" Return an iterator for index, value of {iter}
+" Take an optional [start].
+function! object#iter#enumerate(iter, ...)
+  let argc = object#util#ensure_argc(1, a:0)
+  let iter = object#iter(a:iter)
+  let start =  argc ? maktaba#ensure#IsNumber(a:1) : 0
+  return object#new(s:enum_iter, iter, start)
+endfunction
+
+""
+" Return an iterator that returns [seq1[i], seq[i], ...]
+" for the ith call of object#next(). The iterator stops when
+" the first StopIteration is raised by one of the [iters].
+function! object#iter#zip(iter, ...)
+  let iter = object#iter(a:iter)
+  if !a:0 | return iter | endif
+  let iters = [iter] + a:000
+  return object#new(s:zip_iter, iters)
 endfunction
 
 function! object#iter#map(expr, iter)
@@ -150,20 +208,4 @@ function! object#iter#filter(expr, iter)
 
 endfunction
 
-""
-" iterator for index, value of iterable.
-" Take an optional [start].
-"
-function! object#iter#enumerate(iter, ...)
-  let argc = object#util#ensure_argc(1, a:0)
-  let iter = object#iter(a:iter)
-  let start =  argc ? maktaba#ensure#IsNumber(a:1) : 0
-  return object#new(s:enum_iter, iter, start)
-endfunction
 
-function! object#iter#zip(iter, ...)
-  let iter = object#iter(a:iter)
-  if !a:0 | return iter | endif
-  let iters = [iter] + a:000
-  return object#new(s:zip_iter, iters)
-endfunction

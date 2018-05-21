@@ -4,15 +4,24 @@
 ==============================================================================
 CONTENTS                                                 *object.vim-contents*
   1. Introduction...........................................|object.vim-intro|
-  2. Dictionaries...........................................|object.vim-dicts|
-  3. Functions..........................................|object.vim-functions|
-  4. Exceptions........................................|object.vim-exceptions|
+  2. Iterator................................................|object.vim-iter|
+  3. Dictionaries...........................................|object.vim-dicts|
+  4. Functions..........................................|object.vim-functions|
+  5. Exceptions........................................|object.vim-exceptions|
 
 ==============================================================================
 INTRODUCTION                                                *object.vim-intro*
 
 A vimscript library that provides object protocols for Vim similar to Python.
 
+
+==============================================================================
+ITERATOR                                                     *object.vim-iter*
+
+Iterator protocol. Provide functions that produce and manipulate iterators and
+iterators for built-in types like |List| and |String|.
+
+Features:
 
 ==============================================================================
 DICTIONARIES                                                *object.vim-dicts*
@@ -179,16 +188,40 @@ object#file#open({name}, [mode])                          *object#file#open()*
   to allow simultaneous reading and writing.
 
 object#iter#iter({obj})                                   *object#iter#iter()*
-  Return an iterator from {obj}.
+  Return an iterator from {obj}. If {obj} is already an iterator, it is
+  returned as it. Built-in |List| and |String| have iterators. An __iter__
+  method of {obj} that returns an iterator will be used if possible.
 
+  Throws ERROR(WrongType) if {obj} has an unusable __next__.
+  Throws ERROR(TypeError) if the __iter__ of {obj} does not return an
+  iterator.
 
 object#iter#next({obj})                                   *object#iter#next()*
   Retrieve the next item from the iterator {obj}.
 
+object#iter#any({iter})                                    *object#iter#any()*
+  Return true iff any item from {iter} is true. Truthness is evaluated using
+  object#bool(). {iter} can be anything iterable.
+
+object#iter#all({iter})                                    *object#iter#all()*
+  Return true iff all item from {iter} is true. Truthness is evaluated using
+  object#bool(). {iter} can be anything iterable.
+
+object#iter#dict([iter])                                  *object#iter#dict()*
+  Turn an iterator that returns 2-list into a |Dict|. If no [iter] is given,
+  an empty |Dict| is returned.
+
+object#iter#list([iter])                                  *object#iter#list()*
+  Turn an iterator into a |List|. If no [iter] is given, an empty |List| is
+  returned.
 
 object#iter#enumerate({iter}, [start])               *object#iter#enumerate()*
-  iterator for index, value of iterable. Take an optional [start].
+  Return an iterator for index, value of {iter} Take an optional [start].
 
+object#iter#zip({iter}, [iters])                           *object#iter#zip()*
+  Return an iterator that returns [seq1[i], seq[i], ...] for the ith call of
+  object#next(). The iterator stops when the first StopIteration is raised by
+  one of the [iters].
 
 object#mapping#hash({obj})                             *object#mapping#hash()*
   Return the hash value of {obj}. {obj} can be a |Number|, a |String| or
