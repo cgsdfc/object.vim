@@ -9,11 +9,12 @@
 "
 " Limitations:
 "   * The file is always buffered.
-"   * The content of the file object is insensitive to external changes to the
+"   * The content of the file object is not synchronized with external changes to the
 "     underlying file.
 "   * The file is unseekable. All reading or writing happens essentially at the
 "     current line number.
-"   * No context manager available. Must call f.close() explicitly.
+"   * No context manager available. Must call f.close() explicitly or you may
+"   lost written data.
 "
 
 let s:private_attrs = '\v\C(_read|_written)'
@@ -101,7 +102,7 @@ function! object#file#write(str) dict
   call s:write_mode(self)
   let str = maktaba#ensure#IsString(a:str)
   if !has_key(self, '_written')
-    let self._buffer = [str]
+    let self._written = [str]
     return
   endif
   let self._written[-1] .= str
@@ -131,6 +132,8 @@ function! object#file#writelines(iter) dict
   if !has_key(self, '_written')
     let self._written = []
   endif
+  " It will be too slow if we first consume the iter and then
+  " check for IsString.
   try
     while 1
       call add(self._written, maktaba#ensure#IsString(object#next(iter)))
@@ -146,11 +149,15 @@ endfunction
 " @throws IOError if |writefile()| fails.
 "
 function! object#file#flush() dict
+  if self.closed
+    throw object#IOError('I/O operation on cloesd file')
+  endif
+  " Note: Testing ``self.mode ~=# s:readable`` is not ok here. Think about 'rw'.
   if self.mode !~# s:writable || !has_key(self, '_written')
     return
   endif
   try
-    writefile(self._written, self.name, s:write_flags(self.mode))
+    call writefile(self._written, self.name, s:write_flags(self.mode))
   catch /E482/
     throw object#IOError('cannot create file %s', string(self.name))
   endtry
@@ -166,14 +173,14 @@ function! object#file#close() dict
   if self.closed
     return
   endif
-  let self.closed = 1
   call self.flush()
   if has_key(self, '_read')
-    unlet self._buffer
+    unlet self._read
   endif
   if has_key(self, '_written')
     unlet self._written
   endif
+  let self.closed = 1
 endfunction
 
 
@@ -268,10 +275,11 @@ endfunction
 
 ""
 " @dict file
-" __repr__(file) <==> filename and mode.
+" __repr__(file) <==> repr(file)
 "
 function! object#file#__repr__() dict
-  return printf('<open file %s, mode %s>', string(self.name), string(self.mode))
+  return printf('<%s file %s, mode %s>', self.closed ? 'closed' : 'open',
+        \ string(self.name), string(self.mode))
 endfunction
 
 "
