@@ -1,8 +1,133 @@
+""
+" @section class, class
+" functions for creating both classes and instances and testing their
+" relationships.
+" Inheritance is possible. The methods of base classes are added from left to
+" right across the [bases] when class() is called. The methods defined for
+" this class effectively override those from bases.
+"
+"
+" Features:
+"   * Multiple inheritance.
+"   * Calling methods from supers.
+"   * Type identification.
+"
+" Drawbacks:
+"   * Use more space for the house keeping attributes.
+"   * Takes more time for the class and instance creation.
+"
+" Limitations:
+"   * Methods are resolved statically at class creation time, which makes the
+"     class object even larger.
+
+
 let s:object_class = object#object_()
 let s:type_class = object#type_()
 let s:None = object#None()
 
 let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__']
+
+""
+" Define a class that has a {name} and optional base class(es).
+" {name} should be a |String| of valid identifier in Vim.
+" [bases] should be a class object or a |List| of class objects.
+" If no [bases] are given or [bases] is an empty |List|, the new class will subclass object.
+" Return the newly created class with only inherited attributes.
+function! object#class#class(name, ...)
+  let name = maktaba#ensure#IsString(a:name)
+  let argc = object#util#ensure_argc(1, a:0)
+
+  " Figure out the bases list
+  if !argc
+    let bases = [s:object_class]
+  elseif maktaba#value#IsList(a:1)
+    if empty(a:1)
+      let bases = [s:object_class]
+    else
+      let bases = a:1
+    endif
+  elseif maktaba#value#IsDict(a:1)
+    let bases = [a:1]
+  else
+    throw object#TypeError("'bases' should be a class or a List of classes")
+  endif
+
+  call object#class#ensure_bases(bases)
+  let cls = {
+        \ '__class__' : s:type_class,
+        \ }
+  call object#class#class_init(cls, name, bases)
+  return cls
+endfunction
+
+""
+" Create a new instance.
+" This is done by first creating a skeleton object from the attributes
+" of the {cls} and then calling __init__ of the newly created object
+" with [args].
+function! object#class#new(cls, ...)
+  let cls = object#class#ensure_class(a:cls)
+  let obj = {
+        \ '__class__': a:cls,
+        \ }
+  call extend(obj, object#class#methods(a:cls))
+  call call(obj.__init__, a:000)
+  return obj
+endfunction
+
+""
+" type(obj) -> class of obj.
+"
+" type(name, bases, dict) -> a new type.
+function! object#class#type(...)
+  if a:0 == 1
+    let obj = object#class#ensure_object(a:1)
+    return object#getattr(obj, '__class__')
+  endif
+  if a:0 == 3
+    return object#new(s:type_class, a:1, a:2, a:3)
+  endif
+  throw object#TypeError('type() takes 1 or 3 arguments (%d given)', a:0)
+endfunction
+
+""
+" Return a method from the direct base {cls} of {obj}.
+" This is done by binding the methods of {cls} to {obj}.
+"
+" @throws TypeError if {cls} is not a direct base of {obj}.
+function! object#class#super(cls, obj, method)
+  let cls = object#class#ensure_class(a:cls)
+  let obj = object#class#ensure_object(a:obj)
+  let method = object#util#ensure_identifier(
+        \ maktaba#ensure#IsString(a:method))
+
+  let cls = object#class#find_base(obj, cls)
+  if cls isnot# v:none
+    let method = object#getattr(cls, method)
+    return function(method, obj)
+  endif
+
+  throw object#TypeError('%s object has no base class %s',
+        \ object#types#name(obj), string(cls.__name__))
+endfunction
+
+""
+" Return whether {obj} is an instance of {cls}.
+function! object#class#isinstance(obj, cls)
+  let cls = object#class#ensure_class(a:cls)
+  let obj = object#class#ensure_object(a:obj)
+  let Pred = function('object#isinstance_pred', [a:obj])
+  return object#class#any_parent(a:cls, Pred)
+endfunction
+
+""
+" Return wheter {cls} is a subclass of {base}.
+function! object#class#issubclass(cls, base)
+  let cls = object#class#ensure_class(a:cls)
+  let base = object#class#ensure_class(a:base)
+  let Pred = function('object#class#issubclass_pred', [a:base])
+  return object#class#any_parent(a:cls, Pred)
+endfunction
 
 "
 " A valid class is a valid object that is an instance of type.
@@ -70,59 +195,6 @@ function! object#class#type_init(cls, name, bases, dict)
   call extend(a:cls, dict, 'force')
 endfunction
 
-""
-" Define a class that has a name and optional base class(es).
-" >
-"   let Widget = object#class('Widget')
-"   let Widget = object#class('Widget', [...])
-" <
-" [bases] should be a |Dict| or a |List| of |Dict| that was defined by class().
-" If no [bases] are given or empty(bases), the new class will subclass object.
-" {name} should be a |String| of valid identifier in Vim.
-" The return value is special |Dict| to which methods can be added to and from
-" which instance can be created by new().
-" Methods can be added by:
-" >
-"   function! Widget.say_yes()
-"     ...
-"   endfunction
-" <
-" or
-" >
-"   let Widget.say_yes = function('widget#say_yes')
-" <
-"
-" Inheritance is possible. The methods of base classes are added from left to
-" right across the [bases] when class() is called. The methods defined for
-" this class effectively override those from bases.
-"
-function! object#class#class(name, ...)
-  let name = maktaba#ensure#IsString(a:name)
-  let argc = object#util#ensure_argc(1, a:0)
-
-  " Figure out the bases list
-  if !argc
-    let bases = [s:object_class]
-  elseif maktaba#value#IsList(a:1)
-    if empty(a:1)
-      let bases = [s:object_class]
-    else
-      let bases = a:1
-    endif
-  elseif maktaba#value#IsDict(a:1)
-    let bases = [a:1]
-  else
-    throw object#TypeError("'bases' should be a class or a List of classes")
-  endif
-
-  call object#class#ensure_bases(bases)
-  let cls = {
-        \ '__class__' : s:type_class,
-        \ }
-  call object#class#class_init(cls, name, bases)
-  return cls
-endfunction
-
 "
 " Implemente the inheritance system.
 "
@@ -134,19 +206,6 @@ function! object#class#class_init(cls, name, bases)
   for x in a:bases
     call extend(a:cls, object#class#methods(x), 'keep')
   endfor
-endfunction
-
-""
-" Create a new instance of {cls} by applying optional [args].
-"
-function! object#class#new(cls, ...)
-  let cls = object#class#ensure_class(a:cls)
-  let obj = {
-        \ '__class__': a:cls,
-        \ }
-  call extend(obj, object#class#methods(a:cls))
-  call call(obj.__init__, a:000)
-  return obj
 endfunction
 
 "
@@ -177,44 +236,6 @@ function! object#class#ensure_object(x)
   throw object#TypeError("not a valid object")
 endfunction
 
-""
-" type(obj) -> class of obj.
-" type(name, bases, dict) -> a new type.
-"
-function! object#class#type(...)
-  if a:0 == 1
-    let obj = object#class#ensure_object(a:1)
-    return object#getattr(obj, '__class__')
-  endif
-  if a:0 == 3
-    return object#new(s:type_class, a:1, a:2, a:3)
-  endif
-  throw object#TypeError('type() takes 1 or 3 arguments (%d given)', a:0)
-endfunction
-
-""
-" Return a partial |Funcref| that binds the dict of {method}
-" of the base class {cls} of {obj} to {obj}
-" Examples:
-" >
-"   call object#super(Base, self, '__init__')(...)
-" <
-"
-function! object#class#super(cls, obj, method)
-  let cls = object#class#ensure_class(a:cls)
-  let obj = object#class#ensure_object(a:obj)
-  let method = object#util#ensure_identifier(
-        \ maktaba#ensure#IsString(a:method))
-
-  let cls = object#class#find_base(obj, cls)
-  if cls is# v:none
-    throw object#ValueError('object has no base class %s', object#types#name(cls))
-  endif
-
-  let method = object#getattr(cls, method)
-  return function(method, obj)
-endfunction
-
 "
 " Visit the parents of {cls} and itself in a depth-first
 " manner until any of them satisfies the {Predicate}.
@@ -239,24 +260,4 @@ endfunction
 
 function! object#class#isinstance_pred(obj, cls)
   return a:obj.__class__ is# a:cls
-endfunction
-
-""
-" Return whether {obj} is an instance of {cls}.
-"
-function! object#class#isinstance(obj, cls)
-  let cls = object#class#ensure_class(a:cls)
-  let obj = object#class#ensure_object(a:obj)
-  let Pred = function('object#isinstance_pred', [a:obj])
-  return object#class#any_parent(a:cls, Pred)
-endfunction
-
-""
-" Return wheter {cls} is a subclass of {base}.
-"
-function! object#class#issubclass(cls, base)
-  let cls = object#class#ensure_class(a:cls)
-  let base = object#class#ensure_class(a:base)
-  let Pred = function('object#class#issubclass_pred', [a:base])
-  return object#class#any_parent(a:cls, Pred)
 endfunction

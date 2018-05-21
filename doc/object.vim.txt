@@ -4,19 +4,42 @@
 ==============================================================================
 CONTENTS                                                 *object.vim-contents*
   1. Introduction...........................................|object.vim-intro|
-  2. Mapping..............................................|object.vim-mapping|
-  3. Iterator................................................|object.vim-iter|
-  4. file....................................................|object.vim-file|
-  5. types..................................................|object.vim-types|
-  6. Dictionaries...........................................|object.vim-dicts|
-  7. Functions..........................................|object.vim-functions|
-  8. Exceptions........................................|object.vim-exceptions|
+  2. class..................................................|object.vim-class|
+  3. Mapping..............................................|object.vim-mapping|
+  4. Iterator................................................|object.vim-iter|
+  5. file....................................................|object.vim-file|
+  6. types..................................................|object.vim-types|
+  7. Dictionaries...........................................|object.vim-dicts|
+  8. Functions..........................................|object.vim-functions|
+  9. Exceptions........................................|object.vim-exceptions|
 
 ==============================================================================
 INTRODUCTION                                                *object.vim-intro*
 
 A vimscript library that provides object protocols for Vim similar to Python.
 
+
+==============================================================================
+CLASS                                                       *object.vim-class*
+
+functions for creating both classes and instances and testing their
+relationships. Inheritance is possible. The methods of base classes are added
+from left to right across the [bases] when class() is called. The methods
+defined for this class effectively override those from bases.
+
+
+Features:
+  * Multiple inheritance.
+  * Calling methods from supers.
+  * Type identification.
+
+Drawbacks:
+  * Use more space for the house keeping attributes.
+  * Takes more time for the class and instance creation.
+
+Limitations:
+  * Methods are resolved statically at class creation time, which makes the
+    class object even larger.
 
 ==============================================================================
 MAPPING                                                   *object.vim-mapping*
@@ -164,54 +187,33 @@ file.__repr__()                                              *file.__repr__()*
 FUNCTIONS                                               *object.vim-functions*
 
 object#class#class({name}, [bases])                     *object#class#class()*
-  Define a class that has a name and optional base class(es).
->
-    let Widget = object#class('Widget')
-    let Widget = object#class('Widget', [...])
-<
-  [bases] should be a |Dict| or a |List| of |Dict| that was defined by
-  class(). If no [bases] are given or empty(bases), the new class will
-  subclass object. {name} should be a |String| of valid identifier in Vim. The
-  return value is special |Dict| to which methods can be added to and from
-  which instance can be created by new(). Methods can be added by:
->
-    function! Widget.say_yes()
-      ...
-    endfunction
-<
-  or
->
-    let Widget.say_yes = function('widget#say_yes')
-<
-
-  Inheritance is possible. The methods of base classes are added from left to
-  right across the [bases] when class() is called. The methods defined for
-  this class effectively override those from bases.
-
+  Define a class that has a {name} and optional base class(es). {name} should
+  be a |String| of valid identifier in Vim. [bases] should be a class object
+  or a |List| of class objects. If no [bases] are given or [bases] is an empty
+  |List|, the new class will subclass object. Return the newly created class
+  with only inherited attributes.
 
 object#class#new({cls}, [args])                           *object#class#new()*
-  Create a new instance of {cls} by applying optional [args].
-
+  Create a new instance. This is done by first creating a skeleton object from
+  the attributes of the {cls} and then calling __init__ of the newly created
+  object with [args].
 
 object#class#type()                                      *object#class#type()*
-  type(obj) -> class of obj. type(name, bases, dict) -> a new type.
+  type(obj) -> class of obj.
 
+  type(name, bases, dict) -> a new type.
 
 object#class#super({cls}, {obj}, {method})              *object#class#super()*
-  Return a partial |Funcref| that binds the dict of {method} of the base class
-  {cls} of {obj} to {obj} Examples:
->
-    call object#super(Base, self, '__init__')(...)
-<
+  Return a method from the direct base {cls} of {obj}. This is done by binding
+  the methods of {cls} to {obj}.
 
+  Throws ERROR(TypeError) if {cls} is not a direct base of {obj}.
 
 object#class#isinstance({obj}, {cls})              *object#class#isinstance()*
   Return whether {obj} is an instance of {cls}.
 
-
 object#class#issubclass({cls}, {base})             *object#class#issubclass()*
   Return wheter {cls} is a subclass of {base}.
-
 
 object#except#BaseException({type}, {msg}, {args})
                                                *object#except#BaseException()*

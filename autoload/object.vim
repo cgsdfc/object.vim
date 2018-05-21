@@ -2,7 +2,7 @@
 " @section Introduction, intro
 " @stylized object
 " @library
-" @order intro version mapping iter file types dicts functions exceptions
+" @order intro version class mapping iter file types dicts functions exceptions
 " A vimscript library that provides object protocols for Vim similar to
 " Python.
 "
