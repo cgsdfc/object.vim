@@ -4,14 +4,16 @@
 "
 " Features:
 "   * Lazy reading and writing.
-"   * Line-oriented reading and writing.
+"   * Line-oriented readline(), writeline() available.
 "   * Mode string syntax like 'a', 'w' or '+', 'b'.
 "
 " Limitations:
-"   * The file cannot be unbuffered.
+"   * The file is always buffered.
+"   * The content of the file object is insensitive to external changes to the
+"     underlying file.
 "   * The file is unseekable. All reading or writing happens essentially at the
 "     current line number.
-"   * No context manager. Must call f.close() explicitly.
+"   * No context manager available. Must call f.close() explicitly.
 "
 
 let s:private_attrs = '\v\C(_read|_written)'

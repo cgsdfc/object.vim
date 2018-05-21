@@ -126,6 +126,9 @@ else
 endif
 
 function! object#protocols#bool_nofloat(obj)
+  if maktaba#value#IsString(a:obj)
+    return !empty(a:obj)
+  endif
   try
     " If we directly return !!a:obj, the exception cannot
     " be caught.
