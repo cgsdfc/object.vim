@@ -1,6 +1,6 @@
 ""
 " @section Introduction, intro
-" @stylized object.vim
+" @stylized object
 " @library
 " @order intro version dicts functions exceptions
 " A vimscript library that provides object protocols for Vim similar to

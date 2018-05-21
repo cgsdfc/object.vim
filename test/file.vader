@@ -8,4 +8,6 @@ let f=object#open(lipsum)
 AssertEqual f.mode, 'r'
 Log object#repr(f)
 
+Execute(patterns work as expected);
+
 Execute(read() returns all the lines);

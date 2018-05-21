@@ -1,16 +1,107 @@
 *object.vim.txt*
-                                                     *object.vim* *object.vim*
+                                                         *object* *object.vim*
 
 ==============================================================================
 CONTENTS                                                 *object.vim-contents*
   1. Introduction...........................................|object.vim-intro|
-  2. Functions..........................................|object.vim-functions|
-  3. Exceptions........................................|object.vim-exceptions|
+  2. Dictionaries...........................................|object.vim-dicts|
+  3. Functions..........................................|object.vim-functions|
+  4. Exceptions........................................|object.vim-exceptions|
 
 ==============================================================================
 INTRODUCTION                                                *object.vim-intro*
 
 A vimscript library that provides object protocols for Vim similar to Python.
+
+
+==============================================================================
+DICTIONARIES                                                *object.vim-dicts*
+
+                                                             *object.vim.file*
+A simple interface to the |readfile()| and |writefile()| functions.
+
+Features:
+  * Lazy reading and writing.
+  * Line-oriented reading and writing.
+  * Mode string syntax like 'a', 'w' or '+', 'b'.
+
+Limitations:
+  * The file cannot be unbuffered.
+  * The file is unseekable. All reading or writing happens essentially at the
+    current line number.
+  * No context manager. Must call f.close() explicitly.
+
+
+file.read()                                                      *file.read()*
+  Read the the whole of the file, return it as a string. Lines are joint with
+  a NL character.
+
+
+file.readline()                                              *file.readline()*
+  Return the next line from the file. Return an empty string at EOF. Note:
+  Newlines are not retained.
+
+
+file.readlines()                                            *file.readlines()*
+  Return a list of strings, each a line from the file. Note: Newlines are not
+  retained.
+
+
+file.write({str})                                               *file.write()*
+  Write a {str} to the file. {str} is appended to the last line of file.
+
+
+file.writeline({line})                                      *file.writeline()*
+  Write a {line} to the file.
+
+
+file.writelines({iter})                                    *file.writelines()*
+  Write a sequence of strings to the file.
+  Throws ERROR(WrongType) if {iter} returns non-string.
+
+
+file.flush()                                                    *file.flush()*
+  Flush the written data.
+  Throws ERROR(IOError) if |writefile()| fails.
+
+
+file.close()                                                    *file.close()*
+  Close the file and flush it. Any file operation fails after it is closed.
+  Calling close() for multiple times does not causes an error.
+
+
+file.__setattr__({name}, {val})                           *file.__setattr__()*
+  We cannot stop people doing let file.closed = 1, but with object#setattr(),
+  stupid things can be prevented.
+  Throws ERROR(AttributeError) if anyone attempts to setattr for a file
+  object.
+
+
+file.__dir__()                                                *file.__dir__()*
+  Hide the private attributes from dir()
+
+
+file.__getattr__({name})                                  *file.__getattr__()*
+  Hide the private attributes from getattr().
+
+
+file.__bool__()                                              *file.__bool__()*
+  __bool__(file) <==> file is not closed.
+
+
+file.__iter__()                                              *file.__iter__()*
+  __iter__(file) <==> each line of file.
+
+
+file.__init__({name}, {mode})                                *file.__init__()*
+  Initialize a file object with {name} and {mode}.
+  Throws ERROR(WrongType) if {mode} is not a String.
+  Throws ERROR(ValueError) is {mode} string is invalid.
+  Throws ERROR(IOError) if the file is not readable or writable.
+
+
+file.__repr__()                                              *file.__repr__()*
+  __repr__(file) <==> filename and mode.
 
 
 ==============================================================================
@@ -23,17 +114,22 @@ object#class#class({name}, [bases])                     *object#class#class()*
     let Widget = object#class('Widget', [...])
 <
   [bases] should be a |Dict| or a |List| of |Dict| that was defined by
-  |class()|. {name} should be a |String| of valid identifier in Vim
-  ([_a-zA-Z][_a-zA-Z0-9]*). The return value is special |Dict| to which
-  methods can be added to and from which instance can be created by
-  |object#new()|. Methods can be added by:
+  class(). If no [bases] are given or empty(bases), the new class will
+  subclass object. {name} should be a |String| of valid identifier in Vim. The
+  return value is special |Dict| to which methods can be added to and from
+  which instance can be created by new(). Methods can be added by:
 >
     function! Widget.say_yes()
+      ...
+    endfunction
+<
+  or
+>
     let Widget.say_yes = function('widget#say_yes')
 <
 
   Inheritance is possible. The methods of base classes are added from left to
-  right across the [bases] when |class()| is called. The methods defined for
+  right across the [bases] when class() is called. The methods defined for
   this class effectively override those from bases.
 
 
@@ -41,8 +137,8 @@ object#class#new({cls}, [args])                           *object#class#new()*
   Create a new instance of {cls} by applying optional [args].
 
 
-object#class#type({obj})                                 *object#class#type()*
-  Return the class of {obj}.
+object#class#type()                                      *object#class#type()*
+  type(obj) -> class of obj. type(name, bases, dict) -> a new type.
 
 
 object#class#super({cls}, {obj}, {method})              *object#class#super()*
@@ -61,6 +157,30 @@ object#class#issubclass({cls}, {base})             *object#class#issubclass()*
   Return wheter {cls} is a subclass of {base}.
 
 
+object#file#open({mode})                                  *object#file#open()*
+  Open a file. The {mode} can be 'r', 'w' or 'a' for reading (default),
+  writing or appending. The file will be created if it doesn't exist when
+  opened for writing or appending; it will be truncated when opened for
+  writing. Add a 'b' to the {mode} for binary files. Add a '+' to the {mode}
+  to allow simultaneous reading and writing.
+
+
+object#file#file_()                                      *object#file#file_()*
+  Return the file class object.
+
+
+object#iter#iter({obj})                                   *object#iter#iter()*
+  Return an iterator from {obj}.
+
+
+object#iter#next({obj})                                   *object#iter#next()*
+  Retrieve the next item from the iterator {obj}.
+
+
+object#iter#enumerate({iter}, [start])               *object#iter#enumerate()*
+  iterator for index, value of iterable. Take an optional [start].
+
+
 object#mapping#hash({obj})                             *object#mapping#hash()*
   Return the hash value of {obj}. {obj} can be a |Number|, a |String| or
   special variables like |v:none| and |v:false|, or an object with __hash__()
@@ -75,10 +195,11 @@ object#mapping#getitem({obj}, {key})                *object#mapping#getitem()*
   Return the value at {key} in {obj} as if {obj} is a mapping. If {obj} is a
   |List| or |Dict|, operator[] of Vim will be used.
 
-object#mapping#setitem({key}, {obj}, {value})       *object#mapping#setitem()*
-  Set the value at {key} of {obj} to {value}. If {obj} is a |List| or |Dict|,
-  let {obj}[{key}] = {value} will be used. Otherwise, __setitem__() of {obj}
+object#mapping#setitem({obj}, {key}, {val})         *object#mapping#setitem()*
+  Set the value at {key} of {obj} to {val}. If {obj} is a |List| or a |Dict|
+  without __setitem__(), |let| will be uesd. Otherwise, __setitem__() of {obj}
   will be used.
+
 
 object#protocols#getattr({obj}, {name})           *object#protocols#getattr()*
   Get the attribute {name} from {obj}. Note: The __getattr__() hook overrides
@@ -87,38 +208,57 @@ object#protocols#getattr({obj}, {name})           *object#protocols#getattr()*
 
 
 object#protocols#setattr({obj}, {name}, {val})    *object#protocols#setattr()*
-  setattr(obj, name, val) Set the {name} attribute of {obj} to {val}.
+  Set the {name} attribute of {obj} to {val}.
 
-  Set attribute {name} to {val} for {obj}
 
 object#protocols#hasattr({obj}, {name})           *object#protocols#hasattr()*
-  hasattr(obj, name) Return whether {obj} has attribute {name}.
-
   Test whether {obj} has attribute {name}. Return false if {obj} is not a
   |Dict|.
 
+
+object#protocols#repr({obj})                         *object#protocols#repr()*
+  Generate string representation for {obj}. Fail back on |string()|
+
+
 object#protocols#len({obj})                           *object#protocols#len()*
-  len(obj) Return the length of {obj}. If {obj} is a |List| or a |Dict|,
-  |len()| will be called. Otherwise, the __len__() of {obj} will be called.
+  Return the length of {obj}. If {obj} is a |List| or a |Dict|, |len()| will
+  be called. Otherwise, the __len__() of {obj} will be called.
+
 
 object#protocols#dir({obj})                           *object#protocols#dir()*
-  dir(obj) Return a |List| of names of all attributes from {obj}. If {obj}
-  defines __dir__(), it is called instead.
+  Return a |List| of names of all attributes from {obj}. If {obj} defines
+  __dir__(), it is called instead.
 
 
 object#types#object()                                  *object#types#object()*
-  object() Create a plain object.
+  Create a plain object.
 
 object#types#object_()                                *object#types#object_()*
-  object_() Return the object class
+  Return the object class
 
 object#types#type_()                                    *object#types#type_()*
-  type_() Return the type class
+  Return the type class
+
+object#types#NoneType()                              *object#types#NoneType()*
+  Return the NoneType class
+
+object#types#None()                                      *object#types#None()*
+  Return the None object
 
 ==============================================================================
 EXCEPTIONS                                             *object.vim-exceptions*
 
+                                                            *ERROR(Exception)*
+
+                                                           *ERROR(ValueError)*
+
+                                                            *ERROR(TypeError)*
+
                                                        *ERROR(AttributeError)*
+
+                                                        *ERROR(StopIteration)*
+
+                                                              *ERROR(IOError)*
 
 
 vim:tw=78:ts=8:ft=help:norl:
