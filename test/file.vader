@@ -4,6 +4,8 @@ let lipsum = maktaba#path#Join([fnamemodify(g:vader_file, ':h'), 'data', 'lipsum
 let [mode_pattern, readable, writable, private_attrs] = object#file#patterns()
 let f=object#open(lipsum)
 let file_ = object#file_()
+let read_family = ['read', 'readline', 'readlines']
+let write_family = ['write', 'writeline', 'writelines']
 
 " Helper to put some text in a tempfile.
 "
@@ -17,8 +19,12 @@ function! MakeEmptyTempfile()
   return MakeTempfile([])
 endfunction
 
+function! MakeUnreadable(f)
+  call setfperm(a:f , "-w-r-----")
+endfunction
+
 "
-" open()
+" basic open()
 "
 
 Execute(open() without mode default for reading);
@@ -75,7 +81,7 @@ Execute(not writable/readonly modes);
 Assert 'r' !~# writable
 
 "
-" dir(file)
+" Hiding private attributes
 "
 
 Execute(pravite attrs not showing up);
@@ -90,6 +96,10 @@ for x in object#dir(f)
   AssertThrows call object#setattr(g:f, g:x, 1)
   Assert g:vader_exception =~# 'AttributeError.*readonly'
 endfor
+
+"
+" Basic read* family.
+"
 
 Execute(read() returns all the lines);
 let data = split(repeat('a', 10))
@@ -132,14 +142,24 @@ Execute(open()'ing an unreadable file throws IOError);
 let t = MakeEmptyTempfile()
 Assert maktaba#path#Exists(t)
 try
-  call setfperm(t , "-w-r-----")
+  call MakeUnreadable(t)
   AssertThrows call object#open(g:t, 'r')
 catch
   throw v:exception
 finally
-  delete(t)
+  call delete(t)
 endtry
 Assert g:vader_exception =~# 'IOError'
 
 Execute(Although open()'ed readable, f.read() and friends throw IOError if f becomes unreadable);
+let t = MakeEmptyTempfile()
+Assert filereadable(t)
 
+let f = object#open(t)
+call map(copy(read_family), 'f[v:val]()')
+
+call MakeUnreadable(t)
+for x in read_family
+  AssertThrows call g:f[g:x]()
+  Assert g:vader_exception =~# 'IOError'
+endfor

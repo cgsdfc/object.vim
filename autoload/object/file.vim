@@ -290,26 +290,35 @@ function! s:read_flags(mode)
 endfunction
 
 "
-" Ensure that {file} is opened for reading.
+" Ensure that {file} is opened for reading and it is readable.
 "
 function! s:read_mode(file)
-  call s:ensure_opened(a:file)
-  if a:file.mode =~# s:readable
-    return
+  if a:file.closed
+    throw object#IOError('I/O operation on cloesd file')
   endif
-  throw object#IOError('File not open for reading')
+  if a:file.mode !~# s:readable
+    throw object#IOError('File not open for reading')
+  endif
+  if !filereadable(a:file.name)
+    throw object#IOError('file not readable: %s', string(a:file.name))
+  endif
 endfunction
 
 "
-" Ensure that {file} is opened for writing.
+" Ensure that {file} is opened for writing and it is writable.
 "
 function! s:write_mode(file)
-  call s:ensure_opened(a:file)
-  if a:file.mode =~# s:writable
-    return
+  if a:file.closed
+    throw object#IOError('I/O operation on cloesd file')
   endif
-  throw object#IOError('File not open for writing')
+  if a:file.mode !~# s:writable
+    throw object#IOError('File not open for writing')
+  endif
+  if !filewritable(a:file.name)
+    throw object#IOError('file not writable: %s', string(a:file.name))
+  endif
 endfunction
+
 
 "
 " Lazily read all the lines from {file}.
