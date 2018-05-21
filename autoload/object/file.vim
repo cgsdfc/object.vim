@@ -4,7 +4,8 @@
 "
 " Features:
 "   * Lazy reading and writing.
-"   * Line-oriented readline(), writeline() available.
+"   * Line-oriented I/O.
+"   * Handle errors with IOError.
 "   * Mode string syntax like 'a', 'w' or '+', 'b'.
 "
 " Limitations:
@@ -14,8 +15,32 @@
 "   * The file is unseekable. All reading or writing happens essentially at the
 "     current line number.
 "   * No context manager available. Must call f.close() explicitly or you may
-"   lost written data.
+"     lost written data.
 "
+" Note:
+"   Unlike the counterparts from Python,
+"   * readlines() alway strips tailing newlines and
+"   * writelines() alway adds tailing newlines.
+"
+" Examples:
+" >
+"   Your file is
+"   1
+"   2
+"   3
+"   :echo f.readlines()
+"   ['1', '2', '3']
+"
+"   :call f.writelines(range(3))
+"   :call f.close()
+"   Your file becomes
+"   1
+"   2
+"   3
+" <
+" This is rooted at the nature of |readfile()| and |writefile()|.
+"
+
 
 let s:private_attrs = '\v\C(_read|_written)'
 
@@ -53,17 +78,16 @@ let s:file.__setattr__ = function('object#file#__setattr__')
 " when opened for writing or appending; it will be truncated when
 " opened for writing. Add a 'b' to the [mode] for binary files.
 " Add a '+' to the [mode] to allow simultaneous reading and writing.
-"
 function! object#file#open(name, ...)
   let argc = object#util#ensure_argc(1, a:0)
   let mode = argc > 0 ? a:1 : 'r'
   return object#new(s:file, a:name, mode)
 endfunction
+
 ""
 " @dict file
 " Read the the whole of the file, return it as a string.
 " Lines are joint with a NL character.
-"
 function! object#file#read() dict
   return join(self.readlines(), "\n")
 endfunction
@@ -72,8 +96,8 @@ endfunction
 " @dict file
 " Return the next line from the file.
 " Return an empty string at EOF.
-" Note: Newlines are not retained.
 "
+" Note: Newlines are stripped.
 function! object#file#readline() dict
   call s:lazy_readfile(self)
   try
@@ -86,8 +110,8 @@ endfunction
 ""
 " @dict file
 " Return a list of strings, each a line from the file.
-" Note: Newlines are not retained.
 "
+" Note: Newlines are stripped.
 function! object#file#readlines() dict
   call s:lazy_readfile(self)
   return object#list(self._read)
@@ -98,6 +122,8 @@ endfunction
 " Write a {str} to the file.
 " {str} is appended to the last line of file.
 "
+" Note: If {str} becomes the first line of the file, a newline will be added
+" right after this line as if it is done with writeline().
 function! object#file#write(str) dict
   call s:write_mode(self)
   let str = maktaba#ensure#IsString(a:str)
@@ -111,7 +137,6 @@ endfunction
 ""
 " @dict file
 " Write a {line} to the file.
-"
 function! object#file#writeline(line) dict
   call s:write_mode(self)
   let line = maktaba#ensure#IsString(a:line)
@@ -125,7 +150,6 @@ endfunction
 " @dict file
 " Write a sequence of strings to the file.
 " @throws WrongType if {iter} returns non-string.
-"
 function! object#file#writelines(iter) dict
   call s:write_mode(self)
   let iter = object#iter(a:iter)
@@ -147,7 +171,6 @@ endfunction
 " @dict file
 " Flush the written data.
 " @throws IOError if |writefile()| fails.
-"
 function! object#file#flush() dict
   if self.closed
     throw object#IOError('I/O operation on cloesd file')
@@ -165,10 +188,8 @@ endfunction
 
 ""
 " @dict file
-" Close the file and flush it. Any file operation fails after
-" it is closed. Calling close() for multiple times does not causes
-" an error.
-"
+" Close the file and flush it. After that any file operation will fail.
+" Calling close() multiple times does not causes errors.
 function! object#file#close() dict
   if self.closed
     return
@@ -186,18 +207,17 @@ endfunction
 
 ""
 " Return the file class object.
-"
+
 function! object#file#file_()
   return s:file
 endfunction
 
 ""
 " @dict file
-" We cannot stop people doing let file.closed = 1, but with object#setattr(),
-" stupid things can be prevented.
 " @throws AttributeError if anyone attempts to setattr for a file object.
-"
 function! object#file#__setattr__(name, val) dict
+  " We cannot stop people doing let file.closed = 1, but with object#setattr(),
+  " stupid things can be prevented.
   let typename = object#types#name(self)
   if !has_key(self, a:name)
     call object#except#throw_noattr(self, a:name)
@@ -207,16 +227,15 @@ endfunction
 
 ""
 " @dict file
-" Hide the private attributes from dir()
-"
+" Return names of attributes.
 function! object#file#__dir__() dict
+  " Hide the private attributes from dir()
   return filter(keys(self), 'v:val !~# s:private_attrs')
 endfunction
 
 ""
 " @dict file
-" Hide the private attributes from getattr().
-"
+" Return the attribute {name}.
 function! object#file#__getattr__(name) dict
   if !has_key(self, a:name) || a:name =~# s:private_attrs
     throw object#AttributeError('%s object has no attribute %s',
@@ -228,7 +247,6 @@ endfunction
 ""
 " @dict file
 " __bool__(file) <==> file is not closed.
-"
 function! object#file#__bool__() dict
   return !self.closed
 endfunction
@@ -236,7 +254,6 @@ endfunction
 ""
 " @dict file
 " __iter__(file) <==> each line of file.
-"
 function! object#file#__iter__() dict
   call s:lazy_readfile(self)
   return self._read
@@ -248,7 +265,6 @@ endfunction
 " @throws WrongType if {mode} is not a String.
 " @throws ValueError is {mode} string is invalid.
 " @throws IOError if the file is not readable or writable.
-"
 function! object#file#__init__(name, mode) dict
   let name = maktaba#ensure#IsString(a:name)
   let mode = maktaba#ensure#IsString(a:mode)
@@ -276,7 +292,6 @@ endfunction
 ""
 " @dict file
 " __repr__(file) <==> repr(file)
-"
 function! object#file#__repr__() dict
   return printf('<%s file %s, mode %s>', self.closed ? 'closed' : 'open',
         \ string(self.name), string(self.mode))
@@ -285,21 +300,18 @@ endfunction
 "
 " a stands for append.
 " b stands for binary.
-"
 function! s:write_flags(mode)
   return join(map(['a', 'b'], 'stridx(a:mode, v:val)>0?v:val:""'), '')
 endfunction
 
 "
 " Extract flags to |readfile()| from mode string.
-"
 function! s:read_flags(mode)
   return stridx(a:mode, 'b')>0?'b':''
 endfunction
 
 "
 " Ensure that {file} is opened for reading and it is readable.
-"
 function! s:read_mode(file)
   if a:file.closed
     throw object#IOError('I/O operation on cloesd file')
@@ -314,7 +326,6 @@ endfunction
 
 "
 " Ensure that {file} is opened for writing and it is writable.
-"
 function! s:write_mode(file)
   if a:file.closed
     throw object#IOError('I/O operation on cloesd file')
@@ -330,7 +341,6 @@ endfunction
 
 "
 " Lazily read all the lines from {file}.
-"
 function! s:lazy_readfile(file)
   call s:read_mode(a:file)
   if has_key(a:file, '_read')
@@ -349,7 +359,6 @@ endfunction
 "
 " Ensure that {file} is not closed.
 " @throws IOError if it is closed.
-"
 function! s:ensure_opened(file)
   if !a:file.closed
     return
@@ -360,8 +369,6 @@ endfunction
 "
 " Return patterns for valid mode string, readable and writable mode string.
 " Append counts as writable.
-"
 function! object#file#patterns()
   return [s:mode_pattern, s:readable, s:writable, s:private_attrs]
 endfunction
-

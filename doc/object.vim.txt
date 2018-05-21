@@ -22,78 +22,92 @@ A simple interface to the |readfile()| and |writefile()| functions.
 
 Features:
   * Lazy reading and writing.
-  * Line-oriented readline(), writeline() available.
+  * Line-oriented I/O.
+  * Handle errors with IOError.
   * Mode string syntax like 'a', 'w' or '+', 'b'.
 
 Limitations:
   * The file is always buffered.
-  * The content of the file object is insensitive to external changes to the
-    underlying file.
+  * The content of the file object is not synchronized with external changes
+    to the underlying file.
   * The file is unseekable. All reading or writing happens essentially at the
     current line number.
-  * No context manager available. Must call f.close() explicitly.
+  * No context manager available. Must call f.close() explicitly or you may
+    lost written data.
+
+Note:   Unlike the counterparts from Python,
+  * readlines() alway strips tailing newlines and
+  * writelines() alway adds tailing newlines.
+
+Examples:
+>
+  Your file is
+  1
+  2
+  3
+  :echo f.readlines()
+  ['1', '2', '3']
+
+  :call f.writelines(range(3))
+  :call f.close()
+  Your file becomes
+  1
+  2
+  3
+<
+This is rooted at the nature of |readfile()| and |writefile()|.
 
 
 file.read()                                                      *file.read()*
   Read the the whole of the file, return it as a string. Lines are joint with
   a NL character.
 
-
 file.readline()                                              *file.readline()*
-  Return the next line from the file. Return an empty string at EOF. Note:
-  Newlines are not retained.
+  Return the next line from the file. Return an empty string at EOF.
 
+  Note: Newlines are stripped.
 
 file.readlines()                                            *file.readlines()*
-  Return a list of strings, each a line from the file. Note: Newlines are not
-  retained.
+  Return a list of strings, each a line from the file.
 
+  Note: Newlines are stripped.
 
 file.write({str})                                               *file.write()*
   Write a {str} to the file. {str} is appended to the last line of file.
 
+  Note: If {str} becomes the first line of the file, a newline will be added
+  right after this line as if it is done with writeline().
 
 file.writeline({line})                                      *file.writeline()*
   Write a {line} to the file.
-
 
 file.writelines({iter})                                    *file.writelines()*
   Write a sequence of strings to the file.
   Throws ERROR(WrongType) if {iter} returns non-string.
 
-
 file.flush()                                                    *file.flush()*
   Flush the written data.
   Throws ERROR(IOError) if |writefile()| fails.
 
-
 file.close()                                                    *file.close()*
-  Close the file and flush it. Any file operation fails after it is closed.
-  Calling close() for multiple times does not causes an error.
-
+  Close the file and flush it. After that any file operation will fail.
+  Calling close() multiple times does not causes errors.
 
 file.__setattr__({name}, {val})                           *file.__setattr__()*
-  We cannot stop people doing let file.closed = 1, but with object#setattr(),
-  stupid things can be prevented.
   Throws ERROR(AttributeError) if anyone attempts to setattr for a file
   object.
 
-
 file.__dir__()                                                *file.__dir__()*
-  Hide the private attributes from dir()
-
+  Return names of attributes.
 
 file.__getattr__({name})                                  *file.__getattr__()*
-  Hide the private attributes from getattr().
-
+  Return the attribute {name}.
 
 file.__bool__()                                              *file.__bool__()*
   __bool__(file) <==> file is not closed.
 
-
 file.__iter__()                                              *file.__iter__()*
   __iter__(file) <==> each line of file.
-
 
 file.__init__({name}, {mode})                                *file.__init__()*
   Initialize a file object with {name} and {mode}.
@@ -101,10 +115,8 @@ file.__init__({name}, {mode})                                *file.__init__()*
   Throws ERROR(ValueError) is {mode} string is invalid.
   Throws ERROR(IOError) if the file is not readable or writable.
 
-
 file.__repr__()                                              *file.__repr__()*
-  __repr__(file) <==> filename and mode.
-
+  __repr__(file) <==> repr(file)
 
 ==============================================================================
 FUNCTIONS                                               *object.vim-functions*
@@ -165,11 +177,6 @@ object#file#open({name}, [mode])                          *object#file#open()*
   opened for writing or appending; it will be truncated when opened for
   writing. Add a 'b' to the [mode] for binary files. Add a '+' to the [mode]
   to allow simultaneous reading and writing.
-
-
-object#file#file_()                                      *object#file#file_()*
-  Return the file class object.
-
 
 object#iter#iter({obj})                                   *object#iter#iter()*
   Return an iterator from {obj}.
