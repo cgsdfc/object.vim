@@ -16,7 +16,9 @@ catch/UserDefinedError/
 endtry
 
 Execute(Built-in exceptions works fine);
-let exceptions = [ 'Exception', 'ValueError', 'TypeError', 'AttributeError',]
+let exceptions = [ 'Exception', 'ValueError', 'TypeError', 'AttributeError',
+      \ 'IOError'
+      \ ]
 for x in exceptions
   AssertThrows throw object#{g:x}('error (%d)', 1)
   Assert g:vader_exception =~# printf('%s: error (1)', x)

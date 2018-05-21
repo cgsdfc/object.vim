@@ -1,13 +1,56 @@
-"vim:ft=vim
+" vim:ft=vim
 Before;
 let lipsum = maktaba#path#Join([fnamemodify(g:vader_file, ':h'), 'data', 'lipsum.txt'])
-Log lipsum
+let [mode_pattern, readable, writable, private_attrs] = object#file#patterns()
 
 Execute(open() without mode default for reading);
 let f=object#open(lipsum)
 AssertEqual f.mode, 'r'
-Log object#repr(f)
+AssertEqual lipsum, f.name
 
-Execute(patterns work as expected);
+Execute(valid mode strings);
+let valid_modes = [
+      \ 'w', 'r', 'a',
+      \ "w+", "r+", "a+",
+      \ 'rw', 'ra', 'wa', 'wr', 'ar', 'aw',
+      \ 'raw', 'rwa', 'awr', 'arw', 'war', 'wra',
+      \ 'ra+', 'wr+', 'raw+',
+      \ 'rkkk', 'r    +', 'www', 'w&&&+',
+      \]
+for x in valid_modes
+  Assert x =~# mode_pattern
+endfor
+
+Execute(bad mode strings);
+let bad_modes = [
+      \ '+r', 'u', '@', ' r',
+      \ "U+",
+      \ ]
+for x in bad_modes
+  Assert x !~# mode_pattern
+endfor
+
+Execute(readable modes);
+let positive = [ 'r', "w+", "a+", 'rw', 'ra',]
+for x in positive
+  Assert x =~# readable
+endfor
+
+Execute(not readable modes);
+let negative = ['w', 'a', 'wa', 'aw' ]
+for x in negative
+  Assert x !~# readable
+endfor
+
+Execute(writable modes);
+let positive = [ 'w', 'a', "r+", 'wa', 'wr',
+      \ 'rw', 'r   +', 'www', "w+", "a+",
+      \]
+for x in positive
+  Assert x =~# writable
+endfor
+
+Execute(not writable/readonly modes);
+Assert 'r' !~# writable
 
 Execute(read() returns all the lines);

@@ -20,7 +20,7 @@ let s:private_attrs = '\v\C(_read|_written)'
 
 " The pattern of a mode string is beginning with 'r', 'a' or 'w' and followed
 " by zero or more arbitrary characters.
-let s:mode_pattern = '\v\C[raw].*'
+let s:mode_pattern = '\v\C^[raw].*$'
 
 " The pattern for writable mode is a mode_pattern containing 'a', 'w' or 'r+'.
 let s:writable = '\v\C([aw]|r.*\+)'
@@ -340,6 +340,6 @@ endfunction
 " Append counts as writable.
 "
 function! object#file#patterns()
-  return [s:mode_pattern, s:readable, s:writable]
+  return [s:mode_pattern, s:readable, s:writable, s:private_attrs]
 endfunction
 
