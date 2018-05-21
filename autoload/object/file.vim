@@ -254,11 +254,11 @@ function! object#file#__init__(name, mode) dict
   endif
 
   if mode =~# s:readable && !filereadable(name)
-    throw object#IOError('file not readable')
+    throw object#IOError('file not readable: %s', string(name))
   endif
 
   if mode =~# s:writable && !filewritable(name)
-    throw object#IOError('file not writable')
+    throw object#IOError('file not writable %s', string(name))
   endif
 
   let self.name = name

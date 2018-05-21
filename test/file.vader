@@ -5,6 +5,18 @@ let [mode_pattern, readable, writable, private_attrs] = object#file#patterns()
 let f=object#open(lipsum)
 let file_ = object#file_()
 
+" Helper to put some text in a tempfile.
+"
+function! MakeTempfile(list)
+  let t = tempname()
+  call writefile(a:list, t)
+  return t
+endfunction
+
+function! MakeEmptyTempfile()
+  return MakeTempfile([])
+endfunction
+
 "
 " open()
 "
@@ -81,16 +93,15 @@ endfor
 
 Execute(read() returns all the lines);
 let data = split(repeat('a', 10))
-let temp = tempname()
-call writefile(data, temp)
+let t = MakeTempfile(data)
 try
-  let f = object#open(temp)
+  let f = object#open(t)
   AssertEqual f.read(), join(data, "\n")
 catch
   Log v:exception
   Log 'Test failed'
 finally
-  call delete(temp)
+  call delete(t)
 endtry
 
 Execute(a second call to f.read() should return '');
@@ -99,10 +110,9 @@ AssertEqual '', f.read()
 
 Execute(f.readline() should retrieve each line without tailing NL);
 let data = map(range(10), 'string(v:val)')
-let temp = tempname()
-call writefile(data, temp)
+let t = MakeTempfile(data)
 try
-  let f = object#open(temp, 'r')
+  let f = object#open(t, 'r')
   for x in data
     AssertEqual x, f.readline()
   endfor
@@ -110,5 +120,26 @@ try
 catch
   Log v:exception
 finally
-  call delete(temp)
+  call delete(t)
 endtry
+
+Execute(f.readlines() returns a list of all lines in f, which is equal to readfile());
+AssertEqual f.readlines(), readfile(lipsum)
+AssertEqual f.readlines(), []
+
+Execute(open()'ing an unreadable file throws IOError);
+" chmod -r lipsum.txt
+let t = MakeEmptyTempfile()
+Assert maktaba#path#Exists(t)
+try
+  call setfperm(t , "-w-r-----")
+  AssertThrows call object#open(g:t, 'r')
+catch
+  throw v:exception
+finally
+  delete(t)
+endtry
+Assert g:vader_exception =~# 'IOError'
+
+Execute(Although open()'ed readable, f.read() and friends throw IOError if f becomes unreadable);
+
