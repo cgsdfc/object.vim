@@ -1,5 +1,5 @@
 ""
-" @dict file
+" @section file, file
 " A simple interface to the |readfile()| and |writefile()| functions.
 "
 " Features:
@@ -18,9 +18,8 @@
 "     lost written data.
 "
 " Note:
-"   Unlike the counterparts from Python,
-"   * readlines() alway strips tailing newlines and
-"   * writelines() alway adds tailing newlines.
+"   * Unlike the counterparts from Python, readlines() always strips tailing newlines and
+"   * writelines() always adds tailing newlines.
 "
 " Examples:
 " >
@@ -39,8 +38,9 @@
 "   3
 " <
 " This is rooted at the nature of |readfile()| and |writefile()|.
-"
 
+""
+" @dict file
 
 let s:private_attrs = '\v\C(_read|_written)'
 

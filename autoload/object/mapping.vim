@@ -1,4 +1,16 @@
+""
+" @section Mapping, mapping
+" An interface to key-value containers.
+" A mapping is an object that supports accessing its values through a set of
+" keys or in short, the subscription operator. The built-in |String|, |Dict|
+" and |List| can all be viewed as mapping. This idea is generalized by the
+" functions provided.
 "
+" Features:
+"   * Hookable hash() works for built-in types.
+"   * Hookable getitem() and setitem() functions works built in types.
+
+
 " Any better way to guess the bitwidth of Number?
 "TODO: Add performance test for the strhash().
 "
@@ -79,13 +91,12 @@ endfunction
 
 ""
 " Return the hash value of {obj}. {obj} can be a |Number|, a
-" |String| or special variables like |v:none| and |v:false|,
+" |String| a |Funcref| or special variables like |v:none| and |v:false|,
 " or an object with __hash__() defined.
 "
-" @throws TypeError if {obj} is a |List|, |Float| or |Dict|.
+" @throws TypeError if hash() is not possible for {obj}.
 " @throws WrongType if __hash__ is not a |Funcref| or returns
 " something NAN (Not A Number).
-"
 function! object#mapping#hash(obj)
   if maktaba#value#IsNumber(a:obj)
     return object#mapping#unsigned(a:obj)
@@ -110,7 +121,7 @@ endfunction
 
 ""
 " Return the value at {key} in {obj} as if {obj} is a mapping.
-" If {obj} is a |List| or |Dict|, operator[] of Vim will be used.
+" If {obj} is a |List|, |String| or |Dict|, built-in subscription will be used.
 function! object#mapping#getitem(obj, key)
   if maktaba#value#IsString(a:obj) || maktaba#value#IsList(a:obj)
     return a:obj[a:key]
@@ -126,10 +137,9 @@ endfunction
 
 ""
 " Set the value at {key} of {obj} to {val}.
-" If {obj} is a |List| or a |Dict| without __setitem__(),
-" |let| will be uesd.
-" Otherwise, __setitem__() of {obj} will be used.
-"
+" If {obj} is a |List|, |String| or a |Dict|,
+" subscription version of |let| will be uesd.
+" Otherwise, __setitem__ of {obj} will be used.
 function! object#mapping#setitem(obj, key, val)
   if maktaba#value#IsList(a:obj)
     let a:obj[a:key] = a:val
