@@ -1,0 +1,11 @@
+"vim:ft=vim
+Before;
+let lipsum = maktaba#path#Join([fnamemodify(g:vader_file, ':h'), 'data', 'lipsum.txt'])
+Log lipsum
+
+Execute(open() without mode default for reading);
+let f=object#open(lipsum)
+AssertEqual f.mode, 'r'
+Log object#repr(f)
+
+Execute(read() returns all the lines);

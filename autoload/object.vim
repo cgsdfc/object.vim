@@ -142,6 +142,10 @@ function! object#AttributeError(...) abort
   return call('object#except#AttributeError', a:000)
 endfunction
 
+function! object#IOError(...) abort
+  return call('object#except#IOError', a:000)
+endfunction
+
 ""
 " From object#types
 " Built in types
@@ -211,3 +215,17 @@ endfunction
 function! object#enumerate(...) abort
   return call('object#iter#enumerate', a:000)
 endfunction
+
+"
+" object#file
+"   open()
+"   file_()
+
+function! object#open(...)
+  return call('object#file#open', a:000)
+endfunction
+
+function! object#file_(...)
+  return call('object#file#file_', a:000)
+endfunction
+

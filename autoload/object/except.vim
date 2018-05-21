@@ -41,3 +41,9 @@ function! object#except#StopIteration()
   return 'StopIteration:'
 endfunction
 
+""
+" @exception
+function! object#except#IOError(msg, ...)
+  return object#except#BaseException('IOError', a:msg, a:000)
+endfunction
+

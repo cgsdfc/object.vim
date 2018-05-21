@@ -1,4 +1,4 @@
-let s:identifier = '\v^[a-zA-Z_][a-zA-Z0-9_]*$'
+let s:identifier = '\v\C^[a-zA-Z_][a-zA-Z0-9_]*$'
 
 function! object#util#ensure_argc(atmost, x)
   if a:x <= a:atmost
