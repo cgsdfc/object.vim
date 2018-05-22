@@ -19,12 +19,12 @@ endfunction
 " When the list index goes out of range, Vim throws E684.
 function! s:list_iter.__next__()
   try
-    let item = self.list[self.idx]
+    let Item = self.list[self.idx]
   catch /E684/
     throw object#StopIteration()
   endtry
   let self.idx += 1
-  return item
+  return Item
 endfunction
 
 function! s:str_iter.__init__(str)
@@ -35,10 +35,10 @@ endfunction
 " When the index to a string goes out of range, Vim
 " returns an empty string, which is an indicator of StopIteration.
 function! s:str_iter.__next__()
-  let item = self.str[self.idx]
-  if item isnot# ''
+  let Item = self.str[self.idx]
+  if Item isnot# ''
     let self.idx += 1
-    return item
+    return Item
   endif
   throw object#StopIteration()
 endfunction
@@ -49,9 +49,9 @@ function! s:enum_iter.__init__(iter, start)
 endfunction
 
 function! s:enum_iter.__next__()
-  let item = [self.idx, object#next(self.iter)]
+  let Item = [self.idx, object#next(self.iter)]
   let self.idx += 1
-  return item
+  return Item
 endfunction
 
 function! s:zip_iter.__init__(iters)
@@ -109,8 +109,8 @@ function! object#iter#any(iter)
   let iter = object#iter#iter(a:iter)
   try
     while 1
-      let item = object#iter#next(iter)
-      if object#bool(item) | return 1 | endif
+      let Item = object#iter#next(iter)
+      if object#bool(Item) | return 1 | endif
     endwhile
   catch /StopIteration/
     return 0
@@ -124,8 +124,8 @@ function! object#iter#all(iter)
   let iter = object#iter#iter(a:iter)
   try
     while 1
-      let item = object#iter#next(iter)
-      if !object#bool(item) | return 0 | endif
+      let Item = object#iter#next(iter)
+      if !object#bool(Item) | return 0 | endif
     endwhile
   catch /StopIteration/
     return 1
@@ -146,8 +146,10 @@ function! object#iter#dict(...)
   let dict = {}
   try
     while 1
-      let item = object#next(iter)
-      let dict[item[0]] = item[1]
+      let Item = object#next(iter)
+      let key = object#getitem(Item, 0)
+      let val = object#getitem(Item, 1)
+      let dict[key] = val
     endwhile
   catch /StopIteration/
     return dict
@@ -207,8 +209,8 @@ function! object#iter#map(iter, lambda)
   let x = []
   try
     while 1
-      let item = object#next(iter)
-      call add(x, maktaba#function#Apply(lambda, item))
+      let Item = object#next(iter)
+      call add(x, maktaba#function#Apply(lambda, Item))
     endwhile
   catch /StopIteration/
     return x
@@ -227,9 +229,9 @@ function! object#iter#filter(iter, lambda)
   let x = []
   try
     while 1
-      let item = object#next(iter)
-      if object#bool(maktaba#function#Apply(lambda, item))
-        call add(x, item)
+      let Item = object#next(iter)
+      if object#bool(maktaba#function#Apply(lambda, Item))
+        call add(x, Item)
       endif
     endwhile
   catch /StopIteration/

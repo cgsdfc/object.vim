@@ -3,7 +3,10 @@
 " Test any() and all()
 "
 Execute(on all true sequences);
-for x in [ repeat('a', 10), range(1,10), map(range(10), 'v:true'), map(range(10), '1')]
+for x in [ repeat('a', 10), range(1,10), 
+      \ map(range(10), 'v:true'), map(range(10), '1'),
+      \ map(range(10), 'function("tr")'),
+      \]
   Assert object#all(x)
   Assert object#any(x)
 endfor
@@ -21,7 +24,8 @@ for x in ['', []]
 endfor
 
 Execute(on sequences having both true and false objects);
-for x in [  range(10), [ '', 1 ], [ 0, 'a' ], [ {}, 2 ] ]
+for x in [  range(10), [ '', 1 ], [ 0, 'a' ],
+      \  [ {}, 2 ], [function('tr'), 0 ] ]
   Assert !object#all(x)
   Assert object#any(x)
 endfor

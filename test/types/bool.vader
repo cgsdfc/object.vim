@@ -34,3 +34,6 @@ function! cls.__bool__()
 endfunction
 AssertThrows call object#bool(g:cls)
 Assert g:vader_exception =~# 'BadValue'
+
+Execute(bool()'s dealing with Funcref);
+call object#bool(function('tr'))

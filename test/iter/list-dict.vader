@@ -1,6 +1,6 @@
 " vim:ft=vim
 " 
-" Test the list() convertor
+" Test the list() and dict() convertor
 
 Execute(when no arguments given, list() returns an empty list);
 AssertEqual object#list(), []
@@ -27,3 +27,16 @@ Assert g:vader_exception =~# 'TypeError'
 
 Execute(list() corner cases);
 AssertEqual object#list(''), []
+
+
+Execute(when no arguments given, dict() returns an empty dict);
+AssertEqual object#dict(), {}
+AssertEqual object#dict([]), {}
+
+Execute(dict() can turn a 2-list iter into a dict);
+let x = { 'foo': 1, 'bar': 2, 'sam': 3 }
+AssertEqual x, object#dict(items(x))
+
+Execute(dict() throws TypeError when the iter returns non-2-list);
+AssertThrows call object#dict(range(10))
+Assert g:vader_exception =~# 'TypeError'

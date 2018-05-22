@@ -1,4 +1,5 @@
 Include(Test all() and any()): iter/all-any.vader
+Include(Test list() and dict()): iter/list-dict.vader
 
 Execute(iter() should return corresponding iterator for String and List);
 for i in [range(10), 'this is a str']
