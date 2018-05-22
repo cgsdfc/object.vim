@@ -63,6 +63,8 @@ let s:file.writeline = function('object#file#writeline')
 let s:file.writelines = function('object#file#writelines')
 let s:file.flush = function('object#file#flush')
 let s:file.close = function('object#file#close')
+let s:file.readable = function('object#file#readable')
+let s:file.writable = function('object#file#writable')
 
 let s:file.__init__ = function('object#file#__init__')
 let s:file.__repr__ = function('object#file#__repr__')
@@ -204,6 +206,31 @@ function! object#file#close() dict
   let self.closed = 1
 endfunction
 
+""
+" @dict file
+" Return whether the file is opened for reading.
+function! object#file#readable() dict
+  if self.mode !~# s:readable
+    return 0
+  endif
+  if !self.closed
+    return 1
+  endif
+  throw object#IOError('I/O operation on cloesd file')
+endfunction
+
+""
+" @dict file
+" Return whether the file is opened for writing.
+function! object#file#writable() dict
+  if self.mode !~# s:writable
+    return 0
+  endif
+  if !self.closed
+    return 1
+  endif
+  throw object#IOError('I/O operation on cloesd file')
+endfunction
 
 ""
 " Return the file class object.

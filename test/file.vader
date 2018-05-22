@@ -1,4 +1,8 @@
 " vim:ft=vim
+
+Include(Mode strings): file/mode-str.vader
+Include(Attributes): file/attrs.vader
+
 Before;
 let lipsum = maktaba#path#Join([fnamemodify(g:vader_file, ':h'), 'data', 'lipsum.txt'])
 let [mode_pattern, readable, writable, private_attrs] = object#file#patterns()
@@ -45,63 +49,10 @@ if exists('g:tempfile_list')
 endif
 
 "
-" basic open()
-"
-
-Execute(open() without mode default for reading);
-AssertEqual f.mode, 'r'
-AssertEqual lipsum, f.name
-
-"
-" mode string
-"
-
-Execute(valid mode strings);
-let valid_modes = [
-      \ 'w', 'r', 'a',
-      \ "w+", "r+", "a+",
-      \ 'rw', 'ra', 'wa', 'wr', 'ar', 'aw',
-      \ 'raw', 'rwa', 'awr', 'arw', 'war', 'wra',
-      \ 'ra+', 'wr+', 'raw+',
-      \ 'rkkk', 'r    +', 'www', 'w&&&+',
-      \]
-for x in valid_modes
-  Assert x =~# mode_pattern
-endfor
-
-Execute(bad mode strings);
-for x in bad_modes
-  Assert x !~# mode_pattern
-endfor
-
-Execute(readable modes);
-let positive = [ 'r', "w+", "a+", 'rw', 'ra',]
-for x in positive
-  Assert x =~# readable
-endfor
-
-Execute(not readable modes);
-let negative = ['w', 'a', 'wa', 'aw' ]
-for x in negative
-  Assert x !~# readable
-endfor
-
-Execute(writable modes);
-let positive = [ 'w', 'a', "r+", 'wa', 'wr',
-      \ 'rw', 'r   +', 'www', "w+", "a+",
-      \]
-for x in positive
-  Assert x =~# writable
-endfor
-
-Execute(not writable/readonly modes);
-Assert 'r' !~# writable
-
-"
 " Hiding private attributes
 "
 
-Execute(pravite attrs not showing up);
+Execute(private attrs not showing up);
 for x in object#dir(f)
   Assert x !~# private_attrs
 endfor

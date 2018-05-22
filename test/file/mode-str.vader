@@ -1,0 +1,71 @@
+" vim:ft=vim
+Before;
+let [mode_pattern, readable, writable, private_attrs]
+      \ = object#file#patterns()
+let bad_modes = [
+      \ '+r', 'u', '@', ' r',
+      \ "U+",
+      \ ]
+
+let valid_modes = [
+      \ 'w', 'r', 'a',
+      \ "w+", "r+", "a+",
+      \ 'rw', 'ra', 'wa', 'wr', 'ar', 'aw',
+      \ 'raw', 'rwa', 'awr', 'arw', 'war', 'wra',
+      \ 'ra+', 'wr+', 'raw+',
+      \ 'rkkk', 'r    +', 'www', 'w&&&+',
+      \]
+
+let bad_args = [
+      \ [ 1, [] ],
+      \ [ {}, 1 ],
+      \]
+
+Execute(valid mode strings match mode_pattern);
+for x in valid_modes
+  Assert x =~# mode_pattern
+endfor
+
+Execute(bad mode strings do not match mode_pattern);
+for x in bad_modes
+  Assert x !~# mode_pattern
+endfor
+
+Execute(readable mode strings match readable);
+let positive = [ 'r', "w+", "a+", 'rw', 'ra',]
+for x in positive
+  Assert x =~# readable
+endfor
+
+Execute(not readable mode strings do not match readable);
+let negative = ['w', 'a', 'wa', 'aw' ]
+for x in negative
+  Assert x !~# readable
+endfor
+
+Execute(writable modes);
+let positive = [ 'w', 'a', "r+", 'wa', 'wr',
+      \ 'rw', 'r   +', 'www', "w+", "a+",
+      \]
+for x in positive
+  Assert x =~# writable
+endfor
+
+Execute(not writable/readonly modes);
+Assert 'r' !~# writable
+
+"
+" open()'s dealing with mode strings
+"
+
+Execute(open() throws ValueError for bad mode string);
+for x in bad_modes
+  AssertThrows call object#open(tempname(), g:x)
+  Assert g:vader_exception =~# 'ValueError'
+endfor
+
+Execute(open() throws WrongType if name or mode is not String);
+for x in bad_args
+  AssertThrows call call("object#open", g:x)
+  Assert g:vader_exception =~# 'WrongType'
+endfor

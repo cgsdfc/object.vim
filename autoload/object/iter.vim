@@ -135,9 +135,13 @@ endfunction
 ""
 " Turn an iterator that returns 2-list into a |Dict|.
 " If no [iter] is given, an empty |Dict| is returned.
+" If a |Dict| is given, it is effectively |copy()|'ed.
 function! object#iter#dict(...)
   let argc = object#util#ensure_argc(1, a:0)
   if !argc | return {} | endif
+  if maktaba#value#IsDict(a:1)
+    return copy(a:1)
+  endif
   let iter = object#iter(a:1)
   let dict = {}
   try
@@ -153,9 +157,13 @@ endfunction
 ""
 " Turn an iterator into a |List|.
 " If no [iter] is given, an empty |List| is returned.
+" If a |List| is given, it is effectively |copy()|'ed.
 function! object#iter#list(...)
   let argc = object#util#ensure_argc(1, a:0)
   if !argc | return [] | endif
+  if maktaba#value#IsList(a:1)
+    return copy(a:1)
+  endif
   let iter = object#iter(a:1)
   let list = []
   try
