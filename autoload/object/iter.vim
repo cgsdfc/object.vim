@@ -20,11 +20,11 @@ endfunction
 function! s:list_iter.__next__()
   try
     let item = self.list[self.idx]
-    let self.idx += 1
-    return item
   catch /E684/
     throw object#StopIteration()
   endtry
+  let self.idx += 1
+  return item
 endfunction
 
 function! s:str_iter.__init__(str)
@@ -196,13 +196,53 @@ function! object#iter#zip(iter, ...)
   return object#new(s:zip_iter, iters)
 endfunction
 
-function! object#iter#map(expr, iter)
-
+""
+" Create a new list by applying {lambda} to each item of an {iter}.
+" {lambda} can be a |String| of function name or a |Funcref|.
+" Unfortunately, in {lambda} you cannot use |v:val| for no call to
+" built-in |map()| is issued at all.
+function! object#iter#map(iter, lambda)
+  let lambda = maktaba#ensure#IsCallable(a:lambda)
+  let iter = object#iter(a:iter)
+  let x = []
+  try
+    while 1
+      let item = object#next(iter)
+      call add(x, maktaba#function#Apply(lambda, item))
+    endwhile
+  catch /StopIteration/
+    return x
+  endtry
 endfunction
 
+""
+" Create a new list by removing the item from {iter} when {lambda}
+" return false. Truthness is evaluated by object#bool().
+" {lambda} can be a |String| of function name or a |Funcref|.
+" Unfortunately, in {lambda} you cannot use |v:val| for no call to
+" built-in |filter()| is issued at all.
+function! object#iter#filter(iter, lambda)
+  let lambda = maktaba#ensure#IsCallable(a:lambda)
+  let iter = object#iter(a:iter)
+  let x = []
+  try
+    while 1
+      let item = object#next(iter)
+      if object#bool(maktaba#function#Apply(lambda, item))
+        call add(x, item)
+      endif
+    endwhile
+  catch /StopIteration/
+    return x
+  endtry
+endfunction
+
+""
+" Return the sum of items from {iter}. The item must supports built-in |+=|. 
+" If {iter} is empty, |Number| 0 is returned.
 function! object#iter#sum(iter)
   let iter = object#iter(a:iter)
-  let x = object#next(iter)
+  let x = 0
   try
     while 1
       let x += object#next(iter)
@@ -211,9 +251,3 @@ function! object#iter#sum(iter)
     return x
   endtry
 endfunction
-
-function! object#iter#filter(expr, iter)
-
-endfunction
-
-

@@ -216,6 +216,18 @@ function! object#enumerate(...) abort
   return call('object#iter#enumerate', a:000)
 endfunction
 
+function! object#sum(...) abort
+  return call('object#iter#sum', a:000)
+endfunction
+
+function! object#map(...) abort
+  return call('object#iter#map', a:000)
+endfunction
+
+function! object#filter(...) abort
+  return call('object#iter#filter', a:000)
+endfunction
+
 "
 " object#file
 "   open()
