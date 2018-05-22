@@ -226,14 +226,14 @@ function! object#class#ensure_class(x)
   if object#class#is_valid_class(a:x)
     return a:x
   endif
-  throw object#TypeError("not a valid class")
+  throw object#TypeError('not a valid class')
 endfunction
 
 function! object#class#ensure_object(x)
   if object#class#is_valid_object(a:x)
     return a:x
   endif
-  throw object#TypeError("not a valid object")
+  throw object#TypeError('not a valid object')
 endfunction
 
 "

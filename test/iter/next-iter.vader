@@ -1,0 +1,73 @@
+" vim:ft=vim
+"
+" iter() and next()
+"
+Execute(iter() returns an iterator for String and List);
+let input = [
+      \ [],
+      \ '',
+      \ range(10),
+      \ 'this is a str',
+      \]
+
+for i in input
+  let x = object#iter(i)
+  Log object#repr(x)
+  Log object#dir(x)
+  unlet i
+endfor
+
+Execute(iter() throws TypeError for non-iterable);
+let non_iterable = [ 1, {}, function('tr'), v:none, v:false  ]
+if has('float')
+  call add(non_iterable, 1.1)
+endif
+for X in non_iterable
+  AssertThrows call object#iter(g:X)
+  Assert g:vader_exception =~# 'TypeError'
+endfor
+
+Execute(iter() throws TypeError returns non-iter);
+let cls = {}
+function! cls.__iter__()
+  return {}
+endfunction
+
+AssertThrows call object#iter(g:cls)
+Assert g:vader_exception =~# 'TypeError'
+
+Execute(iter() throws WrongType if __iter__ is not a Funcref);
+let cls = {
+      \ '__iter__' : 1,
+      \ }
+AssertThrows call object#iter(g:cls)
+Assert g:vader_exception =~# 'WrongType'
+
+
+Execute(next() calls the __next__ method of an obj);
+let cls = {}
+function! cls.__next__()
+  return 'called'
+endfunction
+
+AssertEqual object#next(cls), 'called'
+
+Execute(next() throws TypeError if __next__ is not available);
+let input = [
+      \ 'str',
+      \ 0,
+      \ range(10),
+      \ function('tr'),
+      \ ]
+
+for X in input
+  AssertThrows call object#next(g:X)
+  Assert g:vader_exception =~# 'TypeError'
+endfor
+
+Execute(next() throws WrongType if __next__ is not a Funcref);
+let cls = {
+      \ '__next__' : 'not a Funcref',
+      \}
+AssertThrows call object#next(g:X)
+Assert g:vader_exception =~# 'TypeError'

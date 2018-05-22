@@ -1,12 +1,11 @@
+" vim:ft=vim
+"
+" Test Iterator Protocols
+"
+
+Include(Test iter() and next()): iter/next-iter.vader
 Include(Test all() and any()): iter/all-any.vader
 Include(Test list() and dict()): iter/list-dict.vader
-
-Execute(iter() should return corresponding iterator for String and List);
-for i in [range(10), 'this is a str']
-  let x = object#iter(i)
-  Log object#repr(x)
-  Log object#dir(x)
-endfor
 
 Execute(list_iter);
 let seq = range(10)

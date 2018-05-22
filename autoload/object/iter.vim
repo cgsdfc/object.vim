@@ -240,7 +240,7 @@ function! object#iter#filter(iter, lambda)
 endfunction
 
 ""
-" Return the sum of items from {iter}. The item must supports built-in |+=|. 
+" Return the sum of items from {iter}. The item must supports built-in |+=|.
 " If {iter} is empty, |Number| 0 is returned.
 function! object#iter#sum(iter)
   let iter = object#iter(a:iter)
