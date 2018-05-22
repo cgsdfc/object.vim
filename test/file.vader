@@ -3,37 +3,4 @@
 Include(Mode strings): file/mode-str.vader
 Include(Attributes): file/attrs.vader
 Include(Reading): file/reading.vader
-
-Before;
-
-" Helper to put some text in a tempfile.
-"
-function! MakeTempfile(list)
-  if !exists('g:tempfile_list')
-    let g:tempfile_list = []
-  endif
-  let t = tempname()
-  call writefile(a:list, t)
-  call add(g:tempfile_list, t)
-  return t
-endfunction
-
-function! MakeEmptyTempfile()
-  return MakeTempfile([])
-endfunction
-
-function! MakeUnreadable(f)
-  call setfperm(a:f , "-w-r-----")
-endfunction
-
-function! MakeUnwritable(f)
-  call setfperm(a:f , "r--r-----")
-endfunction
-
-let writable_tempfile = MakeEmptyTempfile()
-let  writable_fileobj = object#open(writable_tempfile, 'w')
-
-After;
-if exists('g:tempfile_list')
-  call map(g:tempfile_list, 'delete(v:val)')
-endif
+Include(Writing): file/writing.vader

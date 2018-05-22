@@ -7,65 +7,86 @@
 
 Before;
 let write_family = ['write', 'writeline', 'writelines']
+let files = map(range(5), 'tempname()')
+call map(copy(files), 'writefile([], v:val)')
 
 Execute(a single call to write(str) writes a _line_ to f);
-let data = repeat('b', 10)
-call writable_fileobj.write(data)
-call writable_fileobj.close()
-AssertEqual [data], readfile(writable_tempfile)
+let t = files[0]
+let f = object#open(t, 'w')
+
+call f.write('aaa')
+call f.close()
+AssertEqual ['aaa'], readfile(t)
 
 Execute(write() concats to the current line of f);
+let t = files[0]
+let f = object#open(t, 'w')
 let data = [ 'This ', 'is ', 'an ', 'apple.' ]
-call map(copy(data), 'writable_fileobj.write(v:val)')
-call writable_fileobj.close()
-AssertEqual join(data, ''), readfile(writable_tempfile)[0]
+
+call map(copy(data), 'f.write(v:val)')
+call f.close()
+AssertEqual join(data, ''), readfile(t)[0]
 
 Execute(multiple writeline()'s is equal to a single writelines());
-" Make 2 empty tempfiles.
-let samples = map(range(2), 'MakeEmptyTempfile()')
+let data = split(repeat('a', 10), '')
+
+" Take 2 empty tempfiles.
+let files = files[0:1]
 
 " Open all the tempfiles.
-let files = map(copy(samples), 'object#open(v:val, "w")')
+let targets = map(copy(files), 'object#open(v:val, "w")')
 
 " Here is the difference
-call files[0].writelines(data)
+call targets[0].writelines(data)
 for x in data
-  call files[1].writeline(x)
+  call targets[1].writeline(x)
 endfor
 
-call map(files, 'v:val.close()')
-call map(samples, 'readfile(v:val)')
-AssertEqual samples[0], samples[1]
+call map(targets, 'v:val.close()')
+let results = map(copy(files), 'readfile(v:val)')
+AssertEqual results[0], results[1]
 
 "
 " Throwing behaviours of write() and friends.
 "
 
 Execute(write()/writeline() throws WrongType for non-String);
-for x in ['write', 'writeline']
-  AssertThrows call g:writable_fileobj[g:x](1)
+let f = object#open(files[0], 'w')
+for x in write_family[:1]
+  AssertThrows call object#getattr(g:f, g:x)(1)
+  Log g:vader_exception
   Assert g:vader_exception =~# 'WrongType'
 endfor
 
 Execute(writelines throws WrongType for iter that returns non-String);
-AssertThrows call g:writable_fileobj.writelines(range(10))
+AssertThrows call object#open(g:files[0], 'w').writelines(range(10))
+Log g:vader_exception
 Assert g:vader_exception =~# 'WrongType'
 
+Execute(writelines() throws TypeError for non-iterable input);
+let f = object#open(files[0], 'w')
+AssertThrows call g:f.writelines(1)
+Assert g:vader_exception =~# 'TypeError'
+
+
 Execute(open an unwritable file throws IOError);
-let t = MakeEmptyTempfile()
-call MakeUnwritable(t)
+let t = files[0]
+call setfperm(t, 'r--------')
 AssertThrows call object#open(g:t, 'w')
 Assert g:vader_exception =~# 'IOError'
 
 Execute(Although open()'ed writable, f.write() and friends throw IOError if f becomes unwritable);
-let t = MakeEmptyTempfile()
+let t = files[0]
 Assert filewritable(t)
 
 let f = object#open(t, 'w')
-call map(copy(write_family), 'f[v:val]("aaa")')
 
-call MakeUnwritable(t)
+call setfperm(t, 'r--------')
 for x in write_family
   AssertThrows call object#getattr(g:f, g:x)('aaa')
   Assert g:vader_exception =~# 'IOError'
 endfor
+
+" TODO: test append and binary.
+After;
+call map(files, 'delete(v:val)')

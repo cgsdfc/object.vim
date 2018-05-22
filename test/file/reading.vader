@@ -5,12 +5,18 @@ Before;
 let files = map(range(5), 'tempname()')
 call map(copy(files), 'writefile([], v:val)')
 
-let data = split(repeat('a', 10))
-let read_family = ['read', 'readline', 'readlines']
-
-let test_dir = fnamemodify(g:vader_file, ':h:h')
+if maktaba#path#Basename(g:vader_file) is# 'file.vader'
+  " This file is invoked from file.vader.
+  let test_dir = fnamemodify(g:vader_file, ':h')
+else
+  " Invoked as its own.
+  let test_dir = fnamemodify(g:vader_file, ':h:h')
+endif
 let lipsum_text = maktaba#path#Join([test_dir, 'data', 'lipsum.txt'])
 Assert filereadable(lipsum_text)
+
+let data = split(repeat('a', 10))
+let read_family = ['read', 'readline', 'readlines']
 
 Execute(read() returns all the lines joint with NL);
 try
