@@ -8,4 +8,4 @@ Include(Test all() and any()): iter/all-any.vader
 Include(Test list() and dict()): iter/list-dict.vader
 Include(Test list_iter): iter/list-iter.vader
 Include(Test str_iter): iter/str-iter.vader
-Include(Test map-reduce functions): iter/map-reduce.vader
+Include(Test enumerate()): iter/enumerate.vader
