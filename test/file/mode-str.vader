@@ -1,6 +1,9 @@
 " vim:ft=vim
+" Test the patterns for matching mode strings.
+"
+
 Before;
-let [mode_pattern, readable, writable, private_attrs]
+let [mode_pattern, readable, writable, _ ]
       \ = object#file#patterns()
 let bad_modes = [
       \ '+r', 'u', '@', ' r',

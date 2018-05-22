@@ -48,16 +48,10 @@ call object#types#install(s:type_class, 'type', s:type_class, s:object_class)
 "
 
 "
-" When called on class like object#repr(s:object_class),
-" this show the name of the class itself.
-" When called on an instance, the class name of it will be
-" shown.
+" Representation string.
 "
 function! object#types#repr() dict
-  " return object#isinstance(self, s:type_class)?
-  return self.__class__ is# s:type_class?
-        \ printf('<type %s>', string(self.__name__)):
-        \ printf('<%s object>', string(self.__class__.__name__))
+  return printf('<%s object>', string(self.__class__.__name__))
 endfunction
 
 function! s:None.__repr__()

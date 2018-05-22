@@ -2,6 +2,7 @@
 " Test basic attribute getting and setting
 
 Before;
+let file_ = object#file_()
 let private_attrs = object#file#patterns()[-1]
 let files = map(range(5), 'tempname()')
 call map(copy(files), 'writefile([], v:val)')
@@ -9,6 +10,10 @@ call map(copy(files), 'writefile([], v:val)')
 "
 " Hiding private attributes
 "
+
+Execute(file object looks fine);
+Log object#dir(file_)
+Log object#repr(file_)
 
 Execute(private attributes not showing up);
 let f = object#open(files[0])

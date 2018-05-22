@@ -76,7 +76,12 @@ endfunction
 " Generate string representation for {obj}. Fail back on |string()|
 "
 function! object#protocols#repr(obj)
+  if object#class#is_valid_class(a:obj)
+    return printf('<type %s>', string(a:obj.__name__))
+  endif
   if !object#protocols#hasattr(a:obj, '__repr__')
+    " TODO: recurse into list and dict
+    " so that objects keep happy in containers.
     return string(a:obj)
   endif
   return maktaba#ensure#IsString(object#protocols#call(a:obj.__repr__))

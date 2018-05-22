@@ -7,11 +7,6 @@ Before;
 let lipsum = maktaba#path#Join([fnamemodify(g:vader_file, ':h'), 'data', 'lipsum.txt'])
 let [mode_pattern, readable, writable, private_attrs] = object#file#patterns()
 let f = object#open(lipsum)
-let file_ = object#file_()
-let bad_modes = [
-      \ '+r', 'u', '@', ' r',
-      \ "U+",
-      \ ]
 let data = split(repeat('a', 10))
 let read_family = ['read', 'readline', 'readlines']
 let write_family = ['write', 'writeline', 'writelines']
@@ -47,23 +42,6 @@ After;
 if exists('g:tempfile_list')
   call map(g:tempfile_list, 'delete(v:val)')
 endif
-
-"
-" Hiding private attributes
-"
-
-Execute(private attrs not showing up);
-for x in object#dir(f)
-  Assert x !~# private_attrs
-endfor
-
-Execute(setattr() on file obj should throw AttributeError);
-AssertThrows call object#setattr(g:f, 'x', 1)
-Assert g:vader_exception =~# 'AttributeError.*no attribute'
-for x in object#dir(f)
-  AssertThrows call object#setattr(g:f, g:x, 1)
-  Assert g:vader_exception =~# 'AttributeError.*readonly'
-endfor
 
 "
 " Basic read* family.
