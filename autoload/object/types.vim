@@ -147,6 +147,6 @@ function! object#types#bool_nofloat(obj)
     endif
     return !empty(a:obj)
   catch
-    call object#protocols#not_avail('bool', a:obj)
+    call object#except#not_avail('bool', a:obj)
   endtry
 endfunction

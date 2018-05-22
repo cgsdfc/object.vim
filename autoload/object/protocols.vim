@@ -13,16 +13,6 @@ function! object#protocols#call(X, ...)
   return call(maktaba#ensure#IsFuncref(a:X), a:000)
 endfunction
 
-"
-" Indicate the the {func} is not available for {obj} because of
-" lack of hooks or invcompatible type. {func} is the name of the
-" function without parentheses.
-"
-function! object#protocols#not_avail(func, obj)
-  throw object#TypeError('%s() not available for %s object', a:func,
-        \ object#types#name(a:obj))
-endfunction
-
 ""
 " Get the attribute {name} from {obj}.
 " Note: The __getattr__() hook overrides the dictionary lookup

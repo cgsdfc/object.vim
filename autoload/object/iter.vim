@@ -90,7 +90,7 @@ function! object#iter#iter(obj)
   if object#hasattr(a:obj, '__iter__')
     return s:ensure_iter(object#protocols#call(a:obj.__iter__))
   endif
-  call object#protocols#not_avail('iter', a:obj)
+  call object#except#not_avail('iter', a:obj)
 endfunction
 
 ""
@@ -99,7 +99,7 @@ function! object#iter#next(obj)
   if object#hasattr(a:obj, '__next__')
     return object#protocols#call(a:obj.__next__)
   endif
-  call object#protocols#not_avail('next', a:obj)
+  call object#except#not_avail('next', a:obj)
 endfunction
 
 ""

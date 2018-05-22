@@ -116,7 +116,7 @@ function! object#mapping#hash(obj)
   if object#protocols#hasattr(a:obj, '__hash__')
     return maktaba#ensure#IsNumber(object#protocols#call(a:obj.__hash__))
   endif
-  call object#protocols#not_avail('hash', a:obj)
+  call object#except#not_avail('hash', a:obj)
 endfunction
 
 ""
@@ -132,7 +132,7 @@ function! object#mapping#getitem(obj, key)
     endif
     return object#protocols#call(a:obj.__getitem__, a:key)
   endif
-  call object#protocols#not_avail('getitem', a:obj)
+  call object#except#not_avail('getitem', a:obj)
 endfunction
 
 ""
@@ -153,5 +153,5 @@ function! object#mapping#setitem(obj, key, val)
     call object#protocols#call(a:obj.__setitem__, a:key, a:val)
     return
   endif
-  call object#protocols#not_avail('setitem', a:obj)
+  call object#except#not_avail('setitem', a:obj)
 endfunction

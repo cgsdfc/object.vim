@@ -38,7 +38,7 @@ for [type, msg, args] in input
 endfor
 
 Execute(BaseException() should throw ValueError if the type argument failed to match a pattern);
-let input = [ 
+let input = [
       \ '999',
       \ ' ValueError',
       \ 'ValueError ',
@@ -57,3 +57,8 @@ endfor
 
 Execute(StopIteration() is simply itself);
 AssertEqual object#StopIteration(), 'StopIteration:'
+
+Execute(not_avail() throws TypeError);
+AssertThrows throw object#except#not_avail('len', 1)
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
