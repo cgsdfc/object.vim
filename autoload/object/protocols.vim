@@ -35,7 +35,7 @@ function! object#protocols#getattr(obj, name, ...)
   let argc = object#util#ensure_argc(1, a:0)
 
   if object#protocols#hasattr(a:obj, '__getattr__')
-    return object#protocols#call(a:obj.__getattr__, name) 
+    return object#protocols#call(a:obj.__getattr__, name)
   endif
 
   if has_key(obj, name)
@@ -121,8 +121,8 @@ endfunction
 " is true. For numbers, 0 is false and non-zero is true.
 " For floats, 0.0 is false and everything else if true.
 "
-" Hook into __bool__. 
-"
+" Hook into __bool__.
+" TODO: Move bool(), int(), float() into types
 if has('float')
   function! object#protocols#bool(obj)
     if maktaba#value#IsFloat(a:obj)

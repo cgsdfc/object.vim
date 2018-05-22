@@ -1,4 +1,88 @@
 " vim:ft=vim
 " Test reading functionality.
 
+Before;
+let files = map(range(5), 'tempname()')
+call map(copy(files), 'writefile([], v:val)')
 
+let data = split(repeat('a', 10))
+let read_family = ['read', 'readline', 'readlines']
+
+let test_dir = fnamemodify(g:vader_file, ':h:h')
+let lipsum_text = maktaba#path#Join([test_dir, 'data', 'lipsum.txt'])
+Assert filereadable(lipsum_text)
+
+Execute(read() returns all the lines joint with NL);
+try
+  let f = object#open(lipsum_text)
+  AssertEqual f.read(), join(readfile(lipsum_text), "\n")
+catch
+  Log v:exception
+  Log 'Test failed'
+endtry
+
+Execute(a second call to f.read() should return '');
+let f = object#open(lipsum_text)
+call f.read()
+AssertEqual f.read(), ''
+
+Execute(f.readline() should retrieve each line without tailing NL);
+let t = files[0]
+call writefile(data, t)
+
+try
+  let f = object#open(t, 'r')
+  for x in data
+    AssertEqual x, f.readline()
+  endfor
+  AssertEqual f.readline(), ''
+catch
+  Log v:exception
+endtry
+
+Execute(f.readlines() returns a list of all lines in f, which is equal to readfile());
+let f = object#open(lipsum_text)
+AssertEqual f.readlines(), readfile(lipsum_text)
+AssertEqual f.readlines(), []
+
+"
+" Throwing behaviours
+"
+
+Execute(open()'ing an unreadable file throws IOError);
+" chmod -r lipsum.txt
+let t = files[0]
+Assert maktaba#path#Exists(t)
+call setfperm(t, '-w-------')
+AssertThrows call object#open(g:t, 'r')
+Assert g:vader_exception =~# 'IOError'
+
+Execute(After open()'ed successfully, read() family throw IOError if f becomes unreadable);
+let t = files[0]
+Assert filereadable(t)
+
+let f = object#open(t)
+" Every read() works fine.
+call map(copy(read_family), 'f[v:val]()')
+
+call setfperm(t, '-w-------')
+Assert !filereadable(t)
+
+for x in read_family
+  AssertThrows call g:f[g:x]()
+  Assert g:vader_exception =~# 'IOError'
+  Log g:vader_exception
+endfor
+
+let t = files[1]
+Assert filereadable(t)
+let f = object#open(t)
+call delete(t)
+
+for x in read_family
+  AssertThrows call g:f[g:x]()
+  Assert g:vader_exception =~# 'IOError'
+endfor
+
+After;
+call map(files, 'delete(v:val)')

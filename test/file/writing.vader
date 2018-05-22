@@ -1,3 +1,71 @@
 " vim:ft=vim
 " Test writing functionality.
 
+"
+" write() family
+"
+
+Before;
+let write_family = ['write', 'writeline', 'writelines']
+
+Execute(a single call to write(str) writes a _line_ to f);
+let data = repeat('b', 10)
+call writable_fileobj.write(data)
+call writable_fileobj.close()
+AssertEqual [data], readfile(writable_tempfile)
+
+Execute(write() concats to the current line of f);
+let data = [ 'This ', 'is ', 'an ', 'apple.' ]
+call map(copy(data), 'writable_fileobj.write(v:val)')
+call writable_fileobj.close()
+AssertEqual join(data, ''), readfile(writable_tempfile)[0]
+
+Execute(multiple writeline()'s is equal to a single writelines());
+" Make 2 empty tempfiles.
+let samples = map(range(2), 'MakeEmptyTempfile()')
+
+" Open all the tempfiles.
+let files = map(copy(samples), 'object#open(v:val, "w")')
+
+" Here is the difference
+call files[0].writelines(data)
+for x in data
+  call files[1].writeline(x)
+endfor
+
+call map(files, 'v:val.close()')
+call map(samples, 'readfile(v:val)')
+AssertEqual samples[0], samples[1]
+
+"
+" Throwing behaviours of write() and friends.
+"
+
+Execute(write()/writeline() throws WrongType for non-String);
+for x in ['write', 'writeline']
+  AssertThrows call g:writable_fileobj[g:x](1)
+  Assert g:vader_exception =~# 'WrongType'
+endfor
+
+Execute(writelines throws WrongType for iter that returns non-String);
+AssertThrows call g:writable_fileobj.writelines(range(10))
+Assert g:vader_exception =~# 'WrongType'
+
+Execute(open an unwritable file throws IOError);
+let t = MakeEmptyTempfile()
+call MakeUnwritable(t)
+AssertThrows call object#open(g:t, 'w')
+Assert g:vader_exception =~# 'IOError'
+
+Execute(Although open()'ed writable, f.write() and friends throw IOError if f becomes unwritable);
+let t = MakeEmptyTempfile()
+Assert filewritable(t)
+
+let f = object#open(t, 'w')
+call map(copy(write_family), 'f[v:val]("aaa")')
+
+call MakeUnwritable(t)
+for x in write_family
+  AssertThrows call object#getattr(g:f, g:x)('aaa')
+  Assert g:vader_exception =~# 'IOError'
+endfor
