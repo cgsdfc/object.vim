@@ -6,25 +6,6 @@
 Include(Test iter() and next()): iter/next-iter.vader
 Include(Test all() and any()): iter/all-any.vader
 Include(Test list() and dict()): iter/list-dict.vader
-
-Execute(list_iter);
-let seq = range(10)
-let iter = object#iter(seq)
-for x in seq
-  AssertEqual object#next(iter), x
-endfor
-AssertThrows call object#next(g:iter)
-Assert g:vader_exception=~#'StopIteration'
-
-Execute(str_iter);
-let seq = 'this is a string'
-let iter = object#iter(seq)
-let [i, N] = [0, len(seq)]
-while i < N
-  AssertEqual object#next(iter), seq[i]
-  let i+=1
-endwhile
-AssertThrows call object#next(g:iter)
-Assert g:vader_exception=~#'StopIteration'
-
-" vim:ft=vim
+Include(Test list_iter): iter/list-iter.vader
+Include(Test str_iter): iter/str-iter.vader
+Include(Test map-reduce functions): iter/map-reduce.vader

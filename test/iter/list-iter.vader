@@ -1,0 +1,74 @@
+"
+" vim:ft=vim
+"
+" Test List Iterator
+
+Before;
+let input = [
+      \ range(10),
+      \ split(repeat('a ', 10)),
+      \ map(range(10), 'function("tr")'),
+      \ map(range(10), 'and(v:val, 1)?[]:{}'),
+      \ ]
+
+Execute (Retrieve the same data from original List);
+" Create a [iter, list] pairs of list.
+let samples = map(input, '[object#iter(v:val), v:val]')
+
+for [iter, list] in samples
+  for Item in list
+    AssertEqual object#next(iter), Item
+  endfor
+endfor
+
+Execute (Throws StopIteration when exhausted);
+let data = range(10)
+let iter = object#iter(data)
+for x in data
+  call object#next(iter)
+endfor
+AssertThrows call object#next(g:iter)
+Assert g:vader_exception =~# 'StopIteration'
+
+Execute (StopIteration immediately for empty list);
+let iter = object#iter([])
+AssertThrows call object#next(g:iter)
+Assert g:vader_exception =~# 'StopIteration'
+
+Execute (Iterating while appeding/adding items);
+let N = 4
+let list = [1]
+let iter = object#iter(list)
+try
+  while 1
+    call object#next(iter)
+    if N > 0
+      call add(list, N)
+      let N += -1
+    endif
+  endwhile
+catch /StopIteration/
+  AssertEqual N, 0
+endtry
+
+Execute (Iterating while inserting items);
+let list = range(1,3)
+let iter = object#iter(list)
+AssertEqual object#next(iter), 1
+call insert(list, -1, 1)
+AssertEqual object#next(iter), -1
+call insert(list, -2)
+" The original list right shifts 1 item while
+" the iterator has just passed 1 item.
+AssertEqual object#next(iter), -1
+
+Execute (Iterating while removing items);
+let list = range(1,3)
+let iter = object#iter(list)
+call remove(list, 0)
+AssertEqual object#next(iter), 2
+call remove(list, 1)
+" Iterator moves to [1] while the list has only [0],
+" which means it is now exhausted.
+AssertThrows call object#next(g:iter)
+Assert g:vader_exception =~# 'StopIteration'

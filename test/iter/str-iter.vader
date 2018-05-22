@@ -1,0 +1,12 @@
+Execute(str_iter);
+let seq = 'this is a string'
+let iter = object#iter(seq)
+let [i, N] = [0, len(seq)]
+while i < N
+  AssertEqual object#next(iter), seq[i]
+  let i+=1
+endwhile
+AssertThrows call object#next(g:iter)
+Assert g:vader_exception=~#'StopIteration'
+
+
