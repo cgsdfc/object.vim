@@ -11,9 +11,10 @@ let input = [
       \ [ {}, 0 ], [ {'a':1}, 1],
       \ [ 0.0, 0 ], [ -0.0, 0], [ 1.2, 1], [ 0.000001, 1],
       \ [ '', 0 ], [ 'a', 1 ],
+      \ [ function('tr'), 1]
       \ ]
-for [x, y] in input
-  AssertEqual object#bool(x), y
+for [X, y] in input
+  AssertEqual object#bool(X), y
 endfor
 
 Execute(bool() hooks into __bool__);

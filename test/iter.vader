@@ -1,4 +1,4 @@
-Before;
+Include(Test all() and any()): iter/all-any.vader
 
 Execute(iter() should return corresponding iterator for String and List);
 for i in [range(10), 'this is a str']

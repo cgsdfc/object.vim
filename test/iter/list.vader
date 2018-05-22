@@ -1,0 +1,29 @@
+" vim:ft=vim
+" 
+" Test the list() convertor
+
+Execute(when no arguments given, list() returns an empty list);
+AssertEqual object#list(), []
+AssertEqual object#list([]), []
+
+Execute(list() can turn different iterable into newly created lists);
+for [iterable, list] in [
+      \ [ range(10), range(10) ],
+      \ [ repeat('a', 10), split(repeat('a ', 10), ' ') ],
+      \]
+  let x = object#list(iterable)
+  AssertEqual x, list
+  Assert x isnot# list
+endfor
+
+Execute(list() throws TypeError if more than 1 args is given);
+AssertThrows call object#list([],[])
+Assert g:vader_exception =~# 'TypeError'
+
+Execute(list() throws TypeError if a:1 is not iterable);
+" The major test is done in iter()
+AssertThrows call object#list(1)
+Assert g:vader_exception =~# 'TypeError'
+
+Execute(list() corner cases);
+AssertEqual object#list(''), []

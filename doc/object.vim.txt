@@ -167,15 +167,11 @@ file.close()                                                    *file.close()*
   Close the file and flush it. After that any file operation will fail.
   Calling close() multiple times does not causes errors.
 
-file.__setattr__({name}, {val})                           *file.__setattr__()*
-  Throws ERROR(AttributeError) if anyone attempts to setattr for a file
-  object.
+file.readable()                                              *file.readable()*
+  Return whether the file is opened for reading.
 
-file.__dir__()                                                *file.__dir__()*
-  Return names of attributes.
-
-file.__getattr__({name})                                  *file.__getattr__()*
-  Return the attribute {name}.
+file.writable()                                              *file.writable()*
+  Return whether the file is opened for writing.
 
 file.__bool__()                                              *file.__bool__()*
   __bool__(file) <==> file is not closed.
@@ -263,11 +259,12 @@ object#iter#all({iter})                                    *object#iter#all()*
 
 object#iter#dict([iter])                                  *object#iter#dict()*
   Turn an iterator that returns 2-list into a |Dict|. If no [iter] is given,
-  an empty |Dict| is returned.
+  an empty |Dict| is returned. If a |Dict| is given, it is effectively
+  |copy()|'ed.
 
 object#iter#list([iter])                                  *object#iter#list()*
   Turn an iterator into a |List|. If no [iter] is given, an empty |List| is
-  returned.
+  returned. If a |List| is given, it is effectively |copy()|'ed.
 
 object#iter#enumerate({iter}, [start])               *object#iter#enumerate()*
   Return an iterator for index, value of {iter} Take an optional [start].
@@ -276,6 +273,22 @@ object#iter#zip({iter}, [iters])                           *object#iter#zip()*
   Return an iterator that returns [seq1[i], seq[i], ...] for the ith call of
   object#next(). The iterator stops when the first StopIteration is raised by
   one of the [iters].
+
+object#iter#map({iter}, {lambda})                          *object#iter#map()*
+  Create a new list by applying {lambda} to each item of an {iter}. {lambda}
+  can be a |String| of function name or a |Funcref|. Unfortunately, in
+  {lambda} you cannot use |v:val| for no call to built-in |map()| is issued at
+  all.
+
+object#iter#filter({iter}, {lambda})                    *object#iter#filter()*
+  Create a new list by removing the item from {iter} when {lambda} return
+  false. Truthness is evaluated by object#bool(). {lambda} can be a |String|
+  of function name or a |Funcref|. Unfortunately, in {lambda} you cannot use
+  |v:val| for no call to built-in |filter()| is issued at all.
+
+object#iter#sum({iter})                                    *object#iter#sum()*
+  Return the sum of items from {iter}. The item must supports built-in |+=|.
+  If {iter} is empty, |Number| 0 is returned.
 
 object#mapping#hash({obj})                             *object#mapping#hash()*
   Return the hash value of {obj}. {obj} can be a |Number|, a |String| a
