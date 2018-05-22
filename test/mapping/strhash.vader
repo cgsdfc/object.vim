@@ -7,13 +7,17 @@
 "
 Before;
 " Fetch the dummy text as test input
-if maktaba#path#Basename(g:vader_file) is# 'strhash.vader'
-let test_dir = fnamemodify(g:vader_file, ':h:h')
+
+let basename = maktaba#path#Basename(g:vader_file) 
+Log basename
+if basename is# 'strhash.vader'
+  let test_dir = fnamemodify(g:vader_file, ':h:h')
 else
-let test_dir = fnamemodify(g:vader_file, ':h')
+  let test_dir = fnamemodify(g:vader_file, ':h')
 endif
 
 let lipsum_path = maktaba#path#Join([test_dir, 'data', 'lipsum.txt'])
+Assert filereadable(lipsum_path)
 let input = map(readfile(lipsum_path), 'split(v:val)')
 
 Execute(strhash_sha256() should always return non-negative nr);
