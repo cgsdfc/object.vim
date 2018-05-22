@@ -1,12 +1,46 @@
-Execute(str_iter);
-let seq = 'this is a string'
-let iter = object#iter(seq)
-let [i, N] = [0, len(seq)]
-while i < N
-  AssertEqual object#next(iter), seq[i]
-  let i+=1
-endwhile
+" vim:ft=vim
+"
+" Test String Iterator
+
+Execute (StopIteration immediately for empty String);
+let iter = object#iter('')
 AssertThrows call object#next(g:iter)
-Assert g:vader_exception=~#'StopIteration'
+Assert g:vader_exception =~# 'StopIteration'
 
+Execute (Retrieve every single character from a String);
+let string = repeat('x', 10)
+let iter = object#iter(string)
+let [i, N] = [0, len(string)]
 
+while i < N
+  AssertEqual object#next(iter), string[i]
+  let i += 1
+endwhile
+
+Execute (Throws StopIteration when exhausted);
+let N = 10
+let iter = object#iter(repeat('a', N))
+call map(range(N), 'object#next(iter)')
+
+AssertThrows call object#next(g:iter)
+Assert g:vader_exception =~# 'StopIteration'
+
+" Because String is fundamentally unmodifiable, let .=
+" creates a new String and assign it to the variable.
+" Example:
+" >
+"   let a = ''
+"   let b = a
+"   let a .= '1'
+"   echo a is# b
+" <
+" Gives 0.
+" Thus, the str_iter is unawared of the changes to the string
+" that was used to initialize it.
+Execute (Iterating while the underlying string is let .=);
+let string = ''
+let iter = object#iter(string)
+
+let string .= 'a'
+AssertThrows call object#next(g:iter)
+Assert g:vader_exception =~# 'StopIteration'
