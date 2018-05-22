@@ -74,7 +74,7 @@ Assert E.__base__ is# D
 Assert E.__bases__ ==# [D]
 
 "
-" Test new() 
+" Test new()
 "
 
 Execute(New cls can be instantiated with new() with default __init__ and __repr__);

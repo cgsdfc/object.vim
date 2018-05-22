@@ -61,7 +61,6 @@ endfunction
 "   hasattr()
 "   repr()
 "   len()
-"   bool()
 
 function! object#dir(...) abort
   return call('object#protocols#dir', a:000)
@@ -85,10 +84,6 @@ endfunction
 
 function! object#len(...) abort
   return call('object#protocols#len', a:000)
-endfunction
-
-function! object#bool(...) abort
-  return call('object#protocols#bool', a:000)
 endfunction
 
 ""
@@ -154,6 +149,7 @@ endfunction
 "   type_()
 "   NoneType()
 "   None()
+"   bool()
 
 function! object#NoneType(...) abort
   return call('object#types#NoneType', a:000)
@@ -173,6 +169,10 @@ endfunction
 
 function! object#None(...) abort
   return call('object#types#None', a:000)
+endfunction
+
+function! object#bool(...) abort
+  return call('object#types#bool', a:000)
 endfunction
 
 ""

@@ -106,3 +106,47 @@ function! object#types#None()
   return s:None
 endfunction
 
+""
+" Test whether {obj} is true. For collections like
+" |List| and |Dict|, non empty is true. For special
+" variables, v:none, v:false, v:null is false and v:true
+" is true. For numbers, 0 is false and non-zero is true.
+" For floats, 0.0 is false and everything else if true.
+"
+" Hook into __bool__.
+" TODO: Move bool(), int(), float() into types
+if has('float')
+  function! object#types#bool(obj)
+    if maktaba#value#IsFloat(a:obj)
+      return a:obj !=# 0
+    endif
+    return object#types#bool_nofloat(a:obj)
+  endfunction
+else
+  function! object#types#bool(obj)
+    return object#types#bool_nofloat(a:obj)
+  endfunction
+endif
+
+function! object#types#bool_nofloat(obj)
+  if maktaba#value#IsString(a:obj)
+    return !empty(a:obj)
+  endif
+  try
+    " If we directly return !!a:obj, the exception cannot
+    " be caught.
+    let x = !!a:obj
+    return x
+  catch/E745: Using a List as a Number/
+    return !empty(a:obj)
+  catch/E728: Using a Dictionary as a Number/
+    if object#hasattr(a:obj, '__bool__')
+      " Thing returned from bool() should be canonical, so as __bool__.
+      " Prevent user from mistakenly return something like 1.0
+      return maktaba#ensure#IsBool(object#protocols#call(a:obj.__bool__))
+    endif
+    return !empty(a:obj)
+  catch
+    call object#protocols#not_avail('bool', a:obj)
+  endtry
+endfunction

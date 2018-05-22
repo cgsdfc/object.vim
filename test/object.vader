@@ -8,6 +8,7 @@ Include(Iterator): iter.vader
 Include(Class): class.vader
 Include(Protocols): protocols.vader
 Include(Types): types.vader
+Include(Exception): except.vader
 Include(Utilities): util.vader
 
 " vim:ft=vim
