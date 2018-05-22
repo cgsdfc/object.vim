@@ -1,0 +1,47 @@
+"
+" Test len()
+"
+Execute(len() should use __len__() if available);
+let cls = {}
+function! cls.__len__()
+  return 12
+endfunction
+
+AssertEqual 12, object#len(cls)
+
+Execute(len() should use len() of Vim if obj is a Collection or String);
+let input = [
+      \ range(10),
+      \ '123',
+      \ { 'a': 1, 'b': 2, 'c': 3},
+      \ ]
+
+for x in input
+  AssertEqual len(x), object#len(x)
+endfor
+
+Execute(len() should throw WrongType if the len of obj  cannot be determined);
+let input = [
+      \ 1,
+      \ v:none,
+      \ function('empty'),
+      \ v:null,
+      \ v:false,
+      \ ]
+if has('float')
+  call add(input, 1.0)
+endif
+
+for X in input
+  AssertThrows call object#len(g:X)
+  Assert g:vader_exception =~# 'WrongType'
+endfor
+
+Execute(len() should throw WrongType if __len__() returns non-number);
+let cls = {}
+function! cls.__len__()
+  return 'bad'
+endfunction
+
+AssertThrows call object#len(g:cls)
+Assert g:vader_exception =~# 'WrongType'

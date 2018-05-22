@@ -1,0 +1,40 @@
+"
+" repr()
+"
+Execute(repr() can hook into __repr__());
+let cls = {}
+function! cls.__repr__()
+  return '<repr>'
+endfunction
+
+AssertEqual object#repr(cls), '<repr>'
+
+Execute(repr() should fail back on string() when object has no __repr__());
+let input = [
+      \ ['1', 1],
+      \ ["''", ''],
+      \ [ "{'name': 1}", {'name': 1}],
+      \ ['[]', []],
+      \ [ 'v:none', v:none],
+      \ ['{}', {}],
+      \ [ "'string'", 'string'],
+      \ ]
+
+for [should, x] in input
+  AssertEqual should, object#repr(x)
+endfor
+
+Execute(repr() should throw WrongType when __repr__ is not a Funcref);
+let cls = { '__repr__': [] }
+
+AssertThrows call object#repr(g:cls)
+Assert g:vader_exception=~#'ERROR(WrongType)'
+
+Execute(repr() should throw WrongType when __repr__() returns something not String);
+let cls = {}
+function! cls.__repr__()
+  return []
+endfunction
+
+AssertThrows call object#repr(g:cls)
+Assert g:vader_exception=~#'ERROR(WrongType)'
