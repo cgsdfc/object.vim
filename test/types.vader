@@ -1,25 +1,6 @@
 " vim:ft=vim
-Before;
-let object = object#object_()
-let type = object#type_()
-let NoneType = object#NoneType()
-let None = object#None()
-let tops = [ object, type, NoneType ]
+"
+"
 
-Execute(subclass relationship of top classes);
-
-Assert object.__base__ is# None
-Assert type.__base__ is# object
-Assert NoneType.__base__ is# object
-
-Execute(instance relationship of top classes);
-for x in tops
-  Assert x.__class__ is# type
-endfor
-
-Execute(repr() work with top classes);
-for x in tops
-  Assert object#repr(x) =~# "<type '.*'>"
-endfor
-
-
+Include(Top classes): types/tops.vader
+Include(Bool conversion): types/bool.vader
