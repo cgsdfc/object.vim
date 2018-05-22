@@ -1,0 +1,70 @@
+" vim:ft=vim
+"
+" Tes hashing for Number and special variables
+"
+
+Execute(hash(Number) should be non-negative);
+for i in range(-500, 500)
+  let hash = object#hash(i)
+  Assert hash >= 0
+endfor
+
+Execute(hash() works with special variables);
+let input = [ v:null, v:none, v:false, ]
+for x in input
+  AssertEqual 0, object#hash(x)
+endfor
+AssertEqual 1, object#hash(v:true)
+
+Execute(hash() should treat Funcref as if they are string()'ed);
+let input = [ 'empty', 'len', 'items', 'values' ]
+for x in input
+  let X = function(x)
+  let hash = object#hash(X)
+  AssertEqual hash, object#hash(string(X))
+endfor
+
+Execute(hash() should throw TypeError with Float, List and Dict without __hash__());
+" Hashing Float is very complicated and no supported now plus the pitfalls of
+" using a Float key.
+let input = [ [], {}, ]
+if has('float')
+  call add(input, 1.0)
+endif
+for x in input
+  AssertThrows call object#hash(g:x)
+  Assert g:vader_exception =~# 'TypeError'
+endfor
+
+Execute(hash() should hook into __hash__);
+let cls = {
+      \ 'email': 'somebody@someplace.com',
+      \ 'door': 213,
+      \ }
+
+function! cls.__hash__()
+  return self.door
+endfunction
+
+AssertEqual cls.door, object#hash(cls)
+
+function! cls.__hash__()
+  return object#hash(self.email)
+endfunction
+
+AssertEqual object#hash(cls), object#hash(cls.email)
+
+Execute(hash() should throw WrongType if __hash__ is not a Funcref or return something non-Number);
+let cls = {
+      \ '__hash__': 0
+      \ }
+AssertThrows call object#hash(g:cls)
+Assert g:vader_exception =~# 'WrongType'
+
+function! Hash() dict
+  return 'not a number (NAN)'
+endfunction
+
+let cls.__hash__ = function('Hash')
+AssertThrows call object#hash(g:cls)
+Assert g:vader_exception =~# 'WrongType'
