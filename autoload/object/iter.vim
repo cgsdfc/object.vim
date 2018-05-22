@@ -33,7 +33,7 @@ function! s:str_iter.__init__(str)
 endfunction
 
 " When the index to a string goes out of range, Vim
-" return an empty string, which is an indicator of StopIteration.
+" returns an empty string, which is an indicator of StopIteration.
 function! s:str_iter.__next__()
   let item = self.str[self.idx]
   if item isnot# ''

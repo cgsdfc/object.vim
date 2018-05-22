@@ -70,9 +70,9 @@ let s:file.__init__ = function('object#file#__init__')
 let s:file.__repr__ = function('object#file#__repr__')
 let s:file.__bool__ = function('object#file#__bool__')
 let s:file.__iter__ = function('object#file#__iter__')
-let s:file.__dir__ = function('object#file#__dir__')
-let s:file.__getattr__ = function('object#file#__getattr__')
-let s:file.__setattr__ = function('object#file#__setattr__')
+let s:file.__dir__ = function('object#util#hiding_dir', [s:private_attrs])
+let s:file.__getattr__ = function('object#util#hiding_getattr', [s:private_attrs])
+let s:file.__setattr__ = function('object#util#readonly_setattr')
 
 ""
 " Open a file. The [mode] can be 'r', 'w' or 'a' for reading (default),
@@ -237,38 +237,6 @@ endfunction
 
 function! object#file#file_()
   return s:file
-endfunction
-
-""
-" @dict file
-" @throws AttributeError if anyone attempts to setattr for a file object.
-function! object#file#__setattr__(name, val) dict
-  " We cannot stop people doing let file.closed = 1, but with object#setattr(),
-  " stupid things can be prevented.
-  let typename = object#types#name(self)
-  if !has_key(self, a:name)
-    call object#except#throw_noattr(self, a:name)
-  endif
-  call object#except#throw_readonly_attr(self, a:name)
-endfunction
-
-""
-" @dict file
-" Return names of attributes.
-function! object#file#__dir__() dict
-  " Hide the private attributes from dir()
-  return filter(keys(self), 'v:val !~# s:private_attrs')
-endfunction
-
-""
-" @dict file
-" Return the attribute {name}.
-function! object#file#__getattr__(name) dict
-  if !has_key(self, a:name) || a:name =~# s:private_attrs
-    throw object#AttributeError('%s object has no attribute %s',
-          \ object#types#name(self), string(a:name))
-  endif
-  return self[a:name]
 endfunction
 
 ""
