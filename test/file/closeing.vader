@@ -1,0 +1,8 @@
+
+Before;
+
+Execute (After closed, repr displays 'closed file');
+
+Execute (After closed, all file operation fails except close());
+call f.close()
+

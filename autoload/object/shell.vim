@@ -1,18 +1,27 @@
+let s:whitespace = '\V\C\^\s\*\$'
+" TODO: We should disable some dangerous commands/enable
+" only a subset of commands
+
 function! object#shell#run()
   while 1
-    let x = input('>>> ', '', 'expression')
-    if x =~# '\v\C^\s*$'
+    let user_input = input('>>> ', '', 'expression')
+    if user_input =~# s:whitespace
       echo "\n"
       continue
     endif
+
     try
-      let Val = eval(x)
+      echo printf("\n%s", object#repr(eval(user_input)))
+    catch /E121/
+      try
+        echo "\n"
+        execute user_input
+      catch
+        echo v:exception
+      endtry
     catch
-      echo printf("\n%s", v:exception)
-      continue
+      echo "\n"
+      echo v:exception
     endtry
-    echo "\n"
-    echo object#repr(Val)
   endwhile
-  return 0
 endfunction

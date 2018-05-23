@@ -1,0 +1,4 @@
+Execute (readable() fails on closed readable file);
+
+Execute (writable() fails on closed writable file);
+
