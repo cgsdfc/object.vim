@@ -1,0 +1,111 @@
+" vim:ft=vim
+"
+" Test the for() function
+"
+
+"
+" Common Errors in Argument Types
+"
+
+Execute (Throws WrongType if names is non-String);
+AssertThrows call object#for(1, range(10), 'echo x')
+Assert g:vader_exception =~# 'WrongType'
+
+Execute (Throws ValueError if any of the names is not an identifier);
+let bad_names = [
+      \ '$var', '#1 #2 #3',
+      \ '$var @var %var',
+      \]
+for x in bad_names
+  AssertThrows call object#for(g:x, range(10), 'echo x')
+  Assert g:vader_exception =~# 'ValueError'
+endfor
+
+Execute (Throws TypeError if iterable is not iterable);
+AssertThrows call object#for('x', 1, 'echo x')
+Assert g:vader_exception =~# 'TypeError'
+
+Execute (Throws WrongType if any of the commands is non-String);
+let bad_cmds = [
+      \ [1],
+      \ [function('tr'), v:false],
+      \ [range(10), 2],
+      \]
+for x in bad_cmds
+  AssertThrows call
+        \ call('object#for', ['a', range(10)] + g:x)
+  Assert g:vader_exception =~# 'WrongType'
+endfor
+
+Execute (Basic case);
+call object#for('x', range(10), 'Log x')
+
+"
+" Errors in unpacking names to items
+"
+
+Execute (Throws: multiple names, single item);
+AssertThrows call object#for('key val', range(10), 'echo key val')
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+Execute (Throws: single name, multiple items);
+AssertThrows call object#for('key', items({'a':1}), 'echo key val')
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+Execute (Throws: multiple names > multiple items);
+AssertThrows call object#for('key val bad', items({'a':1}), 'echo key val')
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+Execute (Throws: multiple names < multiple items);
+AssertThrows call object#for('i0 i1 i2', [range(10)], 'echo key val')
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+"
+" Scoping problem
+"
+
+Execute (Cmd must use g: for global vars);
+let globl = 1
+AssertThrows call object#for('x', 'aaa', 'Log globl')
+Assert g:vader_exception =~# 'Undefined'
+Log g:vader_exception
+call object#for('x', 'aaa', 'Log g:globl')
+
+Execute (Variable names in implementation won't crash in);
+" Since the unqualified names in the execute command belong to
+" local scope, it can happen to crash implementation names.
+" By using a separete function to do the 'execute', where a
+" minimal set of variables are used with names liek ``__x``,
+" this problem should be solved.
+
+let impl_names = [
+      \ 'names', 'cmd', 'cmds', 'excmds', 'Items',
+      \ 'iterable',
+      \]
+for x in impl_names
+  " These names should be undefined.
+  AssertThrows call object#for('_', range(10), 'echo ' . g:x)
+  Assert g:vader_exception =~# 'Undefined'
+endfor
+
+" These names however are visable and _changable_ so user
+" should avoid using __ prefixed names.
+let visiable_impl_names = [
+      \ 'a:__items',
+      \ 'a:__excmds',
+      \ '__i',
+      \]
+for x in visiable_impl_names
+  call object#for('_', range(1), 'Log ' . g:x)
+endfor
+
+Execute (Seeing different scopes);
+call object#for('var', range(1), 'Log printf("l: %s", string(l:))')
+call object#for('var', range(1), 'Log printf("a: %s", string(a:))')
+call object#for('var', range(1), 'Log printf("s: %s", string(s:))')
+
+

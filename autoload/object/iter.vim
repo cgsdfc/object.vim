@@ -145,7 +145,7 @@ endfunction
 " Return true iff any item from {iter} is true. Truthness is evaluated using
 " object#bool(). {iter} can be anything iterable.
 function! object#iter#any(iter)
-  let iter = object#iter#iter(a:iter)
+  let iter = object#iter(a:iter)
   try
     while 1
       let Item = object#iter#next(iter)
@@ -160,7 +160,7 @@ endfunction
 " Return true iff all item from {iter} is true. Truthness is evaluated using
 " object#bool(). {iter} can be anything iterable.
 function! object#iter#all(iter)
-  let iter = object#iter#iter(a:iter)
+  let iter = object#iter(a:iter)
   try
     while 1
       let Item = object#iter#next(iter)
@@ -301,4 +301,62 @@ function! object#iter#sum(iter, ...)
   catch /StopIteration/
     return start
   endtry
+endfunction
+
+function! s:execute_cmds(__excmds, __items)
+  for __i in a:__items
+    let {__i[0]} = __i[1]
+  endfor
+  execute a:__excmds
+endfunction
+
+function! s:make_items(names, Vals)
+  let names_nr = len(a:names)
+  if maktaba#value#IsList(a:Vals)
+    let Vals_nr = len(a:Vals)
+    if names_nr ==# Vals_nr
+      return object#list(object#zip(a:names, a:Vals))
+    endif
+    throw object#TypeError(names_nr > Vals_nr ?
+          \ 'more targets than list items':
+          \ 'less targets than list items')
+  endif
+  if names_nr ==# 1
+    return [ [a:names[0], a:Vals] ]
+  endif
+  throw object#TypeError('more targets than list items')
+endfunction
+
+""
+" Execute a list of commands while iterating over {iterable}.
+" {names} is a space-separate |String| that contains the variable
+" names for the items in the {iterable}.
+" {cmd} is a |String| of Ex command, which can be followed by
+" multiple commands. During each iteration, the commands are executed
+" in the order that they are specified in the argument list.
+" Examples:
+" >
+"   call object#for('x', range(10), 'if x > 0', 'echo x', 'endif')
+"   call object#for('f', files, 'call f.close()')
+"   call object#for('key val', items(dict), 'echo key val')
+" <
+function! object#iter#for(names, iterable, cmd, ...)
+  let names = map(split(maktaba#ensure#IsString(a:names)),
+        \ 'object#util#ensure_identifier(v:val)')
+  let iter = object#iter(a:iterable)
+  let cmd = maktaba#ensure#IsString(a:cmd)
+  let cmds = a:0 ?
+        \ insert(map(copy(a:000),
+        \ 'maktaba#ensure#IsString(v:val)'), cmd) : [cmd]
+  let excmds = join(cmds, "\n")
+
+  try
+    while 1
+      let Items = s:make_items(names, object#next(iter))
+      call s:execute_cmds(excmds, Items)
+    endwhile
+  catch /StopIteration/
+    return
+  endtry
+
 endfunction
