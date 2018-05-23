@@ -1,10 +1,46 @@
 ""
 " @section Iterator, iter
 " Iterator protocol.
-" Provide functions that produce and manipulate iterators and iterators for
-" built-in types like |List| and |String|.
 "
 " Features:
+"   * Vim-compatible map() and filter() that works with iterators.
+"   * dict() creates |Dict| from an iterator and a lambda,
+"     which is similar to dict comprehension.
+"   * filter() evaluates lambda using |object#types#bool()|.
+"   * Provide iterators for |String| and |List| that works transparently.
+"   * Helpers like sum(), all(), any(), zip() and enumerate() all work as expected.
+"
+" Limitations:
+"   * No intuitive |for| syntax for looping over iterators.
+"   * The powerful generator and yield() in Python are not supported.
+"
+" Examples:
+" >
+"   :echo object#all(range(10))
+"   0
+"
+"   :echo object#list(object#enumerate('abc'))
+"   [[0, 'a'], [1, 'b'], [2,'c']]
+"
+"   :echo object#dict('abc', '[toupper(v:val), v:val]')
+"   {'A': 'a', 'B': 'b', 'C': 'c'}
+"
+"   :echo object#dict(object#enumerate('abc'), '[v:val, v:key]')
+"   {'a': 0, 'b': 1, 'c': 2}
+"
+"   :echo object#dict(object#zip('abc', range(3)))
+"   {'a': 0, 'b': 1, 'c': 2}
+"
+"   :echo object#sum(range(1, 100))
+"   5050
+"
+"   :let x = {'a': 0, 'b': 1, 'c': 2}
+"   :echo object#map(x, 'v:key')
+"   ['a', 'b', 'c']
+"
+"   :echo object#filter(['1', '2', ''], 'v:val')
+"   ['1', '2']
+" <
 
 let s:list_iter = object#class('list_iter')
 let s:str_iter = object#class('str_iter')
@@ -133,39 +169,58 @@ function! object#iter#all(iter)
 endfunction
 
 ""
+" >
+"   dict() -> an empty dictionary.
+"   dict(iterable) -> initiazed with 2-list items.
+"   dict(iterable, lambda) -> applies lambda to iterable, initiazed with the resulting list.
+"   dict(plain dictionary) -> a copy of the argument.
+" <
+"
 " Turn an iterator that returns 2-list into a |Dict|.
 " If no [iter] is given, an empty |Dict| is returned.
 " If a |Dict| is given, it is effectively |copy()|'ed.
 function! object#iter#dict(...)
-  let argc = object#util#ensure_argc(1, a:0)
-  if !argc | return {} | endif
-  if maktaba#value#IsDict(a:1)
+  call object#util#ensure_argc(2, a:0)
+  if !a:0
+    return {}
+  endif
+
+  " Plain dictionary.
+  if maktaba#value#IsDict(a:1) && !has_key(a:1, '__next__')
     return copy(a:1)
   endif
-  let iter = object#iter(a:1)
+
   let dict = {}
-  try
-    while 1
-      let Item = object#next(iter)
-      let key = object#getitem(Item, 0)
-      let val = object#getitem(Item, 1)
-      let dict[key] = val
-    endwhile
-  catch /StopIteration/
-    return dict
-  endtry
+  let iter = object#iter(a:1)
+  let list = a:0 == 2 ? object#map(iter, a:2) : object#list(iter)
+
+  for X in list
+    let Key = object#getitem(X, 0)
+    let Val = object#getitem(X, 1)
+    let dict[Key] = Val
+  endfor
+  return dict
 endfunction
 
 ""
+" >
+"   list() -> an empty list.
+"   list(iterable) -> initiazed with items of iterable.
+" <
+"
 " Turn an iterator into a |List|.
 " If no [iter] is given, an empty |List| is returned.
 " If a |List| is given, it is effectively |copy()|'ed.
 function! object#iter#list(...)
-  let argc = object#util#ensure_argc(1, a:0)
-  if !argc | return [] | endif
+  call object#util#ensure_argc(1, a:0)
+  if !a:0
+    return []
+  endif
+
   if maktaba#value#IsList(a:1)
     return copy(a:1)
   endif
+
   let iter = object#iter(a:1)
   let list = []
   try
@@ -193,7 +248,10 @@ endfunction
 " the first StopIteration is raised by one of the [iters].
 function! object#iter#zip(iter, ...)
   let iter = object#iter(a:iter)
-  if !a:0 | return iter | endif
+  if !a:0
+    return iter
+  endif
+
   let iters = insert(map(copy(a:000), 'object#iter(v:val)'), iter)
   return object#new(s:zip_iter, iters)
 endfunction
@@ -218,16 +276,21 @@ function! object#iter#filter(iter, lambda)
 endfunction
 
 ""
-" Return the sum of items from {iter}. The item must supports built-in |+=|.
-" If {iter} is empty, |Number| 0 is returned.
-function! object#iter#sum(iter)
+" Return the sum of items from {iter} plus the value of
+" parameter [start], which defaults to 0. Items must be either |Number|s
+" or |Float|s, i.e., numeric.
+" If {iter} is empty, [start] is returned.
+"
+" @throws WrongType if any item is not numeric.
+function! object#iter#sum(iter, ...)
+  call object#util#ensure_argc(1, a:0)
+  let start = a:0 ? maktaba#ensure#IsNumeric(a:1) : 0
   let iter = object#iter(a:iter)
-  let x = 0
   try
     while 1
-      let x += maktaba#ensure#IsNumeric(object#next(iter))
+      let start += maktaba#ensure#IsNumeric(object#next(iter))
     endwhile
   catch /StopIteration/
-    return x
+    return start
   endtry
 endfunction

@@ -1,0 +1,43 @@
+" vim:ft=vim
+"
+" Test the dict()
+
+
+Execute(When no arguments given, dict() returns an empty dict);
+AssertEqual object#dict(), {}
+AssertEqual object#dict([]), {}
+
+Execute (Return a copy of a single plain dictionary);
+let plain = {'a': 1, 'b': 2, 'c': 3}
+let dict = object#dict(plain)
+AssertEqual dict, plain
+Assert plain isnot# dict
+
+Execute(Can turn a 2-list iter into a dict);
+let two_list = [ ['1', 'a'], ['2', 'b'], ['3', 'c']]
+let iter = object#iter(two_list)
+let correct = {'1': 'a', '2': 'b', '3': 'c'}
+AssertEqual correct, object#dict(iter)
+
+Execute(Throws TypeError when the iter returns non-2-list);
+let input = [
+      \ 'aaa',
+      \ range(10),
+      \ [function('tr')],
+      \]
+for x in input
+  Log object#dict(x)
+  AssertThrows call object#dict(g:x)
+  Assert g:vader_exception =~# 'TypeError'
+endfor
+
+Execute (Throws TypeError if a:1 is not iterable, nor a plain dict);
+let input = [
+      \ 1,
+      \ v:false,
+      \ function('tr'),
+      \]
+for X in input
+  AssertThrows call object#dict(g:X)
+  Assert g:vader_exception =~# 'TypeError'
+endfor

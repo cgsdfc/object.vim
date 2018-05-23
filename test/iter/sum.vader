@@ -3,9 +3,13 @@
 " Test object#sum()
 "
 
-Execute (empty sequence gets 0);
+Execute (empty sequence gets start);
 for x in [ [], '' ]
   AssertEqual object#sum(x), 0
+  AssertEqual object#sum(x, 1), 1
+  if has('float')
+    AssertEqual object#sum(x, 1.0), 1.0
+  endif
 endfor
 
 Execute (sum a list of Numbers);
@@ -38,3 +42,11 @@ endfor
 Execute (Corner case: 1 element sequence);
 AssertEqual object#sum([1]), 1
 AssertEqual object#sum([3.14]), 3.14
+
+Execute (With optional start);
+AssertEqual object#sum(range(1, 100), 0.0), 5050.0
+
+Execute (Throws WrongType when start is not numeric);
+AssertThrows call object#sum([], '1')
+Assert g:vader_exception =~# 'WrongType'
+

@@ -65,10 +65,45 @@ Features:
 ==============================================================================
 ITERATOR                                                     *object.vim-iter*
 
-Iterator protocol. Provide functions that produce and manipulate iterators and
-iterators for built-in types like |List| and |String|.
+Iterator protocol.
 
 Features:
+  * Vim-compatible map() and filter() that works with iterators.
+  * list() and dict() that create |List| and |Dict| from iterators and
+    lambdas, which is similar to comprehension.
+  * filter() evaluates lambda using |object#types#bool()|.
+  * Provide iterators for |String| and |List| that works transparently.
+  * Helpers like sum(), all(), any(), zip() and enumerate() all work as
+    expected.
+
+Limitations:
+  * No intuitive |for| syntax for looping over iterators.
+  * The powerful generator and yield() in Python are not supported.
+
+Examples:
+>
+  :echo object#all(range(10))
+  0
+
+  :echo object#list(object#enumerate('abc'))
+  [[0, 'a'], [1, 'b'], [2,'c']]
+
+  :echo object#dict(object#enumerate('abc'), '[v:val, v:key]')
+  {'a': 0, 'b': 1, 'c': 2}
+
+  :echo object#dict(object#zip('abc', range(3)))
+  {'a': 0, 'b': 1, 'c': 2}
+
+  :echo object#sum(range(1, 100))
+  5050
+
+  :let x = {'a': 0, 'b': 1, 'c': 2}
+  :echo object#map(x, 'v:key')
+  ['a', 'b', 'c']
+
+  :echo object#filter(['1', '2', ''], 'v:val')
+  ['1', '2']
+<
 
 ==============================================================================
 FILE                                                         *object.vim-file*
@@ -276,19 +311,19 @@ object#iter#zip({iter}, [iters])                           *object#iter#zip()*
 
 object#iter#map({iter}, {lambda})                          *object#iter#map()*
   Create a new list by applying {lambda} to each item of an {iter}. {lambda}
-  can be a |String| of function name or a |Funcref|. Unfortunately, in
-  {lambda} you cannot use |v:val| for no call to built-in |map()| is issued at
-  all.
+  should be a |String| that is acceptable by built-in |map()|.
 
 object#iter#filter({iter}, {lambda})                    *object#iter#filter()*
   Create a new list by removing the item from {iter} when {lambda} return
-  false. Truthness is evaluated by object#bool(). {lambda} can be a |String|
-  of function name or a |Funcref|. Unfortunately, in {lambda} you cannot use
-  |v:val| for no call to built-in |filter()| is issued at all.
+  false. Truthness is evaluated by object#bool(). {lambda} should be a
+  |String| that is acceptable by built-in |filter()|.
 
-object#iter#sum({iter})                                    *object#iter#sum()*
-  Return the sum of items from {iter}. The item must supports built-in |+=|.
-  If {iter} is empty, |Number| 0 is returned.
+object#iter#sum({iter}, [start])                           *object#iter#sum()*
+  Return the sum of items from {iter} plus the value of parameter [start],
+  which defaults to 0. Items must be either |Number|s or |Float|s, i.e.,
+  numeric. If {iter} is empty, [start] is returned.
+
+  Throws ERROR(WrongType) if any item is not numeric.
 
 object#mapping#hash({obj})                             *object#mapping#hash()*
   Return the hash value of {obj}. {obj} can be a |Number|, a |String| a

@@ -58,6 +58,20 @@ endfunction
 
 ""
 " @exception
+" Index out of range for sequences.
+function! object#except#IndexError(msg, ...)
+  return object#except#BaseException('IndexError', a:msg, a:000)
+endfunction
+
+""
+" @exception
+" Key out of range for sequences.
+function! object#except#KeyError(msg, ...)
+  return object#except#BaseException('KeyError', a:msg, a:000)
+endfunction
+
+""
+" @exception
 " File not writable or readable. Operation on a closed file. Thrown by
 " file objects usually.
 function! object#except#IOError(msg, ...)

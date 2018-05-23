@@ -112,6 +112,8 @@ endfunction
 "   TypeError
 "   AttributeError
 "   StopIteration
+"   IOError
+"   IndexError
 
 function! object#BaseException(...) abort
   return call('object#except#BaseException', a:000)
@@ -139,6 +141,14 @@ endfunction
 
 function! object#IOError(...) abort
   return call('object#except#IOError', a:000)
+endfunction
+
+function! object#IndexError(...) abort
+  return call('object#except#IndexError', a:000)
+endfunction
+
+function! object#KeyError(...) abort
+  return call('object#except#KeyError', a:000)
 endfunction
 
 ""

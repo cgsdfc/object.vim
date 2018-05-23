@@ -122,15 +122,38 @@ endfunction
 ""
 " Return the value at {key} in {obj} as if {obj} is a mapping.
 " If {obj} is a |List|, |String| or |Dict|, built-in subscription will be used.
+"
+" @throws WrongType if {obj} is a |String| or |List| but {key} is not a
+" |Number| or {obj} is a |Dict| but {key} is not a |String|.
+"
+" @throws IndexError if {key} is out of range for |String| or |List|
+" @throws KeyError if {key} is not present in the |Dict|
 function! object#mapping#getitem(obj, key)
-  if maktaba#value#IsString(a:obj) || maktaba#value#IsList(a:obj)
-    return a:obj[a:key]
+  if maktaba#value#IsList(a:obj)
+    try
+      let val = a:obj[maktaba#ensure#IsNumber(a:key)]
+    catch /E684/
+      throw object#IndexError('list index out of range: %d', a:key)
+    endtry
+    return val
+  endif
+  if maktaba#value#IsString(a:obj)
+    let val = a:obj[maktaba#ensure#IsNumber(a:key)]
+    if val isnot# ''
+      return val
+    endif
+    throw object#IndexError('string index out of range: %d', a:key)
   endif
   if maktaba#value#IsDict(a:obj)
-    if !has_key(a:obj, '__getitem__')
-      return a:obj[a:key]
+    if has_key(a:obj, '__getitem__')
+      return object#protocols#call(a:obj.__getitem__, a:key)
     endif
-    return object#protocols#call(a:obj.__getitem__, a:key)
+    try
+      let val = a:obj[maktaba#ensure#IsString(a:key)]
+    catch /E716/
+      throw object#KeyError('key not present in dictionary: %s', string(a:key))
+    endtry
+    return val
   endif
   call object#except#not_avail('getitem', a:obj)
 endfunction
