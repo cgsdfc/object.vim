@@ -10,10 +10,6 @@
 "   * Provide iterators for |String| and |List| that works transparently.
 "   * Helpers like sum(), all(), any(), zip() and enumerate() all work as expected.
 "
-" Limitations:
-"   * No intuitive |for| syntax for looping over iterators.
-"   * The generator and yield() in Python are not supported.
-"
 " Examples:
 " >
 "   :echo object#all(range(10))
@@ -40,6 +36,10 @@
 "   :echo object#list('abc')
 "   ['a', 'b', 'c']
 " <
+"
+" Limitations:
+"   * No intuitive |for| syntax for looping over iterators.
+"   * The generator and yield() in Python are not supported.
 
 let s:list_iter = object#class('list_iter')
 let s:str_iter = object#class('str_iter')

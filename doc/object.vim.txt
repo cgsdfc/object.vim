@@ -76,10 +76,6 @@ Features:
   * Helpers like sum(), all(), any(), zip() and enumerate() all work as
     expected.
 
-Limitations:
-  * No intuitive |for| syntax for looping over iterators.
-  * The powerful generator and yield() in Python are not supported.
-
 Examples:
 >
   :echo object#all(range(10))
@@ -102,7 +98,14 @@ Examples:
 
   :echo object#filter(['1', '2', ''], 'v:val')
   ['1', '2']
+
+  :echo object#list('abc')
+  ['a', 'b', 'c']
 <
+
+Limitations:
+  * No intuitive |for| syntax for looping over iterators.
+  * The generator and yield() in Python are not supported.
 
 ==============================================================================
 FILE                                                         *object.vim-file*
