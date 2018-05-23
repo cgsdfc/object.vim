@@ -9,6 +9,7 @@
 "   * filter() evaluates lambda using |object#types#bool()|.
 "   * Provide iterators for |String| and |List| that works transparently.
 "   * Helpers like sum(), all(), any(), zip() and enumerate() all work as expected.
+"   * for() function let you execute nearly arbitrary code while iterating.
 "
 " Examples:
 " >
@@ -35,11 +36,16 @@
 "
 "   :echo object#list('abc')
 "   ['a', 'b', 'c']
+"
+"   :call object#for('key val', values({'a': 1, 'b': 2}), 'echo key val')
+"   a 1
+"   b 2
 " <
 "
 " Limitations:
 "   * No intuitive |for| syntax for looping over iterators.
 "   * The generator and yield() in Python are not supported.
+"   * No closure for the code segments of the for() function.
 
 let s:list_iter = object#class('list_iter')
 let s:str_iter = object#class('str_iter')
@@ -303,6 +309,9 @@ function! object#iter#sum(iter, ...)
   endtry
 endfunction
 
+"
+" Execute {__excmds} with {__items} set as items
+" from the iterator.
 function! s:execute_cmds(__excmds, __items)
   for __i in a:__items
     let {__i[0]} = __i[1]
@@ -310,27 +319,41 @@ function! s:execute_cmds(__excmds, __items)
   execute a:__excmds
 endfunction
 
+"
+" Unpack the {Vals} into {names} and return a 2-lists
+" list as each item variable.
+" If there is only one name, it will take the entire of {Vals}.
+" Otherwise, {Vals} must be a |List| and its len should match
+" that of the {names}.
+"
+" @throws WrongType if Vals is not a List but len(names) > 1.
+" @throws TypeError if the len of names does not match that of
+" Vals.
 function! s:make_items(names, Vals)
   let names_nr = len(a:names)
-  if maktaba#value#IsList(a:Vals)
-    let Vals_nr = len(a:Vals)
-    if names_nr ==# Vals_nr
-      return object#list(object#zip(a:names, a:Vals))
-    endif
-    throw object#TypeError(names_nr > Vals_nr ?
-          \ 'more targets than list items':
-          \ 'less targets than list items')
-  endif
   if names_nr ==# 1
     return [ [a:names[0], a:Vals] ]
   endif
-  throw object#TypeError('more targets than list items')
+  let Vals = maktaba#ensure#IsList(a:Vals)
+  let Vals_nr = len(Vals)
+  if names_nr ==# Vals_nr
+    let i = 0
+    let result = []
+    while i < names_nr
+      call add(result, [a:names[i], Vals[i]])
+      let i += 1
+    endwhile
+    return result
+  endif
+  throw object#TypeError(names_nr > Vals_nr ?
+        \ 'more targets than list items':
+        \ 'less targets than list items')
 endfunction
 
 ""
-" Execute a list of commands while iterating over {iterable}.
-" {names} is a space-separate |String| that contains the variable
-" names for the items in the {iterable}.
+" Execute a sequence of commands while iterating over {iterable}.
+" {names} is a space-separated |String| that contains the variable
+" names used as the items in the {iterable}.
 " {cmd} is a |String| of Ex command, which can be followed by
 " multiple commands. During each iteration, the commands are executed
 " in the order that they are specified in the argument list.
@@ -338,7 +361,7 @@ endfunction
 " >
 "   call object#for('x', range(10), 'if x > 0', 'echo x', 'endif')
 "   call object#for('f', files, 'call f.close()')
-"   call object#for('key val', items(dict), 'echo key val')
+"   call object#for('key val', items({'a': 1}), 'echo key val')
 " <
 function! object#iter#for(names, iterable, cmd, ...)
   let names = map(split(maktaba#ensure#IsString(a:names)),
@@ -358,5 +381,4 @@ function! object#iter#for(names, iterable, cmd, ...)
   catch /StopIteration/
     return
   endtry
-
 endfunction

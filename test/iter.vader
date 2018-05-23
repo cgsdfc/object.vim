@@ -14,4 +14,5 @@ Include(Test zip()): iter/zip.vader
 Include(Test map()): iter/map.vader
 Include(Test filter()): iter/filter.vader
 Include(Test sum()): iter/sum.vader
+Include(Test for()): iter/for.vader
 Include(Examples): iter/examples.vader
