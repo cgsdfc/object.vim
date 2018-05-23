@@ -1,6 +1,11 @@
 " vim:ft=vim
+"
+" file interface
+"
 
 Include(Mode strings): file/mode-str.vader
 Include(Attributes): file/attrs.vader
 Include(Reading): file/reading.vader
 Include(Writing): file/writing.vader
+Include(Closing): file/closing.vader
+Include(readable/writable): file/read-writable.vader

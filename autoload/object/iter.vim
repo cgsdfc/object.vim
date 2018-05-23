@@ -116,15 +116,19 @@ function! object#iter#iter(obj)
     call maktaba#ensure#IsFuncref(a:obj.__next__)
     return a:obj
   endif
+
   if maktaba#value#IsList(a:obj)
     return object#new(s:list_iter, a:obj)
   endif
+
   if maktaba#value#IsString(a:obj)
     return object#new(s:str_iter, a:obj)
   endif
+
   if object#hasattr(a:obj, '__iter__')
     return s:ensure_iter(object#protocols#call(a:obj.__iter__))
   endif
+
   call object#except#not_avail('iter', a:obj)
 endfunction
 
