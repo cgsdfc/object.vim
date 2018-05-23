@@ -69,8 +69,8 @@ Iterator protocol.
 
 Features:
   * Vim-compatible map() and filter() that works with iterators.
-  * list() and dict() that create |List| and |Dict| from iterators and
-    lambdas, which is similar to comprehension.
+  * dict() creates |Dict| from an iterator and a lambda, which is similar to
+    dict comprehension.
   * filter() evaluates lambda using |object#types#bool()|.
   * Provide iterators for |String| and |List| that works transparently.
   * Helpers like sum(), all(), any(), zip() and enumerate() all work as
@@ -88,7 +88,10 @@ Examples:
   :echo object#list(object#enumerate('abc'))
   [[0, 'a'], [1, 'b'], [2,'c']]
 
-  :echo object#dict(object#enumerate('abc'), '[v:val, v:key]')
+  :echo object#dict('abc', '[toupper(v:val), v:val]')
+  {'A': 'a', 'B': 'b', 'C': 'c'}
+
+  :echo object#dict(object#enumerate('abc'), '[v:val[1], v:val[0]]')
   {'a': 0, 'b': 1, 'c': 2}
 
   :echo object#dict(object#zip('abc', range(3)))
@@ -96,10 +99,6 @@ Examples:
 
   :echo object#sum(range(1, 100))
   5050
-
-  :let x = {'a': 0, 'b': 1, 'c': 2}
-  :echo object#map(x, 'v:key')
-  ['a', 'b', 'c']
 
   :echo object#filter(['1', '2', ''], 'v:val')
   ['1', '2']
@@ -293,11 +292,26 @@ object#iter#all({iter})                                    *object#iter#all()*
   object#bool(). {iter} can be anything iterable.
 
 object#iter#dict([iter])                                  *object#iter#dict()*
+
+>
+    dict() -> an empty dictionary.
+    dict(iterable) -> initiazed with 2-list items.
+    dict(iterable, lambda) -> applies lambda to iterable, initiazed with the
+      resulting list.
+    dict(plain dictionary) -> a copy of the argument.
+<
+
   Turn an iterator that returns 2-list into a |Dict|. If no [iter] is given,
   an empty |Dict| is returned. If a |Dict| is given, it is effectively
   |copy()|'ed.
 
 object#iter#list([iter])                                  *object#iter#list()*
+
+>
+    list() -> an empty list.
+    list(iterable) -> initiazed with items of iterable.
+<
+
   Turn an iterator into a |List|. If no [iter] is given, an empty |List| is
   returned. If a |List| is given, it is effectively |copy()|'ed.
 
@@ -336,7 +350,16 @@ object#mapping#hash({obj})                             *object#mapping#hash()*
 
 object#mapping#getitem({obj}, {key})                *object#mapping#getitem()*
   Return the value at {key} in {obj} as if {obj} is a mapping. If {obj} is a
-  |List|, |String| or |Dict|, built-in subscription will be used.
+  |List|, |String| or plain |Dict|, checked-version of built-in subscription
+  will be called. Vim error about |List| index will translate to
+  @exception(IndexError). Vim's ignorance about the index to |String| will be
+  augmented by checking the emptiness of the value.
+
+  Throws ERROR(WrongType) if {obj} is a |String| or |List| but {key} is not a
+  |Number| or {obj} is a |Dict| but {key} is not a |String|.
+
+  Throws ERROR(IndexError) if {key} is out of range for |String| or |List|.
+  Throws ERROR(KeyError) if {key} is not present in the |Dict|.
 
 object#mapping#setitem({obj}, {key}, {val})         *object#mapping#setitem()*
   Set the value at {key} of {obj} to {val}. If {obj} is a |List|, |String| or
@@ -405,6 +428,12 @@ The object has no such attribute or the attribute is readonly.
 
                                                         *ERROR(StopIteration)*
 The end of iteration. Thrown by __iter__ usually.
+
+                                                           *ERROR(IndexError)*
+Index out of range for sequences.
+
+                                                             *ERROR(KeyError)*
+Key out of range for sequences.
 
                                                               *ERROR(IOError)*
 File not writable or readable. Operation on a closed file. Thrown by file

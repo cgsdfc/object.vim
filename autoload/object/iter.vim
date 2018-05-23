@@ -12,7 +12,7 @@
 "
 " Limitations:
 "   * No intuitive |for| syntax for looping over iterators.
-"   * The powerful generator and yield() in Python are not supported.
+"   * The generator and yield() in Python are not supported.
 "
 " Examples:
 " >
@@ -36,6 +36,9 @@
 "
 "   :echo object#filter(['1', '2', ''], 'v:val')
 "   ['1', '2']
+"
+"   :echo object#list('abc')
+"   ['a', 'b', 'c']
 " <
 
 let s:list_iter = object#class('list_iter')
