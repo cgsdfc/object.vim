@@ -187,6 +187,7 @@ endfunction
 "   list()
 "   dict()
 "   enumerate()
+"   zip()
 
 function! object#iter(...) abort
   return call('object#iter#iter', a:000)
@@ -214,6 +215,10 @@ endfunction
 
 function! object#enumerate(...) abort
   return call('object#iter#enumerate', a:000)
+endfunction
+
+function! object#zip(...) abort
+  return call('object#iter#zip', a:000)
 endfunction
 
 function! object#sum(...) abort

@@ -1,0 +1,30 @@
+" vim:ft=vim
+"
+" Test zip()
+"
+
+Execute (Works for basic cases);
+let iter = object#zip(range(3), range(3))
+let result = [[0,0],[1,1],[2,2]]
+AssertEqual result, object#list(iter)
+
+Execute (StopIteration at the shortest sequence);
+let iter = object#zip(range(3), range(4), range(5))
+let shortest = object#zip(range(3), range(3), range(3))
+AssertEqual object#list(shortest), object#list(iter)
+
+Execute (Throws TypeError as any of the arguments is non-iterable);
+AssertThrows call object#zip([], 1)
+Assert g:vader_exception =~# 'TypeError'
+
+Execute (Corner cases(zipping empty sequences));
+let iter = object#zip([], range(3))
+AssertEqual [], object#list(iter)
+let iter = object#zip('', range(3))
+AssertEqual [], object#list(iter)
+
+Execute (Basic Attributes);
+let x = object#zip([], [])
+Log object#repr(x)
+Log object#repr(object#type(x))
+Log object#dir(x)

@@ -71,3 +71,7 @@ let cls = {
       \}
 AssertThrows call object#next(g:X)
 Assert g:vader_exception =~# 'TypeError'
+
+Execute (Argument to iter() will be returned as it if it is already an iterator);
+let x = object#iter('')
+Assert x is# object#iter(x)

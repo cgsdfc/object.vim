@@ -194,7 +194,7 @@ endfunction
 function! object#iter#zip(iter, ...)
   let iter = object#iter(a:iter)
   if !a:0 | return iter | endif
-  let iters = [iter] + a:000
+  let iters = insert(map(copy(a:000), 'object#iter(v:val)'), iter)
   return object#new(s:zip_iter, iters)
 endfunction
 
