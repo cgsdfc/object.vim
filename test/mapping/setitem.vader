@@ -3,7 +3,7 @@
 " setitem()
 "
 
-Execute(setitem() should work with builtin types supporting operator[]);
+Execute(Should work with builtin List and plain Dict);
 let input = [
       \ [ range(4), 0, -1 ],
       \ [ { 'a': 1, 'b': 2 }, 'a', 2 ],
@@ -14,7 +14,7 @@ for [obj, key, val] in input
   AssertEqual obj[key], val
 endfor
 
-Execute(setitem() can hook into __setitem__);
+Execute(Can hook into __setitem__);
 let cls = {
       \ 'data': range(10),
       \ }
@@ -22,7 +22,7 @@ function! cls.__setitem__(key, val)
   let self.data[a:key] = a:val
 endfunction
 
-for x in reverse(range(10))
+for x in range(10)
   call object#setitem(cls, x, x)
   AssertEqual cls.data[x], x
 endfor
@@ -34,23 +34,43 @@ endfunction
 AssertThrows call object#setitem(g:cls, 4, 1)
 AssertEqual 'cannot setitem', g:vader_exception
 
-Execute(setitem() throws TypeError with types like String, Number or Boolean);
+Execute(Throws TypeError with types like String, Number or Boolean);
 let input = [
       \ 'str', 1, v:false, v:true, v:none, v:null,
       \ ]
 if has('float')
   call add(input, 1.0)
 endif
-
 for x in input
   AssertThrows call object#setitem(g:x, 0, 0)
   Assert g:vader_exception =~# 'TypeError'
 endfor
 
-Execute(setitem() throws WrongType when __setitem__ is not a Funcref);
+Execute(Throws WrongType when __setitem__ is not a Funcref);
 let cls = {
       \ '__setitem__' : 'not a Funcref',
       \ }
 AssertThrows call object#setitem(g:cls, 0, 0)
 Assert g:vader_exception =~# 'WrongType'
 Log g:vader_exception
+
+Execute (Throws IndexError if index goes out of range for |List| or |String|);
+let input = [
+      \ [range(3), 3],
+      \]
+for [seq, idx] in input
+  AssertThrows call object#setitem(g:seq, g:idx, 1)
+  Assert g:vader_exception =~# 'IndexError'
+  Log g:vader_exception
+endfor
+
+Execute (Throws WrongType if key is not Number for List or String for Dict);
+let input = [
+      \ [{'1': 'a'}, 1, 'whatever'],
+      \ [range(3), '1', 'whatever'],
+      \]
+for args in input
+  AssertThrows call call('object#setitem', g:args)
+  Assert g:vader_exception =~# 'WrongType'
+  Log g:vader_exception
+endfor

@@ -172,16 +172,23 @@ endfunction
 " Otherwise, __setitem__ of {obj} will be used.
 function! object#mapping#setitem(obj, key, val)
   if maktaba#value#IsList(a:obj)
-    let a:obj[a:key] = a:val
-    return
-  endif
-  if maktaba#value#IsDict(a:obj)
-    if !has_key(a:obj, '__setitem__')
-      let a:obj[a:key] = a:val
+    try
+      let a:obj[maktaba#ensure#IsNumber(a:key)] = a:val
       return
+    catch /E684/
+      throw object#IndexError('list index out of range: %d', a:key)
+    endtry
+  endif
+
+  if maktaba#value#IsDict(a:obj)
+    if has_key(a:obj, '__setitem__')
+      call object#protocols#call(a:obj.__setitem__, a:key, a:val)
+    else
+      let a:obj[maktaba#ensure#IsString(a:key)] = a:val
     endif
-    call object#protocols#call(a:obj.__setitem__, a:key, a:val)
     return
   endif
+
+  " String does not support setitem()
   call object#except#not_avail('setitem', a:obj)
 endfunction
