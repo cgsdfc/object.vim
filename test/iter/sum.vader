@@ -1,0 +1,40 @@
+" vim:ft=vim
+"
+" Test object#sum()
+"
+
+Execute (empty sequence gets 0);
+for x in [ [], '' ]
+  AssertEqual object#sum(x), 0
+endfor
+
+Execute (sum a list of Numbers);
+" Guass-honored suming 1-100
+let numbers = range(1, 100)
+let x = object#sum(numbers)
+AssertEqual x, 5050
+
+Execute (sum a list of Floats);
+if !has('float')
+  Log '+float not available, skip'
+endif
+
+" This exploits the Number2String implicit conversion
+" of Vim
+let floats = map(range(1, 100), 'str2float(v:val)')
+Assert object#sum(floats) ==# 5050.0
+
+Execute (NAN sequence causes WrongType to throw);
+let input = [
+      \ repeat('a',10),
+      \ [ 1, 2, '3', '4' ],
+      \ [ function('empty'), 1 ],
+      \]
+for x in input
+  AssertThrows call object#sum(g:x)
+  Assert g:vader_exception =~# 'WrongType'
+endfor
+
+Execute (Corner case: 1 element sequence);
+AssertEqual object#sum([1]), 1
+AssertEqual object#sum([3.14]), 3.14

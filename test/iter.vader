@@ -11,3 +11,5 @@ Include(Test str_iter): iter/str-iter.vader
 Include(Test enumerate()): iter/enumerate.vader
 Include(Test zip()): iter/zip.vader
 Include(Test map()): iter/map.vader
+Include(Test filter()): iter/filter.vader
+Include(Test sum()): iter/sum.vader

@@ -225,7 +225,7 @@ function! object#iter#sum(iter)
   let x = 0
   try
     while 1
-      let x += object#next(iter)
+      let x += maktaba#ensure#IsNumeric(object#next(iter))
     endwhile
   catch /StopIteration/
     return x

@@ -65,7 +65,7 @@ for X in input
   Assert g:vader_exception =~# 'TypeError'
 endfor
 
-Execute(next() throws WrongType if __next__ is not a Funcref);
+Execute(next() throws TypeError if __next__ is not a Funcref);
 let cls = {
       \ '__next__' : 'not a Funcref',
       \}

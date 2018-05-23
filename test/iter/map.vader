@@ -3,7 +3,7 @@
 " Test object#map()
 "
 
-Execute (Can do whatever builtin-map() can do);
+Execute (Can do what builtin-map() can do);
 let input = [
       \ [ range(10),  'string(v:val)'],
       \ [ [ 0, 1 ], '!v:val' ],
