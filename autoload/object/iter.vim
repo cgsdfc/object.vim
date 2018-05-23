@@ -37,13 +37,12 @@
 "   :echo object#list('abc')
 "   ['a', 'b', 'c']
 "
-"   :call object#for('key val', values({'a': 1, 'b': 2}), 'echo key val')
-"   a 1
-"   b 2
+"   :call object#for('key val', object#enumerate([1, 2]), 'echo key val')
+"   0 1
+"   1 2
 " <
 "
 " Limitations:
-"   * No intuitive |for| syntax for looping over iterators.
 "   * The generator and yield() in Python are not supported.
 "   * No closure for the code segments of the for() function.
 
@@ -321,7 +320,7 @@ endfunction
 
 "
 " Unpack the {Vals} into {names} and return a 2-lists
-" list as each item variable.
+" list for each name-value pair.
 " If there is only one name, it will take the entire of {Vals}.
 " Otherwise, {Vals} must be a |List| and its len should match
 " that of the {names}.

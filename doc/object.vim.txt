@@ -75,6 +75,7 @@ Features:
   * Provide iterators for |String| and |List| that works transparently.
   * Helpers like sum(), all(), any(), zip() and enumerate() all work as
     expected.
+  * for() function let you execute nearly arbitrary code while iterating.
 
 Examples:
 >
@@ -101,11 +102,15 @@ Examples:
 
   :echo object#list('abc')
   ['a', 'b', 'c']
+
+  :call object#for('key val', object#enumerate([1, 2]), 'echo key val')
+  0 1
+  1 2
 <
 
 Limitations:
-  * No intuitive |for| syntax for looping over iterators.
   * The generator and yield() in Python are not supported.
+  * No closure for the code segments of the for() function.
 
 ==============================================================================
 FILE                                                         *object.vim-file*
@@ -341,6 +346,18 @@ object#iter#sum({iter}, [start])                           *object#iter#sum()*
   numeric. If {iter} is empty, [start] is returned.
 
   Throws ERROR(WrongType) if any item is not numeric.
+
+object#iter#for({names}, {iterable}, {cmd})                *object#iter#for()*
+  Execute a sequence of commands while iterating over {iterable}. {names} is a
+  space-separated |String| that contains the variable names used as the items
+  in the {iterable}. {cmd} is a |String| of Ex command, which can be followed
+  by multiple commands. During each iteration, the commands are executed in
+  the order that they are specified in the argument list. Examples:
+>
+    call object#for('x', range(10), 'if x > 0', 'echo x', 'endif')
+    call object#for('f', files, 'call f.close()')
+    call object#for('key val', items({'a': 1}), 'echo key val')
+<
 
 object#mapping#hash({obj})                             *object#mapping#hash()*
   Return the hash value of {obj}. {obj} can be a |Number|, a |String| a
