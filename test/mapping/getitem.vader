@@ -1,8 +1,9 @@
 " vim:ft=vim
+"
 " Test getitem()
 "
 
-Execute(getitem() works with String, List and Dict without __getitem__);
+Execute (Works with String, List and Dict without __getitem__);
 let input = [
       \ [ 'str', 0, 's' ],
       \ [ [ 1, 2, 3, ], 1, 2 ],
@@ -12,7 +13,7 @@ for [mapping, key, val] in input
   AssertEqual object#getitem(mapping, key), val
 endfor
 
-Execute(getitem() works with __getitem__);
+Execute (Works with __getitem__);
 let cls = { 'data': {} }
 function! cls.__getitem__(key)
   return self.data[a:key]
@@ -36,16 +37,45 @@ for [key, val] in input
   AssertEqual object#getitem(cls, key), val
 endfor
 
-Execute(getitem() throws TypeError if the type of obj doesn't support it);
+Execute (Throws TypeError if the type doesn't support it);
 let input = [
-      \ '1', v:none, v:false, v:true, function('empty'),
+      \ v:none, v:false, v:true, function('empty'),
       \ ]
 for X in input
-  AssertThrows call object#getitem(g:x, 0)
+  AssertThrows call object#getitem(g:X, 0)
   Assert g:vader_exception =~# 'TypeError'
 endfor
 
-Execute(getitem() throws WrongType if __getitem__ is not Funcref);
+Execute (Throws WrongType if __getitem__ is not Funcref);
 let cls = { '__getitem__' : 1 }
 AssertThrows call object#getitem(g:cls, 2)
 Assert g:vader_exception =~# 'WrongType'
+
+Execute (Throws IndexError if index goes out of range for |List| or |String|);
+let input = [
+      \ [repeat('a', 3), -1],
+      \ [repeat('a', 3), 3],
+      \ [range(3), 3],
+      \]
+for [seq, idx] in input
+  AssertThrows call object#getitem(g:seq, g:idx)
+  Assert g:vader_exception =~# 'IndexError'
+  Log g:vader_exception
+endfor
+
+Execute (Throws KeyError if key not present in plain dict);
+AssertThrows call object#getitem({'a': 1}, 'b')
+Assert g:vader_exception =~# 'KeyError'
+Log g:vader_exception
+
+Execute (Throws WrongType if key is not Number for String/List or String for Dict);
+let input = [
+      \ [{'1': 'a'}, 1],
+      \ ['aaa', '0'],
+      \ [range(3), '1'],
+      \]
+for args in input
+  AssertThrows call call('object#getitem', g:args)
+  Assert g:vader_exception =~# 'WrongType'
+  Log g:vader_exception
+endfor

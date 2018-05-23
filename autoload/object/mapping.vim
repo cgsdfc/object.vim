@@ -121,13 +121,17 @@ endfunction
 
 ""
 " Return the value at {key} in {obj} as if {obj} is a mapping.
-" If {obj} is a |List|, |String| or |Dict|, built-in subscription will be used.
+" If {obj} is a |List|, |String| or plain |Dict|, checked-version
+" of built-in subscription will be called.
+" Vim error about |List| index will translate to @exception(IndexError).
+" Vim's ignorance about the index to |String| will be augmented by checking
+" the emptiness of the value.
 "
 " @throws WrongType if {obj} is a |String| or |List| but {key} is not a
 " |Number| or {obj} is a |Dict| but {key} is not a |String|.
 "
-" @throws IndexError if {key} is out of range for |String| or |List|
-" @throws KeyError if {key} is not present in the |Dict|
+" @throws IndexError if {key} is out of range for |String| or |List|.
+" @throws KeyError if {key} is not present in the |Dict|.
 function! object#mapping#getitem(obj, key)
   if maktaba#value#IsList(a:obj)
     try
@@ -137,6 +141,7 @@ function! object#mapping#getitem(obj, key)
     endtry
     return val
   endif
+
   if maktaba#value#IsString(a:obj)
     let val = a:obj[maktaba#ensure#IsNumber(a:key)]
     if val isnot# ''
@@ -144,6 +149,7 @@ function! object#mapping#getitem(obj, key)
     endif
     throw object#IndexError('string index out of range: %d', a:key)
   endif
+
   if maktaba#value#IsDict(a:obj)
     if has_key(a:obj, '__getitem__')
       return object#protocols#call(a:obj.__getitem__, a:key)
@@ -155,6 +161,7 @@ function! object#mapping#getitem(obj, key)
     endtry
     return val
   endif
+
   call object#except#not_avail('getitem', a:obj)
 endfunction
 
