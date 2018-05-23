@@ -25,7 +25,7 @@
 "   :echo object#dict('abc', '[toupper(v:val), v:val]')
 "   {'A': 'a', 'B': 'b', 'C': 'c'}
 "
-"   :echo object#dict(object#enumerate('abc'), '[v:val, v:key]')
+"   :echo object#dict(object#enumerate('abc'), '[v:val[1], v:val[0]]')
 "   {'a': 0, 'b': 1, 'c': 2}
 "
 "   :echo object#dict(object#zip('abc', range(3)))
@@ -33,10 +33,6 @@
 "
 "   :echo object#sum(range(1, 100))
 "   5050
-"
-"   :let x = {'a': 0, 'b': 1, 'c': 2}
-"   :echo object#map(x, 'v:key')
-"   ['a', 'b', 'c']
 "
 "   :echo object#filter(['1', '2', ''], 'v:val')
 "   ['1', '2']
@@ -168,6 +164,13 @@ function! object#iter#all(iter)
   endtry
 endfunction
 
+function! s:ensure_2_lists(x)
+  if maktaba#value#IsList(a:x) && len(a:x) == 2
+    return a:x
+  endif
+  throw object#TypeError('not a 2-lists')
+endfunction
+
 ""
 " >
 "   dict() -> an empty dictionary.
@@ -194,10 +197,8 @@ function! object#iter#dict(...)
   let iter = object#iter(a:1)
   let list = a:0 == 2 ? object#map(iter, a:2) : object#list(iter)
 
-  for X in list
-    let Key = object#getitem(X, 0)
-    let Val = object#getitem(X, 1)
-    let dict[Key] = Val
+  for x in map(list, 's:ensure_2_lists(v:val)')
+    let dict[x[0]] = x[1]
   endfor
   return dict
 endfunction
