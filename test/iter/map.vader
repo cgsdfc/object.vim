@@ -1,0 +1,29 @@
+" vim:ft=vim
+"
+" Test object#map()
+"
+
+Execute (Can do whatever builtin-map() can do);
+let input = [
+      \ [ range(10),  'string(v:val)'],
+      \ [ [ 0, 1 ], '!v:val' ],
+      \]
+for [data, lambda] in input
+  AssertEqual object#map(data, lambda), map(data, lambda)
+endfor
+
+Execute (Create new list rather than does it in place);
+let data = range(10)
+Assert data isnot# object#map(data, 'v:val')
+
+Execute (Cannot deal with a directory but builtin-map() can);
+" Because dictionary is _not_ iterable while map() should take iterable,
+" for consistency map() won't treat dictionary as builtin-map() does.
+AssertThrows call object#map({}, 'v:val')
+Assert g:vader_exception =~# 'TypeError'
+
+Execute (Can handle String);
+let str = repeat('a', 10)
+let x = object#map(str, 'toupper(v:val)')
+AssertEqual x, map(range(10), '"A"')
+

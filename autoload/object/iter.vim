@@ -200,43 +200,21 @@ endfunction
 
 ""
 " Create a new list by applying {lambda} to each item of an {iter}.
-" {lambda} can be a |String| of function name or a |Funcref|.
-" Unfortunately, in {lambda} you cannot use |v:val| for no call to
-" built-in |map()| is issued at all.
+" {lambda} should be a |String| that is acceptable by built-in |map()|.
 function! object#iter#map(iter, lambda)
-  let lambda = maktaba#ensure#IsCallable(a:lambda)
   let iter = object#iter(a:iter)
-  let x = []
-  try
-    while 1
-      let Item = object#next(iter)
-      call add(x, maktaba#function#Apply(lambda, Item))
-    endwhile
-  catch /StopIteration/
-    return x
-  endtry
+  let lambda = maktaba#ensure#IsString(a:lambda)
+  return map(object#list(iter), lambda)
 endfunction
 
 ""
 " Create a new list by removing the item from {iter} when {lambda}
 " return false. Truthness is evaluated by object#bool().
-" {lambda} can be a |String| of function name or a |Funcref|.
-" Unfortunately, in {lambda} you cannot use |v:val| for no call to
-" built-in |filter()| is issued at all.
+" {lambda} should be a |String| that is acceptable by built-in |filter()|.
 function! object#iter#filter(iter, lambda)
-  let lambda = maktaba#ensure#IsCallable(a:lambda)
   let iter = object#iter(a:iter)
-  let x = []
-  try
-    while 1
-      let Item = object#next(iter)
-      if object#bool(maktaba#function#Apply(lambda, Item))
-        call add(x, Item)
-      endif
-    endwhile
-  catch /StopIteration/
-    return x
-  endtry
+  let lambda = maktaba#ensure#IsString(a:lambda)
+  return filter(object#list(iter), 'object#bool('.lambda.')')
 endfunction
 
 ""

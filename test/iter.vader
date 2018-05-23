@@ -10,3 +10,4 @@ Include(Test list_iter): iter/list-iter.vader
 Include(Test str_iter): iter/str-iter.vader
 Include(Test enumerate()): iter/enumerate.vader
 Include(Test zip()): iter/zip.vader
+Include(Test map()): iter/map.vader
