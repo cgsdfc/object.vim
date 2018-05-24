@@ -10,8 +10,10 @@
 "     arguments like ``a:1``, improving readability.
 "   * Provide interface to the underlying lambda object.
 "   * lambda can create closure if one want to.
+"   * for() function let you execute nearly arbitrary code while iterating.
 "
 " Limitations:
+"   * No closure for the code segments executed in the for() function.
 "   * Only one dictionary can be captured as closure at most, which means you
 "   cannot access both ``s:`` and ``l:`` from the lambda at once. But there is
 "   a simple workaround for this:
@@ -32,6 +34,10 @@
 "
 "   :echo object#map('aaa', object#lambda('s', 'toupper(s)'))
 "   'AAA'
+"
+"   :call object#for('key val', object#enumerate([1, 2]), 'echo key val')
+"   0 1
+"   1 2
 "
 "   " Note ``object#lambda_()`` returns |Dict| so no Capital Letter is needed.
 "   :let f = object#lambda_('x y', 'x + y')
@@ -200,7 +206,7 @@ function! object#lambda#for(names, iterable, cmds)
   if maktaba#value#IsString(a:cmds)
     let excmds = a:cmds
   else
-    let cmds =  map(maktaba#ensure#IsList(a:cmds), 
+    let cmds =  map(maktaba#ensure#IsList(a:cmds),
           \ 'maktaba#ensure#IsString(v:val)')
     let excmds = join(cmds, "\n")
   endif

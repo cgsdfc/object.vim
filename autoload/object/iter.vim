@@ -9,7 +9,6 @@
 "   * filter() evaluates lambda using |object#types#bool()|.
 "   * Provide iterators for |String| and |List| that works transparently.
 "   * Helpers like sum(), all(), any(), zip() and enumerate() all work as expected.
-"   * for() function let you execute nearly arbitrary code while iterating.
 "
 " Examples:
 " >
@@ -36,15 +35,10 @@
 "
 "   :echo object#list('abc')
 "   ['a', 'b', 'c']
-"
-"   :call object#for('key val', object#enumerate([1, 2]), 'echo key val')
-"   0 1
-"   1 2
 " <
 "
 " Limitations:
 "   * No generator and yield() supported.
-"   * No closure for the code segments executed in the for() function.
 
 let s:list_iter = object#class('list_iter')
 let s:str_iter = object#class('str_iter')

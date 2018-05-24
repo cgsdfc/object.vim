@@ -1,0 +1,17 @@
+" vim: ft=vim
+"
+" The code in Examples.
+"
+Execute (Example-1);
+AssertEqual object#lambda('x y', 'x + y')(1, 2), 3
+
+Execute (Example-2);
+AssertEqual sort(range(10), object#lambda('x y', 'y - x')),
+      \ reverse(range(10))
+Log reverse(range(10))
+
+Execute (Example-3);
+call object#for('key val', object#enumerate([1, 2]), [
+      \ 'let msg = printf("%d %d", key, val)',
+      \ 'Log msg',
+      \ ])

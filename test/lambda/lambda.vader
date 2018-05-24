@@ -124,17 +124,6 @@ let f = object#lambda_('', 'a:__lambda')
 AssertEqual f.__call__(), f
 
 "
-" The code in Examples.
-"
-Execute (Examples 1);
-AssertEqual object#lambda('x y', 'x + y')(1, 2), 3
-
-Execute (Examples 2);
-AssertEqual sort(range(10), object#lambda('x y', 'y - x')),
-      \ reverse(range(10))
-Log reverse(range(10))
-
-"
 " The WrongType throwing when code or name is not valid String
 " is not tested because they are based on maktaba#ensure library
 " which should do its job well.
