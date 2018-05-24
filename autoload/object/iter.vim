@@ -370,11 +370,9 @@ function! object#iter#for(names, iterable, cmds)
   " let capture = maktaba#ensure#IsDict(a:capture)
   if maktaba#value#IsString(a:cmds)
     let excmds = a:cmds
-  elseif maktaba#value#IsList(a:cmds)
-    let cmds =  map(copy(a:000), 'maktaba#ensure#IsString(v:val)')
-    let excmds = join(cmds, "\n")
   else
-    throw object#TypeError('cmds must be a string or a list')
+    let cmds =  map(maktaba#ensure#IsList(a:cmds), 'maktaba#ensure#IsString(v:val)')
+    let excmds = join(cmds, "\n")
   endif
 
   try

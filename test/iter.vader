@@ -8,11 +8,12 @@ Include(Test all() and any()): iter/all-any.vader
 Include(Test list()): iter/list.vader
 Include(Test dict()): iter/dict.vader
 Include(Test list_iter): iter/list-iter.vader
-Include(Test str_iter): iter/str-iter.vader
-Include(Test enumerate()): iter/enumerate.vader
-Include(Test zip()): iter/zip.vader
-Include(Test map()): iter/map.vader
-Include(Test filter()): iter/filter.vader
-Include(Test sum()): iter/sum.vader
-Include(Test for()): iter/for.vader
-Include(Examples): iter/examples.vader
+
+" Include(Test str_iter): iter/str-iter.vader
+" Include(Test enumerate()): iter/enumerate.vader
+" Include(Test zip()): iter/zip.vader
+" Include(Test map()): iter/map.vader
+" Include(Test filter()): iter/filter.vader
+" Include(Test sum()): iter/sum.vader
+" Include(Test for()): iter/for.vader
+" Include(Examples): iter/examples.vader
