@@ -27,6 +27,9 @@
 "   :echo object#lambda('x y', 'x + y')(1, 2)
 "   3
 "
+"   :echo sort(range(10), object#lambda('x y', 'y - x'))
+    > [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+"
 "   :echo object#map('aaa', object#lambda('s', 'toupper(s)'))
 "   'AAA'
 "
@@ -90,20 +93,22 @@ function! object#lambda#make_names(names)
   return map(split(names), 'object#util#ensure_identifier(v:val)')
 endfunction
 
+" Evaluate the {__lambda} object.
 function! object#lambda#eval(__lambda, ...)
-  if a:0 ==# __lambda.argc
-    if has_key(__lambda.closure)
-      let c = __lambda.closure
+  if a:0 ==# a:__lambda.argc
+    if has_key(a:__lambda, 'closure')
+      let c = a:__lambda.closure
     endif
     let __i = 0
-    while __i < __lambda.argc
-      let {__lambda.argv[__i]} = a:000[__i]
+    while __i < a:__lambda.argc
+      let {a:__lambda.argv[__i]} = a:000[__i]
       let __i += 1
     endwhile
-    return eval(__lambda.code)
+    return eval(a:__lambda.code)
   endif
   throw object#TypeError(
-        \'lambda takes exactly %d arguments (%d given)', __lambda.argc, a:0)
+        \'lambda takes exactly %d arguments (%d given)',
+        \ a:__lambda.argc, a:0)
 endfunction
 
 ""

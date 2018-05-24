@@ -2,6 +2,7 @@
 " Vader test file
 "
 
+Include(Lambda): lambda.vader
 Include(File): file.vader
 Include(Mapping): mapping.vader
 Include(Iterator): iter.vader

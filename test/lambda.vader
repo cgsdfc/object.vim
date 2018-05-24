@@ -1,0 +1,140 @@
+" vim:ft=vim
+"
+" Test the lambda module
+"
+Before;
+let args = [
+      \ ['x', 'toupper(x)'],
+      \ ['x y', 'x + y'],
+      \ ['d', 'has_key(d, "foo")'],
+      \ ['x y z', '[x, y, z]'],
+      \ ['x y', 'x . y'],
+      \]
+let eval_answers = [
+      \ [ ['a'], 'A'],
+      \ [ [1, 2], 3],
+      \ [ [{'foo': 1}], 1],
+      \ [ [ 1, 2, 3], [1, 2, 3]],
+      \ [ ['This is ', 'an apple'], 'This is an apple'],
+      \]
+
+let N = len(args)
+AssertEqual N, len(eval_answers)
+
+"
+" Create lambda Funcref and object and ensure that they produce
+" desired results when called.
+"
+Execute (The Funcref returned by lambda() can compute correct results);
+for i in range(N)
+  " Note: L is already a Funcref so just call() it.
+  let L = call('object#lambda', args[i])
+  let lambda_out = call(L, eval_answers[i][0]) 
+  AssertEqual lambda_out, eval_answers[i][1]
+endfor
+
+Execute (The object returned by lambda_() has correct attributes); 
+for x in range(N)
+  let f = call('object#lambda_', args[x])
+  AssertEqual f.code, args[x][1]
+  AssertEqual f.argv, object#lambda#make_names(args[x][0])
+  AssertEqual call(f.__call__, eval_answers[x][0]), eval_answers[x][1]
+endfor
+
+Execute (Examine the repr of lambda object);
+let f = object#lambda_('x', 'x + 1')
+Log object#repr(object#type(f))
+Log object#repr(f)
+Log object#dir(f)
+
+Execute (Corner case: taking no argument);
+let L = object#lambda_('', '1')
+AssertEqual L.argv, []
+AssertEqual L.__call__(), 1
+
+"
+" Make sure closure works 
+"
+
+Execute (Closure works for l:);
+function! TestLocal()
+  let l:foo = 1
+  let f = object#lambda_('', 'c.foo', l:)
+  Assert has_key(f, 'closure')
+  AssertEqual f.closure, l:
+  AssertEqual f.__call__(), l:foo
+endfunction
+call TestLocal()
+
+Execute (Closure works for a:);
+function! TestArgs(list)
+  let f = object#lambda_('', 'add(c.list, 1)', a:)
+  AssertEqual a:, f.closure
+  call f.__call__()
+endfunction
+let list = []
+call TestArgs(list)
+AssertEqual list, [1]
+
+Execute (Closure works for s:);
+let s:script_var = 1
+let f = object#lambda_('', 'c.script_var', s:)
+" The s: in AssertEqual will be the one of the vader code.
+" AssertEqual f.closure, s:
+
+for x in range(10)
+  let s:script_var = x
+  AssertEqual f.__call__(), x
+endfor
+
+Execute (Closure works for g:);
+let g:this_is_an_intended_long_name = 10
+let f = object#lambda_('', '1 + c.this_is_an_intended_long_name', g:)
+AssertEqual f.__call__(), g:this_is_an_intended_long_name + 1
+
+"
+" Various throwing conditions
+"
+Execute (Throws TypeError when formal > actual);
+AssertThrows call object#lambda('x y z', 'x > 0 ? y : z')(1, 2)
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+Execute (Throws TypeError when formal < actual);
+AssertThrows call object#lambda('x y', 'x > 0 ? y : z')(1, 2, 3)
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+Execute (Throws WrongType when closure given but not a Dict);
+AssertThrows call object#lambda('x', 'string(x)', 1)
+Log g:vader_exception
+Assert g:vader_exception =~# 'WrongType'
+
+Execute (Throws Undefined variable when closure is used in code but not given);
+AssertThrows call object#lambda('', 'c.undefined')()
+Log g:vader_exception
+Assert g:vader_exception =~# 'Undefined'
+AssertThrows call object#lambda('', 'undefined')()
+Assert g:vader_exception =~# 'Undefined'
+Log g:vader_exception
+
+Execute (Impl variable ``a:__lambda`` can be accessed from lambda);
+" Create a lambda that simply returns the lambda itself
+let f = object#lambda_('', 'a:__lambda')
+AssertEqual f.__call__(), f
+
+"
+" The code in Examples.
+"
+Execute (Examples 1);
+AssertEqual object#lambda('x y', 'x + y')(1, 2), 3
+
+Execute (Examples 2);
+AssertEqual sort(range(10), object#lambda('x y', 'y - x')),
+      \ reverse(range(10))
+Log reverse(range(10))
+
+"
+" The WrongType throwing when code or name is not valid String
+" is not tested because they are based on maktaba#ensure library
+" which should do its job well.
