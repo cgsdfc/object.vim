@@ -4,4 +4,3 @@
 
 Include(lambda() itself): lambda/lambda.vader
 Include(for() loop): lambda/for.vader
-Include(Examples): lambda/examples.vader
