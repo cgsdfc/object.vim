@@ -35,6 +35,10 @@ function! object#super(...) abort
   return call('object#class#super', a:000)
 endfunction
 
+function! object#new_(...) abort
+  return call('object#class#new_', a:000)
+endfunction
+
 function! object#new(...) abort
   return call('object#class#new', a:000)
 endfunction

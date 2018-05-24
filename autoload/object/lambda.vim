@@ -121,7 +121,7 @@ endfunction
 " the lambda expression.
 "
 function! object#lambda#lambda(...)
-  let lambda = call('object#new', [s:lambda] + a:000)
+  let lambda = object#new_(s:lambda, a:000)
   return lambda.__call__
 endfunction
 
@@ -130,5 +130,5 @@ endfunction
 " but has a ``__call__`` method, which does the same thing
 " as what is returned by ``object#lambda()``.
 function! object#lambda#lambda_(...)
-  return call('object#new', [s:lambda] + a:000)
+  return object#new_(s:lambda, a:000)
 endfunction

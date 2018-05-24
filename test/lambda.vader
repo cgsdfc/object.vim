@@ -29,11 +29,11 @@ Execute (The Funcref returned by lambda() can compute correct results);
 for i in range(N)
   " Note: L is already a Funcref so just call() it.
   let L = call('object#lambda', args[i])
-  let lambda_out = call(L, eval_answers[i][0]) 
+  let lambda_out = call(L, eval_answers[i][0])
   AssertEqual lambda_out, eval_answers[i][1]
 endfor
 
-Execute (The object returned by lambda_() has correct attributes); 
+Execute (The object returned by lambda_() has correct attributes);
 for x in range(N)
   let f = call('object#lambda_', args[x])
   AssertEqual f.code, args[x][1]
@@ -53,7 +53,7 @@ AssertEqual L.argv, []
 AssertEqual L.__call__(), 1
 
 "
-" Make sure closure works 
+" Make sure closure works
 "
 
 Execute (Closure works for l:);

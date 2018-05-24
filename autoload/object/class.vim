@@ -66,12 +66,19 @@ endfunction
 " of the {cls} and then calling __init__ of the newly created object
 " with [args].
 function! object#class#new(cls, ...)
+  return object#class#new_(a:cls, a:000)
+endfunction
+
+""
+" Create a new instance.
+" Take a |List| as {args} rather than variadic arguments.
+function! object#class#new_(cls, args)
   let cls = object#class#ensure_class(a:cls)
   let obj = {
         \ '__class__': a:cls,
         \ }
   call extend(obj, object#class#methods(a:cls))
-  call call(obj.__init__, a:000)
+  call call(obj.__init__, a:args)
   return obj
 endfunction
 
