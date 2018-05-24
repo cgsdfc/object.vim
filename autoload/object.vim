@@ -261,3 +261,12 @@ function! object#file_(...) abort
   return call('object#file#file_', a:000)
 endfunction
 
+"
+" object#lambda
+"   lambda()
+"
+
+function! object#lambda(...) abort
+  return call('object#lambda#lambda', a:000)
+endfunction
+

@@ -43,8 +43,8 @@
 " <
 "
 " Limitations:
-"   * The generator and yield() in Python are not supported.
-"   * No closure for the code segments of the for() function.
+"   * No generator and yield() supported.
+"   * No closure for the code segments executed in the for() function.
 
 let s:list_iter = object#class('list_iter')
 let s:str_iter = object#class('str_iter')
@@ -350,27 +350,32 @@ function! s:make_items(names, Vals)
 endfunction
 
 ""
-" Execute a sequence of commands while iterating over {iterable}.
-" {names} is a space-separated |String| that contains the variable
+" Execute a |List| of commands while iterating over {iterable}.
+" {names} is a space-separated |String|s that contains the variable
 " names used as the items in the {iterable}.
-" {cmd} is a |String| of Ex command, which can be followed by
-" multiple commands. During each iteration, the commands are executed
-" in the order that they are specified in the argument list.
+"
+" {cmd} is a |String| of Ex command or a |List| of such strings.
+" During each iteration, the commands are executed
+" in the order that they are specified in the list.
 " Examples:
 " >
-"   call object#for('x', range(10), 'if x > 0', 'echo x', 'endif')
+"   call object#for('x', range(10), ['if x > 0', 'echo x', 'endif'])
 "   call object#for('f', files, 'call f.close()')
 "   call object#for('key val', items({'a': 1}), 'echo key val')
 " <
-function! object#iter#for(names, iterable, cmd, ...)
+function! object#iter#for(names, iterable, cmds)
   let names = map(split(maktaba#ensure#IsString(a:names)),
         \ 'object#util#ensure_identifier(v:val)')
   let iter = object#iter(a:iterable)
-  let cmd = maktaba#ensure#IsString(a:cmd)
-  let cmds = a:0 ?
-        \ insert(map(copy(a:000),
-        \ 'maktaba#ensure#IsString(v:val)'), cmd) : [cmd]
-  let excmds = join(cmds, "\n")
+  " let capture = maktaba#ensure#IsDict(a:capture)
+  if maktaba#value#IsString(a:cmds)
+    let excmds = a:cmds
+  elseif maktaba#value#IsList(a:cmds)
+    let cmds =  map(copy(a:000), 'maktaba#ensure#IsString(v:val)')
+    let excmds = join(cmds, "\n")
+  else
+    throw object#TypeError('cmds must be a string or a list')
+  endif
 
   try
     while 1

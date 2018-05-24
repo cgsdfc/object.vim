@@ -25,15 +25,15 @@ Execute (Throws TypeError if iterable is not iterable);
 AssertThrows call object#for('x', 1, 'echo x')
 Assert g:vader_exception =~# 'TypeError'
 
-Execute (Throws WrongType if any of the commands is non-String);
+Execute (Throws WrongType if any of the commands is not String or List or Strings);
 let bad_cmds = [
-      \ [1],
-      \ [function('tr'), v:false],
-      \ [range(10), 2],
+      \ 1,
+      \ function('tr'),
+      \ v:false,
+      \ range(10),
       \]
-for x in bad_cmds
-  AssertThrows call
-        \ call('object#for', ['a', range(10)] + g:x)
+for X in bad_cmds
+  AssertThrows call object#for('var', range(10), g:X)
   Assert g:vader_exception =~# 'WrongType'
 endfor
 
@@ -121,30 +121,43 @@ Execute (Multiple commands);
 call object#for('var', range(1), 'let x = var', 'let y = x', 'let z = y', 'Log z')
 
 Execute (Defining functions);
-call object#for('var', range(1),
+call object#for('var', range(1),[
       \ 'function! Happy(x)',
       \   'return toupper(a:x)',
-      \ 'endfunction')
+      \ 'endfunction',
+      \])
 
 Execute (Doing for loop);
 
-call object#for('var', range(10)
-          \, 'let z = 0'
-          \, 'for x in range(10)'
-          \,   'let z += var * x'
-          \, 'endfor'
-          \, 'echo z'
-          \)
+call object#for('var', range(10), [
+          \   'let z = 0'
+          \,  'for x in range(10)'
+          \,    'let z += var * x'
+          \,  'endfor'
+          \,  'echo z'
+          \])
 
 Execute (While loop);
 
 call object#for('var', repeat('a', 3)
-      \, 'let i = 0'
-      \, 'while i < 4'
-      \,    'let var .= string(i)'
-      \,    'let i += 1'
-      \, 'endwhile'
-      \, 'echo var'
+      \,[   'let i = 0'
+      \,    'while i < 4'
+      \,      'let var .= string(i)'
+      \,      'let i += 1'
+      \,    'endwhile'
+      \,    'echo var'
+      \])
+
+Execute (Try-catch);
+
+call object#for('_', range(1)
+      \, 'try'
+      \,    'throw "bad"'
+      \, 'catch /bad/'
+      \,    'echo v:exception'
+      \, 'finally'
+      \,    'echo "finally!"'
+      \, 'endtry'
       \)
 
 Execute (Common pattern: enumerate());
