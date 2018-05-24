@@ -164,6 +164,8 @@ endfunction
 "   NoneType()
 "   None()
 "   bool()
+"   list()
+"   dict()
 
 function! object#NoneType(...) abort
   return call('object#types#NoneType', a:000)
@@ -189,6 +191,14 @@ function! object#bool(...) abort
   return call('object#types#bool', a:000)
 endfunction
 
+function! object#list(...) abort
+  return call('object#types#list', a:000)
+endfunction
+
+function! object#dict(...) abort
+  return call('object#types#dict', a:000)
+endfunction
+
 ""
 " From object#iter
 "   iter()
@@ -198,8 +208,6 @@ endfunction
 "   map()
 "   filter()
 "   sum()
-"   list()
-"   dict()
 "   enumerate()
 "   zip()
 "   for()
@@ -218,14 +226,6 @@ endfunction
 
 function! object#any(...) abort
   return call('object#iter#any', a:000)
-endfunction
-
-function! object#list(...) abort
-  return call('object#iter#list', a:000)
-endfunction
-
-function! object#dict(...) abort
-  return call('object#iter#dict', a:000)
 endfunction
 
 function! object#enumerate(...) abort

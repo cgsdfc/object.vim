@@ -48,7 +48,7 @@ Execute(When there is no bases given or an empty base list, class() sets base to
 for x in [ "object#class('Man')",  "object#class('Man', [])" ]
   let cls = eval(x)
   Assert cls.__base__ is# object
-  Assert cls.__bases__ ==# [object]
+  AssertEqual cls.__bases__, [object]
 endfor
 
 Execute(New cls should work with repr());

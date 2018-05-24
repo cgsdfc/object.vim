@@ -4,3 +4,5 @@
 
 Include(Top classes): types/tops.vader
 Include(Bool conversion): types/bool.vader
+Include(Test list()): types/list.vader
+Include(Test dict()): types/dict.vader

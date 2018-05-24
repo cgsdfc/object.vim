@@ -5,8 +5,6 @@
 
 Include(Test iter() and next()): iter/next-iter.vader
 Include(Test all() and any()): iter/all-any.vader
-Include(Test list()): iter/list.vader
-Include(Test dict()): iter/dict.vader
 Include(Test list_iter): iter/list-iter.vader
 
 " Include(Test str_iter): iter/str-iter.vader
