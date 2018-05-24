@@ -210,7 +210,6 @@ endfunction
 "   sum()
 "   enumerate()
 "   zip()
-"   for()
 
 function! object#iter(...) abort
   return call('object#iter#iter', a:000)
@@ -248,10 +247,6 @@ function! object#filter(...) abort
   return call('object#iter#filter', a:000)
 endfunction
 
-function! object#for(...) abort
-  return call('object#iter#for', a:000)
-endfunction
-
 "
 " object#file
 "   open()
@@ -268,6 +263,7 @@ endfunction
 "
 " object#lambda
 "   lambda()
+"   for()
 "
 
 function! object#lambda(...) abort
@@ -278,3 +274,6 @@ function! object#lambda_(...) abort
   return call('object#lambda#lambda_', a:000)
 endfunction
 
+function! object#for(...) abort
+  return call('object#lambda#for', a:000)
+endfunction

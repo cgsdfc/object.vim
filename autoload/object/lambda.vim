@@ -28,7 +28,7 @@
 "   3
 "
 "   :echo sort(range(10), object#lambda('x y', 'y - x'))
-    > [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+"   [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
 "
 "   :echo object#map('aaa', object#lambda('s', 'toupper(s)'))
 "   'AAA'
@@ -131,4 +131,86 @@ endfunction
 " as what is returned by ``object#lambda()``.
 function! object#lambda#lambda_(...)
   return object#new_(s:lambda, a:000)
+endfunction
+
+"
+" The for() loop
+"
+
+
+"
+" Execute {__excmds} with {__items} set as items
+" from the iterator.
+function! s:execute_cmds(__excmds, __items)
+  for __i in a:__items
+    let {__i[0]} = __i[1]
+  endfor
+  execute a:__excmds
+endfunction
+
+"
+" Unpack the {Vals} into {names} and return a 2-lists
+" list for each name-value pair.
+" If there is only one name, it will take the entire of {Vals}.
+" Otherwise, {Vals} must be a |List| and its len should match
+" that of the {names}.
+"
+" @throws WrongType if Vals is not a List but len(names) > 1.
+" @throws TypeError if the len of names does not match that of
+" Vals.
+function! s:make_items(names, Vals)
+  let names_nr = len(a:names)
+  if names_nr ==# 1
+    return [ [a:names[0], a:Vals] ]
+  endif
+  let Vals = maktaba#ensure#IsList(a:Vals)
+  let Vals_nr = len(Vals)
+  if names_nr ==# Vals_nr
+    let i = 0
+    let result = []
+    while i < names_nr
+      call add(result, [a:names[i], Vals[i]])
+      let i += 1
+    endwhile
+    return result
+  endif
+  throw object#TypeError(names_nr > Vals_nr ?
+        \ 'more targets than list items':
+        \ 'less targets than list items')
+endfunction
+
+""
+" Execute a |List| of commands while iterating over {iterable}.
+" {names} is a space-separated |String|s that contains the variable
+" names used as the items in the {iterable}.
+"
+" {cmd} is a |String| of Ex command or a |List| of such strings.
+" During each iteration, the commands are executed
+" in the order that they are specified in the list.
+" Examples:
+" >
+"   call object#for('x', range(10), ['if x > 0', 'echo x', 'endif'])
+"   call object#for('f', files, 'call f.close()')
+"   call object#for('key val', items({'a': 1}), 'echo key val')
+" <
+function! object#lambda#for(names, iterable, cmds)
+  let names = object#lambda#make_names(a:names)
+  let iter = object#iter(a:iterable)
+  " let capture = maktaba#ensure#IsDict(a:capture)
+  if maktaba#value#IsString(a:cmds)
+    let excmds = a:cmds
+  else
+    let cmds =  map(maktaba#ensure#IsList(a:cmds), 
+          \ 'maktaba#ensure#IsString(v:val)')
+    let excmds = join(cmds, "\n")
+  endif
+
+  try
+    while 1
+      let Items = s:make_items(names, object#next(iter))
+      call s:execute_cmds(excmds, Items)
+    endwhile
+  catch /StopIteration/
+    return
+  endtry
 endfunction
