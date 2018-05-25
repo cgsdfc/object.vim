@@ -3,7 +3,15 @@
 " @stylized object
 " @library
 " @order intro version protocols class mapping iter file types lambda dicts functions exceptions
+" >
+"                              __      _           __
+"                       ____  / /_    (_)__  _____/ /_
+"                      / __ \/ __ \  / / _ \/ ___/ __/
+"                     / /_/ / /_/ / / /  __/ /__/ /_
+"                     \____/_.___/_/ /\___/\___/\__/
+"                               /___/
 "
+" <
 " object.vim is a library plugin that provides object protocols for Vim. It
 " aims to be an augmentation to the built-in function as well as existing
 " coding convensions, rather than correction or reinvention. To achieve this,
