@@ -10,14 +10,44 @@ CONTENTS                                                 *object.vim-contents*
   5. Iterator................................................|object.vim-iter|
   6. File....................................................|object.vim-file|
   7. Types..................................................|object.vim-types|
-  8. Dictionaries...........................................|object.vim-dicts|
-  9. Functions..........................................|object.vim-functions|
-  10. Exceptions.......................................|object.vim-exceptions|
+  8. Lambda................................................|object.vim-lambda|
+  9. Dictionaries...........................................|object.vim-dicts|
+  10. Functions.........................................|object.vim-functions|
+  11. Exceptions.......................................|object.vim-exceptions|
 
 ==============================================================================
 INTRODUCTION                                                *object.vim-intro*
 
-A vimscript library that provides object protocols for Vim similar to Python.
+
+object.vim is a library plugin that provides object protocols for Vim. It aims
+to be an augmentation to the built-in function as well as existing coding
+convensions, rather than correction or reinvention. To achieve this, it
+strives for the following:
+  * Always enhance and be compatible with built-in functions.
+  * Always works with built-in types.
+  * Minimal principle: only core functions are provided.
+
+Keeping this in mind, object.vim tries to built an object-oriented framework
+as well as a bunch of useful modules built on top of that. With object.vim you
+can create and loop over iterators, read and write files with objects, create
+lambda functions with intuitive syntax and hash arbitrary objects. Most
+fundamentally, you can define full-fledged classes that seamlessly integrate
+with all these protocols.
+
+object.vim also hides some of the dark sides of Vim so a robust and consistent
+interface is possible. For the ease of use and code modularity, object.vim put
+evarything available to the users in the `object#` namespace and implements
+them in the sub-namespace such as `object#file#`. The benefit is that user can
+use any functionality as if as they are built-in to object.vim. This also
+implies that anything in the sub-namespace of `object#` is implementation
+details and subjects to changes, upon which users should not rely.
+
+In terms of API styles, object.vim is loosely based on the common parts of Vim
+and Python2. Whenever possible, it strives for simplicity and elegance. It is
+also believed that a small core is better a huge code base, which is easier to
+understand and make use of.
+
+Happy with the object!
 
 
 ==============================================================================
@@ -75,7 +105,6 @@ Features:
   * Provide iterators for |String| and |List| that works transparently.
   * Helpers like sum(), all(), any(), zip() and enumerate() all work as
     expected.
-  * for() function let you execute nearly arbitrary code while iterating.
 
 Examples:
 >
@@ -102,15 +131,10 @@ Examples:
 
   :echo object#list('abc')
   ['a', 'b', 'c']
-
-  :call object#for('key val', object#enumerate([1, 2]), 'echo key val')
-  0 1
-  1 2
 <
 
 Limitations:
-  * The generator and yield() in Python are not supported.
-  * No closure for the code segments of the for() function.
+  * No generator and yield() supported.
 
 ==============================================================================
 FILE                                                         *object.vim-file*
@@ -168,6 +192,52 @@ They are:
 
   * NoneType(type): The class of the None object, the place holder for absence
     of sensible values, such as the base class of object.
+
+==============================================================================
+LAMBDA                                                     *object.vim-lambda*
+
+Create inline function in one line of code. It is an enhanced version of
+|maktaba#function#FromExpr()|.
+
+Features:
+  * `lambda()` returns a |Funcref| rather than a |Dict|, which can be used
+    directly in situation such as |sort()|.
+  * The created lambda uses named arguments rather than numbered arguments
+    like `a:1`, improving readability.
+  * Provide interface to the underlying lambda object via `lambda_()`.
+  * lambda can create closure if one want to.
+  * `for()` function let you execute nearly arbitrary code while iterating.
+
+Limitations:
+  * No closure for the code segments executed in the for() function.
+  * Only one dictionary can be captured as closure at most, which means you
+    cannot access both `s:` and `l:` from the lambda at once. But there is a
+    simple workaround for this: > :let both_s_and_l = { 's': s:, 'l': l: }
+    :echo object#lambda('x', 'x > 1 ? c.s.var : l.s.var')(1) <
+  * The number of arguments to the lambda is limited by the maximum number
+    allowed by Vim.
+
+Examples:
+>
+  :echo object#lambda('x y', 'x + y')(1, 2)
+  3
+
+  :echo sort(range(10), object#lambda('x y', 'y - x'))
+  [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+
+  :echo object#map('aaa', object#lambda('s', 'toupper(s)'))
+  'AAA'
+
+  :call object#for('key val', object#enumerate([1, 2]), 'echo key val')
+  0 1
+  1 2
+
+  :let f = object#lambda_('x y', 'x + y')
+  :echo object#repr(f)
+  <'lambda' object>
+  :echo f.__call__(1, 2)
+  3
+<
 
 ==============================================================================
 DICTIONARIES                                                *object.vim-dicts*
@@ -230,6 +300,29 @@ file.__init__({name}, {mode})                                *file.__init__()*
 file.__repr__()                                              *file.__repr__()*
   __repr__(file) <==> repr(file)
 
+                                                           *object.vim.lambda*
+
+lambda.__init__({names}, {code}, [closure])                *lambda.__init__()*
+  Initialize the |object.vim.lambda| object from a |String| of names to be
+  used as the names of the function arguments and the expression to evaluated.
+
+  If a [closure] is given, it can be accessed in form of `c.var` in the {code}
+  argument. The letter `c` is chosen because it is the first letter for
+  "capture", "capital" and "closure", all to do with `function`. What's more,
+  the `c.var` syntax minics the `a:var`, `s:var` convensions of Vim, which
+  makes it easier to remember. After all, it is short and meaningful so let's
+  use it!
+
+  Throws ERROR(ValueError) if {names} is not a |name-specification|.
+  Throws ERROR(WrongType) if {code} or {names} is not a |String| or
+  [closure] is not a |Dict|.
+
+lambda.__call__([args])                                    *lambda.__call__()*
+  Evaluate the lambda expression by applying [args].
+
+  Throws ERROR(TypeError) if the actual arguments do not match the
+  formal arguments declared via names.
+
 ==============================================================================
 FUNCTIONS                                               *object.vim-functions*
 
@@ -244,6 +337,10 @@ object#class#new({cls}, [args])                           *object#class#new()*
   Create a new instance. This is done by first creating a skeleton object from
   the attributes of the {cls} and then calling __init__ of the newly created
   object with [args].
+
+object#class#new_({cls}, {args})                         *object#class#new_()*
+  Create a new instance. Take a |List| as {args} rather than variadic
+  arguments.
 
 object#class#type()                                      *object#class#type()*
   type(obj) -> class of obj.
@@ -299,30 +396,6 @@ object#iter#all({iter})                                    *object#iter#all()*
   Return true iff all item from {iter} is true. Truthness is evaluated using
   object#bool(). {iter} can be anything iterable.
 
-object#iter#dict([iter])                                  *object#iter#dict()*
-
->
-    dict() -> an empty dictionary.
-    dict(iterable) -> initiazed with 2-list items.
-    dict(iterable, lambda) -> applies lambda to iterable, initiazed with the
-      resulting list.
-    dict(plain dictionary) -> a copy of the argument.
-<
-
-  Turn an iterator that returns 2-list into a |Dict|. If no [iter] is given,
-  an empty |Dict| is returned. If a |Dict| is given, it is effectively
-  |copy()|'ed.
-
-object#iter#list([iter])                                  *object#iter#list()*
-
->
-    list() -> an empty list.
-    list(iterable) -> initiazed with items of iterable.
-<
-
-  Turn an iterator into a |List|. If no [iter] is given, an empty |List| is
-  returned. If a |List| is given, it is effectively |copy()|'ed.
-
 object#iter#enumerate({iter}, [start])               *object#iter#enumerate()*
   Return an iterator for index, value of {iter} Take an optional [start].
 
@@ -347,14 +420,28 @@ object#iter#sum({iter}, [start])                           *object#iter#sum()*
 
   Throws ERROR(WrongType) if any item is not numeric.
 
-object#iter#for({names}, {iterable}, {cmd})                *object#iter#for()*
-  Execute a sequence of commands while iterating over {iterable}. {names} is a
-  space-separated |String| that contains the variable names used as the items
-  in the {iterable}. {cmd} is a |String| of Ex command, which can be followed
-  by multiple commands. During each iteration, the commands are executed in
-  the order that they are specified in the argument list. Examples:
+object#lambda#lambda()                                *object#lambda#lambda()*
+  Create a one-line |Funcref| that takes names as arguments and returns the
+  result of evaluation of code.
+
+  If a closure argument is given, the variables `var` living inside the
+  closure are available as `c.var` from the lambda expression.
+
+
+object#lambda#lambda_()                              *object#lambda#lambda_()*
+  Create a lambda object that cannot be directly called but has a `__call__`
+  method, which does the same thing as what is returned by `object#lambda()`.
+
+object#lambda#for({iterable}, {names}, {cmd})            *object#lambda#for()*
+  Execute a |List| of commands while iterating over {iterable}. {names} is a
+  space-separated |String|s that contains the variable names used as the items
+  in the {iterable}.
+
+  {cmd} is a |String| of Ex command or a |List| of such strings. During each
+  iteration, the commands are executed in the order that they are specified in
+  the list. Examples:
 >
-    call object#for('x', range(10), 'if x > 0', 'echo x', 'endif')
+    call object#for('x', range(10), ['if x > 0', 'echo x', 'endif'])
     call object#for('f', files, 'call f.close()')
     call object#for('key val', items({'a': 1}), 'echo key val')
 <
@@ -429,6 +516,30 @@ object#types#NoneType()                              *object#types#NoneType()*
 
 object#types#None()                                      *object#types#None()*
   Return the None object
+
+object#types#dict([iter])                                *object#types#dict()*
+
+>
+    dict() -> an empty dictionary.
+    dict(iterable) -> initiazed with 2-list items.
+    dict(iterable, lambda) -> applies lambda to iterable, initiazed with the
+      resulting list.
+    dict(plain dictionary) -> a copy of the argument.
+<
+
+  Turn an iterator that returns 2-list into a |Dict|. If no [iter] is given,
+  an empty |Dict| is returned. If a |Dict| is given, it is effectively
+  |copy()|'ed.
+
+object#types#list([iter])                                *object#types#list()*
+
+>
+    list() -> an empty list.
+    list(iterable) -> initiazed with items of iterable.
+<
+
+  Turn an iterator into a |List|. If no [iter] is given, an empty |List| is
+  returned. If a |List| is given, it is effectively |copy()|'ed.
 
 ==============================================================================
 EXCEPTIONS                                             *object.vim-exceptions*

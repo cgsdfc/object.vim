@@ -1,21 +1,21 @@
 ""
-" @section lambda, lambda
+" @section Lambda, lambda
 " Create inline function in one line of code. It is an
 " enhanced version of |maktaba#function#FromExpr()|.
 "
 " Features:
-"   * lambda() returns a |Funcref| rather than a |Dict|, which can be used
+"   * `lambda()` returns a |Funcref| rather than a |Dict|, which can be used
 "     directly in situation such as |sort()|.
 "   * The created lambda uses named arguments rather than numbered
-"     arguments like ``a:1``, improving readability.
-"   * Provide interface to the underlying lambda object.
+"     arguments like `a:1`, improving readability.
+"   * Provide interface to the underlying lambda object via `lambda_()`.
 "   * lambda can create closure if one want to.
-"   * for() function let you execute nearly arbitrary code while iterating.
+"   * `for()` function let you execute nearly arbitrary code while iterating.
 "
 " Limitations:
 "   * No closure for the code segments executed in the for() function.
 "   * Only one dictionary can be captured as closure at most, which means you
-"   cannot access both ``s:`` and ``l:`` from the lambda at once. But there is
+"   cannot access both `s:` and `l:` from the lambda at once. But there is
 "   a simple workaround for this:
 "   >
 "     :let both_s_and_l = { 's': s:, 'l': l: }
@@ -39,7 +39,6 @@
 "   0 1
 "   1 2
 "
-"   " Note ``object#lambda_()`` returns |Dict| so no Capital Letter is needed.
 "   :let f = object#lambda_('x y', 'x + y')
 "   :echo object#repr(f)
 "   <'lambda' object>
@@ -55,8 +54,6 @@ let s:lambda = object#class('lambda')
 let s:lambda.__init__ = function('object#lambda#__init__')
 let s:lambda.__call__ = function('object#lambda#__call__')
 
-""
-" @dict lambda
 
 ""
 " @dict lambda
@@ -65,14 +62,14 @@ let s:lambda.__call__ = function('object#lambda#__call__')
 " and the expression to evaluated.
 "
 " If a [closure] is given, it can be accessed in form of
-" ``c.var`` in the {code} argument. The letter ``c`` is chosen
+" `c.var` in the {code} argument. The letter `c` is chosen
 " because it is the first letter for "capture", "capital" and
-" "closure", all of which is to do with accessing variables outside
-" the local scope. What's more, the ``c.var`` syntax minics the ``a:var``,
-" ``s:var`` convensions of Vim, which makes it easier to remember.
+" "closure", all to do with `function`.
+" What's more, the `c.var` syntax minics the `a:var`,
+" `s:var` convensions of Vim, which makes it easier to remember.
 " After all, it is short and meaningful so let's use it!
 "
-" @throws ValueError if {names} is not a |name specification|.
+" @throws ValueError if {names} is not a |name-specification|.
 " @throws WrongType if {code} or {names} is not a |String| or
 " [closure] is not a |Dict|.
 function! object#lambda#__init__(names, code, ...) dict
@@ -86,10 +83,11 @@ function! object#lambda#__init__(names, code, ...) dict
 endfunction
 
 ""
-" Evaluate the lambda expression by applying [arguments].
+" @dict lambda
+" Evaluate the lambda expression by applying [args].
 "
 " @throws TypeError if the actual arguments do not match the
-" formal arguments declared via {names}.
+" formal arguments declared via names.
 function! object#lambda#__call__(...) dict
   return call('object#lambda#eval', [self] + a:000)
 endfunction
@@ -118,12 +116,12 @@ function! object#lambda#eval(__lambda, ...)
 endfunction
 
 ""
-" Create a one-line |Funcref| that takes {names} as
+" Create a one-line |Funcref| that takes names as
 " arguments and returns the result of evaluation of
-" {code}.
+" code.
 "
-" If a [closure] argument is given, the variables {var}
-" living inside [closure] are available as ``c.var`` from
+" If a closure argument is given, the variables `var`
+" living inside the closure are available as `c.var` from
 " the lambda expression.
 "
 function! object#lambda#lambda(...)
@@ -133,8 +131,8 @@ endfunction
 
 ""
 " Create a lambda object that cannot be directly called
-" but has a ``__call__`` method, which does the same thing
-" as what is returned by ``object#lambda()``.
+" but has a `__call__` method, which does the same thing
+" as what is returned by `object#lambda()`.
 function! object#lambda#lambda_(...)
   return object#new_(s:lambda, a:000)
 endfunction

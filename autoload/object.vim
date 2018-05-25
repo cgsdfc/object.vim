@@ -2,14 +2,43 @@
 " @section Introduction, intro
 " @stylized object
 " @library
-" @order intro version protocols class mapping iter file types dicts functions exceptions
-" A vimscript library that provides object protocols for Vim similar to
-" Python.
+" @order intro version protocols class mapping iter file types lambda dicts functions exceptions
+"
+" object.vim is a library plugin that provides object protocols for Vim. It
+" aims to be an augmentation to the built-in function as well as existing
+" coding convensions, rather than correction or reinvention. To achieve this,
+" it strives for the following:
+"   * Always enhance and be compatible with built-in functions.
+"   * Always works with built-in types.
+"   * Minimal principle: only core functions are provided.
+"
+" Keeping this in mind, object.vim tries to built an object-oriented framework
+" as well as a bunch of useful modules built on top of that. With object.vim
+" you can create and loop over iterators, read and write files with objects,
+" create lambda functions with intuitive syntax and hash arbitrary objects.
+" Most fundamentally, you can define full-fledged classes that seamlessly
+" integrate with all these protocols.
+"
+" object.vim also hides some of the dark sides of Vim so a robust and
+" consistent interface is possible. For the ease of use and code modularity,
+" object.vim put evarything available to the users in the `object#` namespace and
+" implements them in the sub-namespace such as `object#file#`. The benefit
+" is that user can use any functionality as if as they are built-in to
+" object.vim. This also implies that anything in the sub-namespace of
+" `object#` is implementation details and subjects to changes, upon which users
+" should not rely.
+"
+" In terms of API styles, object.vim is loosely based on the common parts of
+" Vim and Python2. Whenever possible, it strives for simplicity and elegance.
+" It is also believed that a small core is better a huge code base, which is
+" easier to understand and make use of.
+"
+" Happy with the object!
 "
 
 ""
 " This file serves as a shallow namespace for all the object
-" facilities. Object.vim aims to be a bunch of convenient functions
+" facilities. object.vim aims to be a bunch of convenient functions
 " that enables object protocols in Vim. Functions in files other than
 " this file is implementation details that users should never bother.
 
@@ -118,6 +147,7 @@ endfunction
 "   StopIteration
 "   IOError
 "   IndexError
+"   KeyError
 
 function! object#BaseException(...) abort
   return call('object#except#BaseException', a:000)
