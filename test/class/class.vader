@@ -1,0 +1,74 @@
+" vim:ft=vim
+Before;
+let object = object#object_()
+let type = object#type_()
+let None = object#None()
+let X = object#class('X')
+
+Execute(Throws TypeError with argc > 2);
+AssertThrows call object#class('Boy', g:object, 'hey')
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+Execute(Throws ValueError if name is not an identifier);
+AssertThrows call object#class('$var')
+Assert g:vader_exception =~# 'ValueError'
+Log g:vader_exception
+
+Execute(Throws WrongType if name is not a String);
+AssertThrows call object#class(1)
+Assert g:vader_exception =~# 'WrongType'
+Log g:vader_exception
+
+Execute(Throws TypeError if bases is neither a List nor a class);
+AssertThrows call object#class('Man', 2)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+Execute(Throws TypeError if bases is not valid classes);
+for x in [ {}, [1, 2, 3], ['a', v:none, v:false] ]
+  AssertThrows call object#class('Man', g:x)
+  Assert g:vader_exception =~# 'TypeError'
+  Log g:vader_exception
+endfor
+
+Execute(Can detect duplicate base classes and throws TypeError);
+for x in [ [object, object], [type, type] ]
+  AssertThrows call object#class('Man', g:x)
+  Assert g:vader_exception =~# 'TypeError'
+  Log g:vader_exception
+endfor
+
+"
+" Test inheritance in terms of subclass relationship
+" and simple builtin methods.
+"
+
+Execute(When there is no bases given or an empty base list, sets base to object);
+for x in [ "object#class('Man')",  "object#class('Man', [])" ]
+  let cls = eval(x)
+  Assert cls.__base__ is# object
+  AssertEqual cls.__bases__, [object]
+endfor
+
+Execute(New cls should work with repr());
+AssertEqual object#repr(X), "<type 'X'>"
+
+Execute(New cls has expected instance relationship);
+Assert X.__class__ is# type
+Assert X.__name__ is# 'X'
+
+Execute(Handle one single base);
+let Y = object#class('Y', X)
+Assert Y.__base__ is# X
+Assert Y.__bases__ ==# [X]
+
+Execute(Handle a List of bases);
+let bases = map([ 'A', 'B', 'C', ], 'object#class(v:val)')
+let D = object#class('D', bases)
+Assert D.__base__ is# bases[0]
+Assert D.__bases__ is# bases
+
+let E = object#class('E', [D])
+Assert E.__base__ is# D
+Assert E.__bases__ ==# [D]
