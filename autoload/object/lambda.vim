@@ -89,7 +89,7 @@ endfunction
 " @throws TypeError if the actual arguments do not match the
 " formal arguments declared via names.
 function! object#lambda#__call__(...) dict
-  return call('object#lambda#eval', [self] + a:000)
+  return object#lambda#eval(self, a:0, a:000)
 endfunction
 
 function! object#lambda#make_names(names)
@@ -98,21 +98,21 @@ function! object#lambda#make_names(names)
 endfunction
 
 " Evaluate the {__lambda} object.
-function! object#lambda#eval(__lambda, ...)
-  if a:0 ==# a:__lambda.argc
+function! object#lambda#eval(__lambda, __nargs, __args)
+  if a:__nargs ==# a:__lambda.argc
     if has_key(a:__lambda, 'closure')
       let c = a:__lambda.closure
     endif
     let __i = 0
     while __i < a:__lambda.argc
-      let {a:__lambda.argv[__i]} = a:000[__i]
+      let {a:__lambda.argv[__i]} = a:__args[__i]
       let __i += 1
     endwhile
     return eval(a:__lambda.code)
   endif
   throw object#TypeError(
         \'lambda takes exactly %d arguments (%d given)',
-        \ a:__lambda.argc, a:0)
+        \ a:__lambda.argc, a:__nargs)
 endfunction
 
 ""
@@ -125,8 +125,7 @@ endfunction
 " the lambda expression.
 "
 function! object#lambda#lambda(...)
-  let lambda = object#new_(s:lambda, a:000)
-  return lambda.__call__
+  return call('object#lambda_', a:000).__call__
 endfunction
 
 ""
