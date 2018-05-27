@@ -92,9 +92,21 @@ function! object#lambda#__call__(...) dict
   return object#lambda#eval(self, a:0, a:000)
 endfunction
 
+function! s:ensure_unique(names)
+  let seen = {}
+  for x in a:names
+    if !has_key(seen, x)
+      let seen[x] = 1
+      continue
+    endif
+    throw object#ValueError('duplicate name %s', string(x))
+  endfor
+  return a:names
+endfunction
+
 function! object#lambda#make_names(names)
   let names = maktaba#ensure#IsString(a:names)
-  return map(split(names), 'object#util#ensure_identifier(v:val)')
+  return s:ensure_unique(map(split(names), 'object#util#ensure_identifier(v:val)'))
 endfunction
 
 " Evaluate the {__lambda} object.

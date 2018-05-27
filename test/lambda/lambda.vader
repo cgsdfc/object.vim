@@ -127,3 +127,15 @@ AssertEqual f.__call__(), f
 " The WrongType throwing when code or name is not valid String
 " is not tested because they are based on maktaba#ensure library
 " which should do its job well.
+"
+" TOOD: Check duplicate argument names.
+Execute (The limit of number of arguments is 20);
+let limit = 20
+let args = join(map(range(limit), '"arg_" . string(v:val)'))
+let F = object#lambda(args, '1')
+AssertEqual 1, call(F, range(limit))
+
+Execute (Throws ValueError if duplicate names are given);
+AssertThrows call object#lambda('x x', 'x')
+Assert g:vader_exception =~# 'ValueError'
+Log g:vader_exception

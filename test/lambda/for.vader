@@ -63,6 +63,11 @@ AssertThrows call object#for('i0 i1 i2', [range(10)], 'let key = val')
 Log g:vader_exception
 Assert g:vader_exception =~# 'TypeError'
 
+Execute (Throws ValueError if duplicate names are given);
+AssertThrows call object#for('x x', range(10),  'let x += 1')
+Assert g:vader_exception =~# 'ValueError'
+Log g:vader_exception
+
 "
 " Scoping problem
 "
