@@ -11,6 +11,7 @@ let tops = [ object, type, NoneType ]
 Execute(subclass relationship of top classes);
 
 Assert object.__base__ is# None
+AssertEqual object.__bases__, [None]
 Assert type.__base__ is# object
 Assert NoneType.__base__ is# object
 

@@ -1,0 +1,38 @@
+" vim: ft=vim
+
+Before;
+
+Execute (Call single direct base);
+let X = object#class('X')
+function! X.__init__()
+  let self.x = 1
+endfunction
+
+let Y = object#class('Y', X)
+function! Y.__init__()
+  call object#super(g:X, self, '__init__')()
+  let self.y = 2
+endfunction
+let y = object#new(Y)
+Log object#dir(y)
+AssertEqual y.y, 2
+AssertEqual y.x, 1
+
+Execute (Call of multiple direct bases);
+let bases = map(range(10), 'object#class("Base_" . v:val)')
+for b in bases
+  function! b.__init__(name)
+    let self[a:name] = 1
+  endfunction
+endfor
+
+let Derived = object#class('Derived', bases)
+function! Derived.__init__()
+  for cls in self.__class__.__bases__
+    call object#super(cls, self, '__init__')(cls.__name__)
+  endfor
+  let self.Derived = 1
+endfunction
+
+let derived = object#new(Derived)
+Log object#dir(derived)

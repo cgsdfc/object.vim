@@ -105,9 +105,9 @@ function! object#class#super(cls, obj, method)
     return cls[method]
   endif
 
-  if cls is# object#class#locate_cls(cls, obj.__bases__)
-    let method = object#getattr(cls, method)
-    return function(method, obj)
+  if object#class#find_class(cls, obj.__class__)
+    let Method = object#getattr(cls, method)
+    return function(maktaba#ensure#IsFuncref(Method), obj)
   endif
 
   throw object#TypeError('%s object has no base class %s',
@@ -119,10 +119,7 @@ endfunction
 function! object#class#isinstance(obj, cls)
   let cls = object#class#ensure_class(a:cls)
   let obj = object#class#ensure_object(a:obj)
-  if obj.__class__ is# cls
-    return 1
-  endif
-  return object#class#locate_cls(cls, obj.__class.__bases__)
+  return object#class#find_class(cls, obj.__class__)
 endfunction
 
 ""
@@ -131,10 +128,7 @@ endfunction
 function! object#class#issubclass(cls, base)
   let cls = object#class#ensure_class(a:cls)
   let base = object#class#ensure_class(a:base)
-  if cls is# base
-    return 1
-  endif
-  return object#class#locate_cls(base, cls.__bases__)
+  return object#class#find_class(base, cls)
 endfunction
 
 "
@@ -229,17 +223,15 @@ function! object#class#ensure_object(x)
   throw object#TypeError('not a valid object')
 endfunction
 
-" Return whether {cls} is in the hierarchy given by {bases}.
-" {bases} should be a |List| of classes.
-function! object#class#locate_cls(cls, bases)
-  if a:cls is# s:None
+function! object#class#find_class(needle, haystack)
+  if a:needle is# a:haystack
+    return 1
+  endif
+  if a:haystack is# s:object_class
     return 0
   endif
-  for x in a:bases
-    if x is# a:cls
-      return 1
-    endif
-    if object#class#locate_cls(a:cls, x.__bases__)
+  for x in a:haystack.__bases__
+    if object#class#find_class(a:needle, x)
       return 1
     endif
   endfor
