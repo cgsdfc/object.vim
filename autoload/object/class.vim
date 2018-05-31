@@ -6,20 +6,15 @@
 " right across the [bases] when class() is called. The methods defined for
 " this class effectively override those from bases.
 "
-"
 " Features:
 "   * Multiple inheritance.
 "   * Calling methods from supers.
 "   * Type identification.
 "
-" Drawbacks:
-"   * Use more space for the house keeping attributes.
-"   * Takes more time for the class and instance creation.
-"
 " Limitations:
 "   * Methods are resolved statically at class creation time, which makes the
 "     class object even larger.
-
+"   * super() return |Funcref| rather than super object
 
 let s:object_class = object#object_()
 let s:type_class = object#type_()
@@ -98,18 +93,19 @@ function! object#class#type(...)
 endfunction
 
 ""
-" Return a method from the direct base {cls} of {obj}.
-" This is done by binding the methods of {cls} to {obj}.
+" Return a method from the base {cls} of {obj}.
 "
-" @throws TypeError if {cls} is not a direct base of {obj}.
+" @throws TypeError if !isinstance({obj}, {cls})
 function! object#class#super(cls, obj, method)
   let cls = object#class#ensure_class(a:cls)
   let obj = object#class#ensure_object(a:obj)
-  let method = object#util#ensure_identifier(
-        \ maktaba#ensure#IsString(a:method))
+  let method = object#util#ensure_identifier(a:method)
 
-  let cls = object#class#find_base(obj, cls)
-  if cls isnot# v:none
+  if obj.__class__ is# cls
+    return cls[method]
+  endif
+
+  if cls is# object#class#locate_cls(cls, obj.__bases__)
     let method = object#getattr(cls, method)
     return function(method, obj)
   endif
@@ -123,17 +119,22 @@ endfunction
 function! object#class#isinstance(obj, cls)
   let cls = object#class#ensure_class(a:cls)
   let obj = object#class#ensure_object(a:obj)
-  let Pred = function('object#isinstance_pred', [a:obj])
-  return object#class#any_parent(a:cls, Pred)
+  if obj.__class__ is# cls
+    return 1
+  endif
+  return object#class#locate_cls(cls, obj.__class.__bases__)
 endfunction
 
 ""
-" Return wheter {cls} is a subclass of {base}.
+" Return whether {cls} is a subclass of {base}.
+" A class is considered a subclass of itself.
 function! object#class#issubclass(cls, base)
   let cls = object#class#ensure_class(a:cls)
   let base = object#class#ensure_class(a:base)
-  let Pred = function('object#class#issubclass_pred', [a:base])
-  return object#class#any_parent(a:cls, Pred)
+  if cls is# base
+    return 1
+  endif
+  return object#class#locate_cls(base, cls.__bases__)
 endfunction
 
 "
@@ -198,8 +199,7 @@ function! object#class#type_init(cls, name, bases, dict)
   let bases = maktaba#ensure#IsList(a:bases)
   let dict = maktaba#ensure#IsDict(a:dict)
   call object#class#class_init(a:cls, name, bases)
-  let dict = map(a:dict, 'object#util#ensure_identifier(v:key)')
-  call extend(a:cls, dict, 'force')
+  call extend(a:cls, object#class#methods(dict), 'force')
 endfunction
 
 "
@@ -213,20 +213,6 @@ function! object#class#class_init(cls, name, bases)
   for x in a:bases
     call extend(a:cls, object#class#methods(x), 'keep')
   endfor
-endfunction
-
-"
-" Find the base class of {obj} that matches {cls}. Return v:none
-" if not found.
-"
-function! object#class#find_base(obj, cls)
-  let bases = a:obj.__class__.__bases__
-  for x in bases
-    if x is# a:cls
-      return x
-    endif
-  endfor
-  return v:none
 endfunction
 
 function! object#class#ensure_class(x)
@@ -243,28 +229,19 @@ function! object#class#ensure_object(x)
   throw object#TypeError('not a valid object')
 endfunction
 
-"
-" Visit the parents of {cls} and itself in a depth-first
-" manner until any of them satisfies the {Predicate}.
-function! object#class#any_parent(cls, Predicate)
-  if a:Predicate(a:cls)
-    return 1
-  endif
+" Return whether {cls} is in the hierarchy given by {bases}.
+" {bases} should be a |List| of classes.
+function! object#class#locate_cls(cls, bases)
   if a:cls is# s:None
     return 0
   endif
-  for p in a:cls.__bases__
-    if object#class#any_parent(p, a:Predicate)
+  for x in a:bases
+    if x is# a:cls
+      return 1
+    endif
+    if object#class#locate_cls(a:cls, x.__bases__)
       return 1
     endif
   endfor
   return 0
-endfunction
-
-function! object#class#issubclass_pred(base, cls)
-  return a:cls is# a:base
-endfunction
-
-function! object#class#isinstance_pred(obj, cls)
-  return a:obj.__class__ is# a:cls
 endfunction

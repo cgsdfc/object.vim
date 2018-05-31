@@ -8,10 +8,11 @@ function! object#util#ensure_argc(atmost, x)
 endfunction
 
 function! object#util#ensure_identifier(x)
-  if a:x =~# s:identifier
-    return a:x
+  let x = maktaba#ensure#IsString(a:x)
+  if x =~# s:identifier
+    return x
   endif
-  throw object#ValueError('%s is not an identifier', string(a:x))
+  throw object#ValueError('%s is not an identifier', string(x))
 endfunction
 
 " Helper to be used in __setattr__ to indicate that all the attributes

@@ -14,7 +14,7 @@ endfunction
 "   endfunction
 " <
 function! object#except#BaseException(type, msg, args)
-  let type = object#util#ensure_identifier(maktaba#ensure#IsString(a:type))
+  let type = object#util#ensure_identifier(a:type)
   let msg = maktaba#ensure#IsString(a:msg)
   let args = maktaba#ensure#IsList(a:args)
   return object#except#format(a:type, a:msg, a:args)
