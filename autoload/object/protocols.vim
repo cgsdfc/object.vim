@@ -69,12 +69,17 @@ function! object#protocols#repr(obj)
   if object#class#is_valid_class(a:obj)
     return printf('<type %s>', string(a:obj.__name__))
   endif
-  if !object#protocols#hasattr(a:obj, '__repr__')
-    " TODO: recurse into list and dict
-    " so that objects keep happy in containers.
-    return string(a:obj)
+  if object#protocols#hasattr(a:obj, '__repr__')
+    return maktaba#ensure#IsString(object#protocols#call(a:obj.__repr__))
   endif
-  return maktaba#ensure#IsString(object#protocols#call(a:obj.__repr__))
+  if maktaba#value#IsList(a:obj)
+    return printf('[%s]', join(map(copy(a:obj), 'object#repr(v:val)'), ', '))
+  endif
+  if maktaba#value#IsDict(a:obj)
+    return printf('{%s}', join(map(items(a:obj),
+          \ 'printf("''%s'': %s", v:val[0], object#repr(v:val[1]))'), ', '))
+  endif
+  return string(a:obj)
 endfunction
 
 ""

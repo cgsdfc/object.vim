@@ -1,4 +1,4 @@
-"
+" vim: ft=vim
 " repr()
 "
 Execute(repr() can hook into __repr__());
@@ -38,3 +38,24 @@ endfunction
 
 AssertThrows call object#repr(g:cls)
 Assert g:vader_exception=~#'ERROR(WrongType)'
+
+Execute(repr() should expand list);
+let input = [
+      \ range(10),
+      \ split(repeat('a ', 10)),
+      \ map(range(10), 'function("empty")'),
+      \]
+for x in input
+  AssertEqual string(x), object#repr(x)
+endfor
+
+Execute(repr() should expand dict);
+let input = [
+      \ {'foo': 'foo'},
+      \ {'foo': 1},
+      \ {'foo': function('empty')},
+      \ {'foo': 1, 'bar': v:false, 'sam': ''},
+      \]
+for x in input
+  AssertEqual string(x), object#repr(x)
+endfor
