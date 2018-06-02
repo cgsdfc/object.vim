@@ -27,11 +27,12 @@ endfunction
 " Install the __base__, __name__ and __class__ attributes
 " for {obj}.
 "
-function! object#types#install(obj, name, class, base)
+function! object#types#install(obj, name, class, base, mro)
   let a:obj.__name__ = a:name
   let a:obj.__base__ = a:base
   let a:obj.__bases__ = [a:base]
   let a:obj.__class__ = a:class
+  let a:obj.__mro__ = a:mro
 endfunction
 
 let s:object_class = {}
@@ -39,9 +40,11 @@ let s:type_class = {}
 let s:none_class = {}
 let s:None = { '__class__' : s:none_class }
 
-call object#types#install(s:object_class, 'object', s:type_class, s:None)
-call object#types#install(s:none_class, 'NoneType', s:type_class, s:object_class)
-call object#types#install(s:type_class, 'type', s:type_class, s:object_class)
+call object#types#install(s:object_class, 'object', s:type_class, s:None, [s:object_class])
+call object#types#install(s:none_class, 'NoneType', s:type_class, s:object_class,
+      \ [s:NoneType, s:type_class, s:object_class])
+call object#types#install(s:type_class, 'type', s:type_class, s:object_class,
+      \ [s:type_class, s:object_class])
 
 "
 " Define basic methods for the top classes.
