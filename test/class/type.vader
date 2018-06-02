@@ -1,0 +1,6 @@
+" vim: ft=vim
+Execute (Return __class__ with single arg);
+let o = object#object()
+Assert object#type(o) is# object#object_()
+
+Execute (Create new type with 3 args);

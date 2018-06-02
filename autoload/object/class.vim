@@ -19,6 +19,7 @@
 let s:object_class = object#object_()
 let s:type_class = object#type_()
 let s:None = object#None()
+let s:super = object#class('super')
 
 let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__']
 
@@ -92,26 +93,48 @@ function! object#class#type(...)
   throw object#TypeError('type() takes 1 or 3 arguments (%d given)', a:0)
 endfunction
 
-""
-" Return a method from the base {cls} of {obj}.
+" call object#super(self).__init__()
+" call object#super(self, s:Formatter).__init__()
+" call call(s:Formatter.__init__,
 "
-" @throws TypeError if !isinstance({obj}, {cls})
-function! object#class#super(cls, obj, method)
+function! s:super.__init__(obj, ...)
+  call object#util#ensure_argc(1, a:0)
+
   let cls = object#class#ensure_class(a:cls)
   let obj = object#class#ensure_object(a:obj)
-  let method = object#util#ensure_identifier(a:method)
-
-  if obj.__class__ is# cls
-    return cls[method]
+  if object#class#find_class(obj.__class__, cls)
+    let self._self = obj
+    let self._super = cls
+    let self._self_class = self._self.__class__
+    for [Key, Val] in items(object#class#methods(self._super))
+      let self[Key] = function('object#class#call_super', [Key])
+    endfor
   endif
-
-  if object#class#find_class(cls, obj.__class__)
-    let Method = object#getattr(cls, method)
-    return function(maktaba#ensure#IsFuncref(Method), obj)
-  endif
-
   throw object#TypeError('%s object has no base class %s',
         \ object#types#name(obj), string(cls.__name__))
+endfunction
+
+function! object#class#call_super(name, ...) dict
+  try
+    let res = call(self._super[a:name], a:000, self._self)
+  catch
+    throw v:exception
+  finally
+    let self._self.__class__ = self._self_class
+  endtry
+  return res
+endfunction
+
+function! s:super.__repr__()
+  return printf('<super: %s, %s>', self._super.__name__,
+        \ object#repr(self._self))
+endfunction
+
+""
+"
+" @throws TypeError if !isinstance({obj}, {cls})
+function! object#class#super(...)
+  return object#new_(s:super, a:000)
 endfunction
 
 ""

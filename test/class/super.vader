@@ -14,7 +14,6 @@ function! Y.__init__()
   let self.y = 2
 endfunction
 let y = object#new(Y)
-Log object#dir(y)
 AssertEqual y.y, 2
 AssertEqual y.x, 1
 
@@ -35,4 +34,9 @@ function! Derived.__init__()
 endfunction
 
 let derived = object#new(Derived)
-Log object#dir(derived)
+for x in range(10)
+  Assert has_key(derived, 'Base_' . x)
+endfor
+
+Execute (Call of any base in the hierarchy);
+
