@@ -19,7 +19,6 @@
 let s:object_class = object#object_()
 let s:type_class = object#type_()
 let s:None = object#None()
-let s:super = object#class('super')
 
 let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__', '__mro__']
 
@@ -213,10 +212,10 @@ endfunction
 " Require that each super class of it has a __mro__ list
 function! object#class#mro(cls)
   let bases = copy(a:cls.__bases__)
-  let bases_mro = map(copy(bases), 'v:val.__mro__')
+  let bases_mro = map(copy(bases), 'copy(v:val.__mro__)')
   " Since cls by no means can appear in bases or bases_mro,
   " it is safe to prepend it to the merged list in the end.
-  let mro = object#class#merge(bases_mro + [bases])
+  let mro = object#class#merge(add(bases_mro, copy(bases)))
   if mro isnot# v:none
     return insert(mro, a:cls)
   endif
@@ -227,7 +226,7 @@ endfunction
 
 function! object#class#in_tail(cls, list, len)
   let i = 1
-  while i < len
+  while i < a:len
     if a:cls is# a:list[i]
       return 1
     endif
@@ -248,8 +247,8 @@ function! object#class#merge(list)
     for x in list
       let cand = x[0]
       for y in list
-        if object#class#in_tail(head, y, len(y))
-          cand = v:none
+        if object#class#in_tail(cand, y, len(y))
+          let cand = v:none
           break
         endif
       endfor

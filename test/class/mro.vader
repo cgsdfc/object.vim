@@ -1,0 +1,68 @@
+" vim: ft=vim
+" Test the MRO algorithm.
+" author cgsdfc
+" Based on the mro.py written by Samuele Pedroni
+" and modified by Michele Simionato.
+"
+Before;
+let object = object#object_()
+let O = object#class('O', object)
+
+Execute(Inconsistent 1: serious order disagreement);
+let X = object#class('X', O)
+let Y = object#class('Y', O)
+let A = object#class('A', [X, Y])
+let B = object#class('B', [Y, X])
+AssertThrows call object#class('Z', [g:A, g:B])
+Assert g:vader_exception =~# 'TypeError: .* A, B'
+
+Execute(Inconsistent 2: monotonicity messed up with local precedence);
+let E = object#class('E', O)
+let F = object#class('F', E)
+
+AssertThrows call object#class('Z', [g:E, g:F])
+Assert g:vader_exception =~# 'TypeError: .* E, F'
+Log g:vader_exception
+
+Execute(Normal case 1);
+let F = object#class('F', O)
+let E = object#class('E', O)
+let D = object#class('D', O)
+
+let C = object#class('C', [D, F])
+let B = object#class('B', [D, E])
+let A = object#class('A', [B, C])
+
+AssertEqual F.__mro__, [F, O, object]
+AssertEqual E.__mro__, [E, O, object]
+AssertEqual D.__mro__, [D, O, object]
+AssertEqual C.__mro__, [C, D, F, O, object]
+AssertEqual B.__mro__, [B, D, E, O, object]
+AssertEqual A.__mro__, [A, B, C, D, E, F, O, object]
+
+Execute(Normal case 2: adapted from Normal case 1);
+let F = object#class('F', O)
+let E = object#class('E', O)
+let D = object#class('D', O)
+
+let C = object#class('C', [D, F])
+" Exchanging E and D from Normal case 1.
+let B = object#class('B', [E, D])
+let A = object#class('A', [B, C])
+
+AssertEqual B.__mro__, [B, E, D, O, object]
+AssertEqual A.__mro__, [A, B, E, C, D, F, O, object]
+Log object#repr(A.__mro__)
+
+Execute(Normal case 3);
+" Forgive me. Being less repeated.
+let [A,B,C,D,E] = map(split('A B C D E'), 'object#class(v:val, O)')
+let K1 = object#class('K1', [A, B, C])
+let K2 = object#class('K2', [D, B, E])
+let K3 = object#class('K3', [D, A])
+let Z = object#class('Z', [K1, K2, K3])
+
+AssertEqual K1.__mro__, [K1, A, B, C, O, object]
+AssertEqual K2.__mro__, [K2, D, B, E, O, object]
+AssertEqual K3.__mro__, [K3, D, A, O, object]
+AssertEqual Z.__mro__, [Z, K1, K2, K3, D, A, B, C, E, O, object]
