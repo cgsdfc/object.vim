@@ -40,7 +40,8 @@ let s:type_class = {}
 let s:none_class = {}
 let s:None = { '__class__' : s:none_class }
 
-call object#types#install(s:object_class, 'object', s:type_class, s:None, [s:object_class])
+call object#types#install(s:object_class, 'object', s:type_class, s:None,
+      \ [s:object_class])
 call object#types#install(s:none_class, 'NoneType', s:type_class, s:object_class,
       \ [s:none_class, s:type_class, s:object_class])
 call object#types#install(s:type_class, 'type', s:type_class, s:object_class,

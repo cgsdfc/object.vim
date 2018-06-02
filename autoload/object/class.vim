@@ -21,7 +21,7 @@ let s:type_class = object#type_()
 let s:None = object#None()
 let s:super = object#class('super')
 
-let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__']
+let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__', '__mro__']
 
 ""
 " Define a class that has a {name} and optional base class(es).
@@ -93,72 +93,49 @@ function! object#class#type(...)
   throw object#TypeError('type() takes 1 or 3 arguments (%d given)', a:0)
 endfunction
 
-" call object#super(self).__init__()
-" call object#super(self, s:Formatter).__init__()
-" call call(s:Formatter.__init__,
-"
-function! s:super.__init__(obj, ...)
-  call object#util#ensure_argc(1, a:0)
-
-  let cls = object#class#ensure_class(a:cls)
-  let obj = object#class#ensure_object(a:obj)
-  if object#class#find_class(obj.__class__, cls)
-    let self._self = obj
-    let self._super = cls
-    let self._self_class = self._self.__class__
-    for [Key, Val] in items(object#class#methods(self._super))
-      let self[Key] = function('object#class#call_super', [Key])
-    endfor
-  endif
-  throw object#TypeError('%s object has no base class %s',
-        \ object#types#name(obj), string(cls.__name__))
-endfunction
-
-function! object#class#call_super(name, ...) dict
-  try
-    let res = call(self._super[a:name], a:000, self._self)
-  catch
-    throw v:exception
-  finally
-    let self._self.__class__ = self._self_class
-  endtry
-  return res
-endfunction
-
-function! s:super.__repr__()
-  return printf('<super: %s, %s>', self._super.__name__,
-        \ object#repr(self._self))
-endfunction
-
 ""
 "
 " @throws TypeError if !isinstance({obj}, {cls})
-function! object#class#super(...)
-  return object#new_(s:super, a:000)
+function! object#class#super(type, obj, name)
+  let type = object#class#ensure_class(a:type)
+  let obj = object#class#ensure_object(a:obj)
+  let name = object#util#ensure_identifier(a:name)
+  let idx = object#class#find_class(type, obj.__class__)
+  if idx < 0
+    throw object#TypeError('super() requires isinstance(type, obj)')
+  endif
+  let mro = obj.__class__.__mro__
+  try
+    let next = mro[idx + 1]
+  catch /E684/ " IndexError
+    throw object#TypeError('%s object has no superclass', object#types#name(obj))
+  endtry
+  if has_key(next, name)
+    return function(maktaba#ensure#IsFuncref(next[name]), obj)
+  endif
+  throw object#except#throw_noattr(obj, name)
 endfunction
 
 ""
 " Return whether {obj} is an instance of {cls}.
 function! object#class#isinstance(obj, cls)
-  let cls = object#class#ensure_class(a:cls)
-  let obj = object#class#ensure_object(a:obj)
-  return object#class#find_class(cls, obj.__class__)
+  return object#class#find_class(object#class#ensure_class(a:cls),
+        \ object#class#ensure_object(a:obj).__class__) >= 0
 endfunction
 
 ""
 " Return whether {cls} is a subclass of {base}.
 " A class is considered a subclass of itself.
 function! object#class#issubclass(cls, base)
-  let cls = object#class#ensure_class(a:cls)
-  let base = object#class#ensure_class(a:base)
-  return object#class#find_class(base, cls)
+  return object#class#find_class(object#class#ensure_class(a:cls),
+        \ object#class#ensure_class(a:base)) >= 0
 endfunction
 
 "
-" A valid class is a valid object that is an instance of type.
+" A valid class is a valid object that has __mro__
 "
 function! object#class#is_valid_class(x)
-  return object#class#is_valid_object(a:x) && a:x.__class__ is# s:type_class
+  return object#class#is_valid_object(a:x) && has_key(a:x, '__mro__')
 endfunction
 
 "
@@ -169,7 +146,6 @@ function! object#class#is_valid_object(x)
 endfunction
 
 function! object#class#is_method(Key, Val)
-  " Any method should be valid identifier.
   let Key = object#util#ensure_identifier(a:Key)
   return index(s:special_attrs, Key) < 0 && maktaba#value#IsFuncref(a:Val)
 endfunction
@@ -226,10 +202,71 @@ function! object#class#class_init(cls, name, bases)
   let a:cls.__name__ = object#util#ensure_identifier(a:name)
   let a:cls.__bases__ = object#class#ensure_bases(a:bases)
   let a:cls.__base__ = a:bases[0]
+  let a:cls.__mro__ = object#class#mro(a:cls)
 
-  for x in a:bases
+  for x in a:cls.__mro__
     call extend(a:cls, object#class#methods(x), 'keep')
   endfor
+endfunction
+
+" Compute Method Resolution Order for {cls}
+" Require that each super class of it has a __mro__ list
+function! object#class#mro(cls)
+  let bases = copy(a:cls.__bases__)
+  let bases_mro = map(copy(bases), 'v:val.__mro__')
+  " Since cls by no means can appear in bases or bases_mro,
+  " it is safe to prepend it to the merged list in the end.
+  let mro = object#class#merge(bases_mro + [bases])
+  if mro isnot# v:none
+    return insert(mro, a:cls)
+  endif
+  throw object#TypeError(
+        \ 'cannot create a consistent method resolution for bases %s',
+        \ join(map(bases, 'v:val.__name__'), ', '))
+endfunction
+
+function! object#class#in_tail(cls, list, len)
+  let i = 1
+  while i < len
+    if a:cls is# a:list[i]
+      return 1
+    endif
+    let i += 1
+  endwhile
+  return 0
+endfunction
+
+" Merge the list of lists given by arguments into one list
+function! object#class#merge(list)
+  let res = []
+  let list = a:list
+  while 1
+    let list = filter(list, '!empty(v:val)')
+    if empty(list)
+      return res
+    endif
+    for x in list
+      let cand = x[0]
+      for y in list
+        if object#class#in_tail(head, y, len(y))
+          cand = v:none
+          break
+        endif
+      endfor
+      if cand isnot# v:none
+        break
+      endif
+    endfor
+    if cand is# v:none
+      return cand
+    endif
+    call add(res, cand)
+    for x in list
+      if x[0] is# cand
+        unlet x[0]
+      endif
+    endfor
+  endwhile
 endfunction
 
 function! object#class#ensure_class(x)
@@ -246,17 +283,18 @@ function! object#class#ensure_object(x)
   throw object#TypeError('not a valid object')
 endfunction
 
+" Find a needle in the __mro__ of haystack.
+" Return the index of needle.
+" Return -1 if needle is not in haystack
 function! object#class#find_class(needle, haystack)
-  if a:needle is# a:haystack
-    return 1
-  endif
-  if a:haystack is# s:object_class
-    return 0
-  endif
-  for x in a:haystack.__bases__
-    if object#class#find_class(a:needle, x)
-      return 1
+  let mro = a:haystack.__mro__
+  let i = 0
+  let N = len(mro)
+  while i < N
+    if mro[i] is# a:needle
+      return i
     endif
-  endfor
-  return 0
+    let i += 1
+  endwhile
+  return -1
 endfunction

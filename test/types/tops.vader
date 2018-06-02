@@ -22,7 +22,11 @@ endfor
 
 Execute(repr() works with top classes);
 for x in tops
-  Assert object#class#is_valid_class(x)
   Log object#repr(x)
-  " Assert object#repr(x) =~# "<type '.*'>"
+  Assert object#repr(x) =~# "<type '.*'>"
 endfor
+
+Execute (MRO for top classes);
+AssertEqual object.__mro__, [object]
+AssertEqual type.__mro__, [type, object]
+AssertEqual NoneType.__mro__, [NoneType, type, object]
