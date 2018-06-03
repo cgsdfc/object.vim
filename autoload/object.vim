@@ -2,7 +2,8 @@
 " @section Introduction, intro
 " @stylized object
 " @library
-" @order intro version protocols class mapping iter file types lambda dicts functions exceptions
+" @order intro version protocols class mapping iter file types lambda
+" dicts functions exceptions
 " >
 "                              __      _           __
 "                       ____  / /_    (_)__  _____/ /_
@@ -12,7 +13,91 @@
 "                               /___/
 "
 " <
-" object.vim is a library plugin that provides object protocols for Vim. It
+"
+" @subsection quick-start
+" object.vim is an object-oriented framework for plugin writers of Vim.
+" It aims to augment and enrich the existing techniques for OOP in Vim.
+" That means instead of doing this:
+" >
+"   let s:MyAwesomeClass = {}
+" <
+" you can do this:
+" >
+"   let s:MyAwesomeClass = object#class('MyAwesomeClass')
+" <
+" And yes, you type the class name twice, but here is the prizes:
+" >
+"   echo object#repr(s:MyAwesomeClass)
+"   <type 'MyAwesomeClass'>
+"
+"   let awesome = object#new(s:MyAwesomeClass)
+"   echo object#repr(awesome)
+"   <'MyAwesomeClass' object>
+" <
+"
+" What you get is a type that works out of the box instead of a plain |Dict|.
+" There is a lot more you can do with object.vim, such as multiple
+" inheritance. Although people nearly always frown on madly complicated class
+" hierarchy, object.vim make it possible for you to make people mad :).
+" Powered by C3-linearization, you get exactly the same MRO as examplified
+" by |https://rhettinger.wordpress.com/2011/05/26/super-considered-super/|:
+" >
+"   let s:LoggingDict = object#class('LoggingDict', somedict)
+"   let s:LoggingOD = object#class('LoggingOD', [s:LoggingDict, s:OrderedDict)
+"
+"   echo object#repr(s:LoggingOD.__mro__)
+"   [<type 'LoggingOD'>,
+"    <type 'LoggingDict'>,
+"    <type 'OrderedDict'>,
+"    <type, 'somedict'>,
+"    <type, 'object'>]
+" <
+"
+" And yes, you can use `super()` with a little more verbosity:
+" >
+"   let s:Shape = object#class('Shape')
+"   function! s:Shape.__init__(shapename, ...)
+"     let self.shapename = a:shapename
+"     call call(object#super(s:Shape, self, '__init__'), a:000)
+"   endfunction
+"
+"   let s:ColoredShape = object#class('ColoredShape', s:Shape)
+"   function! s:ColoredShape.__init__(color, ...)
+"     let self.color = a:color
+"     call call(object#super(s:ColoredShape, self, '__init__'), a:000)
+"   endfunction
+" <
+" Note that to avoid differing signature problems in the chained calls
+" of `super()`, the above cooperative methods take arbitrary number of
+" arguments, which produces the `call call(...)` verbosity, which may be
+" addressed by using a |Dict| as argument:
+" >
+"   let s:Shape = object#class('Shape')
+"   function! s:Shape.__init__(kwdict)
+"     let self.shapename = get(a:kwdict, 'shapename')
+"     call object#super(s:Shape, self, '__init__')(a:kwdict)
+"   endfunction
+"
+"   let s:ColoredShape = object#class('ColoredShape', s:Shape)
+"   function! s:ColoredShape.__init__(kwdict)
+"     let self.color = get(a:kwdict, 'color')
+"     call object#super(s:ColoredShape, self, '__init__')(a:kwdict)
+"   endfunction
+" <
+"
+" What surprises you is that the `super()` of object.vim does not return
+" a proxy object but just a plain |Funcref|, which deviates the spirit of
+" "everything is an object" and make signature strange. Well for now, what I can
+" say is only "this is a trade-off of convenience and efficiency". For those
+" unpleasant about this decision, please look at the
+" |Why super() is like this| for more details.
+"
+"
+" @subsection motivation
+" object.vim is based on the semantics of Python2.7 but it is _not_ an effort
+" to port a complete Python2.7 to Vim. Nor is it a Python implementation in
+" Vim that sounds like Jython or IronPython. In fact, what it tries to do is
+" borrow the benefits from Python and get the best of Vim.
 " aims to be an augmentation to the built-in function as well as existing
 " coding convensions, rather than correction or reinvention. To achieve this,
 " it strives for the following:
@@ -31,17 +116,14 @@
 " consistent interface is possible. For the ease of use and code modularity,
 " object.vim put evarything available to the users in the `object#` namespace and
 " implements them in the sub-namespace such as `object#file#`. The benefit
-" is that user can use any functionality as if as they are built-in to
-" object.vim. This also implies that anything in the sub-namespace of
-" `object#` is implementation details and subjects to changes, upon which users
-" should not rely.
+" is that user can use any functionality of object.vim without the need to
+" remember its sub-namespace. This also implies that anything in the sub-namespace
+" is implementation details, upon which users should not rely.
 "
-" In terms of API styles, object.vim is loosely based on the common parts of
-" Vim and Python2. Whenever possible, it strives for simplicity and elegance.
-" It is also believed that a small core is better a huge code base, which is
-" easier to understand and make use of.
+" In terms of implementation reference, object.vim is loosely based on
+" Python2.7. But
 "
-" Happy with the object!
+" May the object be with you!
 "
 
 ""
