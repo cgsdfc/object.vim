@@ -1,8 +1,0 @@
-"
-" Test methods extraction
-"
-
-Execute(is_method() throws ValueError if the method name isn't identifier);
-
-Execute(methods() extracts correct methods);
-

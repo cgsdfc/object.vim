@@ -1,0 +1,24 @@
+" vim: ft=vim
+" Test methods extraction
+" A method is an attribute of type Funcref.
+
+Before;
+let X = object#class('X')
+" Copied from class.vim
+let special_attrs = ['__class__', '__base__', '__name__', '__bases__', '__mro__']
+
+Execute (Special attributes not considered as methods);
+let methods = object#class#methods(X)
+for x in special_attrs
+  Assert !has_key(methods, x)
+endfor
+
+Execute(Non-Funcref not considered as methods);
+let non_methods = { 'x': 1, 'y': 'y', 'z': [], }
+AssertEqual object#class#methods(non_methods), {}
+
+Execute(Throws ValueError if the name isn't identifier);
+let bad = { '$x': function('empty') }
+AssertThrows call object#class#methods(g:bad)
+Log g:vader_exception
+Assert g:vader_exception =~# 'ValueError'

@@ -1,4 +1,5 @@
 Include (Class): class/class.vader
+Include (Method): class/method.vader
 Include (New): class/new.vader
 Include (MRO): class/mro.vader
 Include (Super): class/super.vader

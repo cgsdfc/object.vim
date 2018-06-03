@@ -1,4 +1,7 @@
 " vim:ft=vim
+" Test class()
+"
+
 Before;
 let object = object#object_()
 let type = object#type_()
@@ -61,14 +64,14 @@ Assert X.__name__ is# 'X'
 Execute(Handle one single base);
 let Y = object#class('Y', X)
 Assert Y.__base__ is# X
-Assert Y.__bases__ ==# [X]
+AssertEqual Y.__bases__, [X]
 
 Execute(Handle a List of bases);
 let bases = map([ 'A', 'B', 'C', ], 'object#class(v:val)')
 let D = object#class('D', bases)
 Assert D.__base__ is# bases[0]
-Assert D.__bases__ is# bases
+AssertEqual D.__bases__, bases
 
 let E = object#class('E', [D])
 Assert E.__base__ is# D
-Assert E.__bases__ ==# [D]
+AssertEqual E.__bases__, [D]

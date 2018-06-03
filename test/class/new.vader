@@ -2,23 +2,20 @@
 
 " Test new()
 "
+Before;
+let X = object#class('X')
 
 Execute(New cls can be instantiated with new() with default __init__ and __repr__);
 let x = object#new(X)
 Assert x.__class__ is# X
 AssertEqual object#repr(x), "<'X' object>"
-Log object#dir(x)
-Log object#dir(X)
-Log object#repr(x)
-Log object#repr(X)
 
-Execute(new() can hook into __init__ and __repr__);
+Execute(Hook into __init__ and __repr__);
 function! X.__init__(name, size)
   let name = maktaba#ensure#IsString(a:name)
   let size = maktaba#ensure#IsNumber(a:size)
   let self.name = name
   let self.size = size
-  Log '__init__ called'
 endfunction
 
 function! X.__repr__()
@@ -29,7 +26,10 @@ let x = object#new(X, 'var', 4)
 AssertEqual x.name, 'var'
 AssertEqual x.size, 4
 Assert object#repr(x) is# 'X(name=var, size=4)'
-Log object#repr(x)
 
 AssertThrows call object#new(g:X, 1, 4)
 Assert g:vader_exception =~# 'WrongType'
+
+Execute(Throws TypeError if arg0 is not a class);
+AssertThrows call object#new(1)
+Assert g:vader_exception =~# 'TypeError'
