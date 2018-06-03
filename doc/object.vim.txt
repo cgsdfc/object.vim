@@ -189,21 +189,171 @@ the corresponding methods with double underscores names.
 ==============================================================================
 CLASS                                                       *object.vim-class*
 
-functions for creating both classes and instances and testing their
-relationships. Inheritance is possible. The methods of base classes are added
-from left to right across the [bases] when class() is called. The methods
-defined for this class effectively override those from bases.
+This module provides functions for the creation and manipulation of classes
+and instances. Below, the term "class" is used interchangably with "type" to
+refer to the object representing a class since there is no "old-style" class
+in object.vim. Every class except `object` is derived from `object`. The term
+"class object" is avoided since it reminds people of the "old-style" class.
 
-Features:
-  * Multiple inheritance with MRO (Method Resolution Order) based on C3.
-  * Working `super()` that effectively calls parent or sibling's methods.
-  * Create new types dynamically using both `object#class()` and
-    `object#type()`.
-  * Type identification.
+CONVENTIONS-MATTER
+The first important thing is to be substitutable to old conventions, which
+means the class is returned by a function just like:
+>
+  let s:MyClass = {}
+<
+Compared with the approaches that introduce new syntax, respecting old
+conventions makes new code easy to write and understand. Here is a
+command-based approach:
+>
+  Class A, somebases
+    " some methods
+  EndClass
+<
+Another novel approach uses functions-inside-a-function, which requires all
+the methods to be defined inside a "class-initializer" function:
+>
+  function! s:init_MyClass() dict
+    call ClassInit(self, 'MyClass')
+    function! self.some_method()
+      some code
+    endfunction
+    " more methods
+  endfunction
+  let s:MyClass = ClassNew('s:init_MyClass')
+<
+This approach can hardly find its place in practice. With the current syntax,
+you create a new class and add methods to it intuitively:
+>
+  let s:Logger = object#class('Logger')
 
-Limitations:
-  * Methods are resolved statically at class creation time.
-  * super() return |Funcref| rather than super object.
+  function! s:Logger.info(...)
+    return self.log('info', a:000)
+  endfunction
+<
+
+MULTIPLE-INHERITANCE
+Many people go against MI (Multiple Inheritance) because it complicates the
+program. Nonetheless, it it more expressive than single inheritance. That's
+why it is supported.
+
+The functions that deal with MI is `class()`, `type()` and `super()`. Both
+`class()` and `type()` takes an optional `bases` argument which can be:
+  * omitted: derived from `object`.
+  * a single class: derived from that.
+  * a |List| of classes: derived from all those classes.
+  * an empty list: the same as omitted.
+
+Note that the resulting class takes a copy of your base list so you are free
+to modify it after `class()` returns.
+
+With MI comes MRO (Method Resolution Order) and I use C3 to construct the
+`__mro__` attribute for each class.  Methods are resolved statically based on
+`__mro__`, which means the changes to `__bases__` will not cause a rerun of
+method resolution. All the attributes from parents are added to their child
+respecting its `__mro__`, which can be overridden naturally by adding methods
+with the same names. The discussion above means you can call parents' methods
+in several ways:
+>
+  let s:Animal = object#class('Animal')
+  function! s:Animal.make_sound()
+    echo 'Animal makes sound'
+  endfunction
+
+  let s:Dog = object#class('Dog', s:Animal)
+  function! s:Dog.bark()
+    call self.make_sound()
+    echo 'Dog barks'
+  endfunction
+
+  let dog = object#new(s:Dog)
+  call dog.make_sound()
+  Animal makes sound
+
+  echo has_key(dog, 'make_sound')
+  1
+<
+However, if the child is overriding a method of its parents, it can only call
+the parents' version with `super()`, as in:
+>
+  function! s:Dog.make_sound()
+    call object#super(s:Dog, self, 'make_sound')()
+    echo 'Dog makes sound'
+  endfunction
+
+  call dog.make_sound()
+  Animal makes sound
+  Dog makes sound
+<
+`super()` will look up methods in parents or siblings for you.
+
+SPECIAL-ATTRIBUTES
+Like Python, object.vim uses double-underscored names for special attributes.
+The use of such attributes in the class modules aims to be minimal, as it
+takes space off every class and instance. Currently, these are:
+
+Class:
+  * __name__: the name of the class, a valid identifier.
+  * __base__: the first direct base.
+  * __bases__: the direct bases.
+  * __mro__: the method resolution list.
+  * __class__: always the `type` class currently.
+
+Instance:
+  * __class__: the type of this instance.
+
+The meanings of these class-specific special attributes are part of the public
+interface of object.vim that you can count on.
+
+ATTRIBUTES
+We have been talking about attributes, but what are they in the context of
+object.vim? Basically everything inside a |Dict| with its name as an
+identifier is an attribute. Particularly, if the attribute is a |Funcref|, it
+is treated as methods for instance only. This is important since when an
+instance is created, it will have all the |Funcref| attributes of its class as
+its methods. Anything other than |Funcref| stays in the class as it, which
+implies:
+  * A class does not have `classmethod`. You should not call methods on a
+    class.
+  * A class can have its own attributes, as long as they are not |Funcref|.
+
+The lack of `classmethod` sounds discouraging because classes are no longer
+first-class object and they will fail with some protocols. That is just one of
+the limitations.
+
+CLASS-NAME-AND-IDENTITY
+There is no notion of class-registry in object.vim and the `name` argument got
+passed to `class()` is not checked for uniqueness. This means it is possible
+for two different class to have the same name. However, as long as the
+variables holding the classes have distinct names, there won't be name crash.
+What's more, every class will have different identities testable by `is#`
+since `class()` always creates new class. As currently the name of a class is
+only used to provide `repr()`, not as the key to anything, you are free to
+crash your class names with other's without doubt :-).
+
+EXPOSING-CLASS
+As you write plugins you may wish to let others extend or instantiate your
+classes. Here are the ways to do so:
+>
+  " You can do this:
+  function! useful#Formatter_()
+    return s:Formatter
+  endfunction
+
+  " so that user can inherit your class
+  let s:useful_Formater = useful#Formatter_()
+  let s:MyFormatter = object#class('MyFormatter', s:useful_Formater)
+
+  " and instantiate it.
+  let formatter = object#new(s:useful_Formater)
+
+  " You can also do this:
+  function! useful#Formatter(...) abort
+    return object#new_(s:Formatter, a:000)
+  endfunction
+
+  " to feel more like a constructor:
+  let formatter = useful#Formatter()
+<
 
 ==============================================================================
 MAPPING                                                   *object.vim-mapping*
