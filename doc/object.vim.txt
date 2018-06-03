@@ -614,7 +614,7 @@ object#class#new_({cls}, {args})                         *object#class#new_()*
     endfunction
 <
 
-objec#class#type([args])                                 *object#class#type()*
+object#class#type([args])                                *object#class#type()*
   Return the type of an object or create a new type dynamically.
 
   type(obj) -> obj.__class__

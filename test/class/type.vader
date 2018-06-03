@@ -1,6 +1,94 @@
 " vim: ft=vim
+" Test type()
+"
+
+Before;
+let object = object#object_()
+let type = object#type_()
+let None = object#None()
+let NoneType = object#NoneType()
+
 Execute (Return __class__ with single arg);
 let o = object#object()
-Assert object#type(o) is# object#object_()
+Assert object#type(o) is# object
+Assert object#type(object) is# type
+Assert object#type(None) is# NoneType
+Assert object#type(NoneType) is# type
 
 Execute (Create new type with 3 args);
+let bases = map(split('A B C'), 'object#class(v:val)')
+function! Init() dict
+  let self.data = 1
+endfunction
+function! GetData() dict
+  return self.data
+endfunction
+function! SetData(x) dict
+  let self.data = a:x
+endfunction
+function! Repr() dict
+  return printf('X(data=%d)', self.data)
+endfunction
+let X = object#type('X', bases, {
+      \ '__init__': function('Init'),
+      \ '__repr__': function('Repr'),
+      \ 'GetData': function('GetData'),
+      \ 'SetData': function('SetData'),
+      \ 'ClassData': 1,
+      \})
+Log object#repr(X)
+Log object#repr(X.__mro__)
+
+Assert X.__name__ is# 'X'
+AssertEqual X.__mro__, [X] + bases + [object]
+
+let x = object#new(X)
+AssertEqual x.data, 1
+AssertEqual x.GetData(), 1
+call x.SetData(2)
+AssertEqual x.data, 2
+Assert object#type(x) is# X
+AssertEqual object#repr(x), 'X(data=2)'
+
+"
+" Throws
+"
+
+Execute (Throws TypeError with wrong a:0);
+let input = [
+      \ range(2),
+      \ range(4),
+      \ range(5),
+      \]
+for x in input
+  AssertThrows call call('object#type', g:x)
+  Assert g:vader_exception =~# 'TypeError'
+endfor
+
+"
+" With a:0 == 1
+"
+
+Execute (Throws a:1 is not a valid object);
+AssertThrows call object#type(1)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+"
+" With a:0 == 3
+"
+
+Execute (Throws WrongType if a:1 is not a String);
+AssertThrows call object#type(1, [], {})
+Assert g:vader_exception =~# 'WrongType'
+Log g:vader_exception
+
+Execute (Throws WrongType if a:2 is not a List);
+AssertThrows call object#type('X', 1, {})
+Assert g:vader_exception =~# 'WrongType'
+Log g:vader_exception
+
+Execute (Throws WrongType if a:3 is not a Dict);
+AssertThrows call object#type('X', [], 1)
+Assert g:vader_exception =~# 'WrongType'
+Log g:vader_exception

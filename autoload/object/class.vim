@@ -268,7 +268,7 @@ function! object#class#new_(cls, args)
 endfunction
 
 ""
-" @function objec#class#type([args])
+" @usage [args]
 " Return the type of an object or create a new type dynamically.
 "
 " type(obj) -> obj.__class__
