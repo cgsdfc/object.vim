@@ -1,0 +1,51 @@
+" vim: ft=vim
+" Test the class-class relationship -- issubclass()
+" and the instance-class relationship -- isinstance()
+
+Before;
+
+" Plain-old single X
+let X = object#class('X')
+
+" Dear diamond pattern
+let A = object#class('A')
+let B = object#class('B')
+let C = object#class('C', [A, B])
+
+"
+" isinstance()
+"
+Execute(Throws TypeError if obj is not an object);
+AssertThrows call object#isinstance(1, g:X)
+Assert g:vader_exception =~# 'TypeError'
+
+Execute(Throws TypeError if obj is not an object);
+AssertThrows call object#isinstance(1, g:X)
+Assert g:vader_exception =~# 'TypeError'
+
+Execute(Return true for every class in the MRO);
+let c = object#new(C)
+for X in C.__mro__
+  AssertEqual 1, object#isinstance(c, X)
+endfor
+
+Execute(Return false for any class outside the MRO);
+let A = object#class('A')
+let B = object#class('B')
+let a = object#new(A)
+AssertEqual 0, object#isinstance(a, B)
+
+"
+" issubclass()
+"
+
+Execute(X is a subclass of X);
+AssertEqual 1, object#issubclass(X, X)
+
+Execute (Return true for everything inside MRO);
+for X in C.__mro__
+  AssertEqual 1, object#issubclass(C, X)
+endfor
+
+Execute (Return false for anything outside the MRO);
+AssertEqual 0, object#issubclass(C, object#class('Y'))

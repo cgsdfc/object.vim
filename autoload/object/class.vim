@@ -312,15 +312,14 @@ endfunction
 ""
 " Return whether {obj} is an instance of {cls}.
 function! object#class#isinstance(obj, cls)
-  return object#class#find_class(object#class#ensure_class(a:cls),
+  return object#class#find_class(a:cls,
         \ object#class#ensure_object(a:obj).__class__) >= 0
 endfunction
 
 ""
 " Return whether {cls} is a subclass of {base}.
 function! object#class#issubclass(cls, base)
-  return object#class#find_class(object#class#ensure_class(a:cls),
-        \ object#class#ensure_class(a:base)) >= 0
+  return object#class#find_class(a:base, a:cls) >= 0
 endfunction
 
 "
@@ -489,11 +488,13 @@ endfunction
 " Return -1 if needle is not in haystack
 "
 function! object#class#find_class(needle, haystack)
-  let mro = a:haystack.__mro__
+  let haystack = object#class#ensure_class(a:haystack)
+  let needle = object#class#ensure_class(a:needle)
+  let mro = haystack.__mro__
   let i = 0
   let N = len(mro)
   while i < N
-    if mro[i] is# a:needle
+    if mro[i] is# needle
       return i
     endif
     let i += 1
