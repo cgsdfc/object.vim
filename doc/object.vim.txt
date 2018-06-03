@@ -149,6 +149,13 @@ object.vim provides several handy modules:
   * types module: top level class like `object`, `type` and conversion
     protocols like `bool()`.
 
+Note that although these features are implemented in separate files, they are
+kind-of imported into a shallow namespace for the ease of use so please use
+`object#class()` instead of `object#class#class()`. Please consider everything
+in namespaces deeper than `object` as implementation details and avoid using
+them as much as you can. However, each individual function is still documented
+with its full name, as found in |object.vim-functions|.
+
 TESTING
 I use `vader.vim` (|https://github.com/junegunn/vader.vim|) for unit tests. A
 comprehensive test suite for each module is found at `object.vim/test`. To run

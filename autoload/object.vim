@@ -135,6 +135,13 @@
 "   * types module: top level class like `object`, `type` and conversion
 "   protocols like `bool()`.
 "
+" Note that although these features are implemented in separate files, they
+" are kind-of imported into a shallow namespace for the ease of use so please
+" use `object#class()` instead of `object#class#class()`. Please consider
+" everything in namespaces deeper than `object` as implementation details and
+" avoid using them as much as you can. However, each individual function is still
+" documented with its full name, as found in @section(functions).
+"
 " @subsection testing
 " I use `vader.vim` (|https://github.com/junegunn/vader.vim|) for unit tests. A comprehensive test suite for each module
 " is found at `object.vim/test`. To run all the test, use:
@@ -156,21 +163,9 @@
 " That's it, folks. May the object be with you!
 "
 
-""
-" This file serves as a shallow namespace for all the object
-" facilities. object.vim aims to be a bunch of convenient functions
-" that enables object protocols in Vim. Functions in files other than
-" this file is implementation details that users should never bother.
-
-
-""
-" From object#class
-"   class()
-"   type()
-"   super()
-"   new()
-"   isinstance()
-"   issubclass()
+"
+" class.vim
+"
 
 function! object#class(...) abort
   return call('object#class#class', a:000)
@@ -200,20 +195,9 @@ function! object#issubclass(...) abort
   return call('object#class#issubclass', a:000)
 endfunction
 
-""
-" From object#protocols
 "
-" Protocols are a list of functions that operates on
-" different aspects of an object and can be overrided
-" by special methods of that class.
-" The most basic protocols are:
+" protocols.vim
 "
-"   dir()
-"   getattr()
-"   setattr()
-"   hasattr()
-"   repr()
-"   len()
 
 function! object#dir(...) abort
   return call('object#protocols#dir', a:000)
@@ -239,11 +223,9 @@ function! object#len(...) abort
   return call('object#protocols#len', a:000)
 endfunction
 
-""
-" From object#mapping
-" hash()
-" getitem()
-" setitem()
+"
+" mapping.vim
+"
 
 function! object#hash(...) abort
   return call('object#mapping#hash', a:000)
@@ -257,17 +239,9 @@ function! object#setitem(...) abort
   return call('object#mapping#setitem', a:000)
 endfunction
 
-""
-" From object#except
-"   BaseException
-"   Exception
-"   ValueError
-"   TypeError
-"   AttributeError
-"   StopIteration
-"   IOError
-"   IndexError
-"   KeyError
+"
+" except.vim
+"
 
 function! object#BaseException(...) abort
   return call('object#except#BaseException', a:000)
@@ -305,17 +279,9 @@ function! object#KeyError(...) abort
   return call('object#except#KeyError', a:000)
 endfunction
 
-""
-" From object#types
-" Built in types
-"   object()
-"   object_()
-"   type_()
-"   NoneType()
-"   None()
-"   bool()
-"   list()
-"   dict()
+"
+" types.vim
+"
 
 function! object#NoneType(...) abort
   return call('object#types#NoneType', a:000)
@@ -349,17 +315,9 @@ function! object#dict(...) abort
   return call('object#types#dict', a:000)
 endfunction
 
-""
-" From object#iter
-"   iter()
-"   next()
-"   all()
-"   any()
-"   map()
-"   filter()
-"   sum()
-"   enumerate()
-"   zip()
+"
+" iter.vim
+"
 
 function! object#iter(...) abort
   return call('object#iter#iter', a:000)
@@ -398,9 +356,8 @@ function! object#filter(...) abort
 endfunction
 
 "
-" object#file
-"   open()
-"   file_()
+" file.vim
+"
 
 function! object#open(...) abort
   return call('object#file#open', a:000)
@@ -411,9 +368,7 @@ function! object#file_(...) abort
 endfunction
 
 "
-" object#lambda
-"   lambda()
-"   for()
+" lambda.vim
 "
 
 function! object#lambda(...) abort
