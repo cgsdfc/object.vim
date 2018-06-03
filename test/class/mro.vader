@@ -66,3 +66,8 @@ AssertEqual K1.__mro__, [K1, A, B, C, O, object]
 AssertEqual K2.__mro__, [K2, D, B, E, O, object]
 AssertEqual K3.__mro__, [K3, D, A, O, object]
 AssertEqual Z.__mro__, [Z, K1, K2, K3, D, A, B, C, E, O, object]
+
+Execute(Basic Diamond pattern);
+let fathers = map(split('A B'), 'object#class(v:val, O)')
+let C = object#class('C', fathers)
+AssertEqual C.__mro__, [C, A, B, O, object]

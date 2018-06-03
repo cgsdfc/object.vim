@@ -7,14 +7,15 @@
 " this class effectively override those from bases.
 "
 " Features:
-"   * Multiple inheritance.
-"   * Calling methods from supers.
+"   * Multiple inheritance with MRO (Method Resolution Order) based on C3.
+"   * Working `super()` that effectively calls parent or sibling's methods.
+"   * Create new types dynamically using both `object#class()` and
+"     `object#type()`.
 "   * Type identification.
 "
 " Limitations:
-"   * Methods are resolved statically at class creation time, which makes the
-"     class object even larger.
-"   * super() return |Funcref| rather than super object
+"   * Methods are resolved statically at class creation time.
+"   * super() return |Funcref| rather than super object.
 
 let s:object_class = object#object_()
 let s:type_class = object#type_()

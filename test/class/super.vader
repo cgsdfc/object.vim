@@ -1,42 +1,51 @@
 " vim: ft=vim
 
-Before;
-
-Execute (Call single direct base);
+Execute (Throws TypeError if isinstance(obj, type) is false);
 let X = object#class('X')
+let Y = object#class('Y')
 function! X.__init__()
-  let self.x = 1
+  call object#super(g:Y, self, '__init__')
 endfunction
+AssertThrows call object#new(g:X)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
 
-let Y = object#class('Y', X)
-function! Y.__init__()
-  call object#super(g:X, self, '__init__')()
-  let self.y = 2
-endfunction
+Execute (Throws TypeError if obj is not an object);
+let Y = object#class('Y')
+AssertThrows call object#super(g:Y, 1, '__init__')
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+Execute (Throws TypeError if type is not a class);
+let Y = object#class('Y')
 let y = object#new(Y)
-AssertEqual y.y, 2
-AssertEqual y.x, 1
+AssertThrows call object#super(1, g:y, '__init__')
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
 
-Execute (Call of multiple direct bases);
-let bases = map(range(10), 'object#class("Base_" . v:val)')
-for b in bases
-  function! b.__init__(name)
-    let self[a:name] = 1
-  endfunction
+Execute (Throws WrongType or ValueError if name is not a String or an identifier);
+let Y = object#class('Y')
+let y = object#new(Y)
+let input = [1, range(2), '$x']
+for x in input
+  AssertThrows call object#super(g:Y, g:y, g:x)
+  Assert g:vader_exception =~# '\v\CWrongType|ValueError'
+  Log g:vader_exception
 endfor
 
-let Derived = object#class('Derived', bases)
-function! Derived.__init__()
-  for cls in self.__class__.__bases__
-    call object#super(cls, self, '__init__')(cls.__name__)
-  endfor
-  let self.Derived = 1
+Execute (Throws TypeError if there is no next class in MRO);
+let object = object#object_()
+let o = object#object()
+AssertThrows call object#super(g:object, g:o, '__init__')
+Log g:vader_exception
+
+Execute (Throws AttributeError if name cannot be found);
+let Y = object#class('Y')
+let X = object#class('X', Y)
+function! X.__init__()
+  call object#super(g:Y, self, 'non_existing')
 endfunction
-
-let derived = object#new(Derived)
-for x in range(10)
-  Assert has_key(derived, 'Base_' . x)
-endfor
-
-Execute (Call of any base in the hierarchy);
+AssertThrows call object#new(g:X)
+Assert g:vader_exception =~# 'AttributeError'
+Log g:vader_exception
 
