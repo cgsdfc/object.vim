@@ -187,11 +187,14 @@ let s:None = object#None()
 let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__', '__mro__']
 
 ""
-" Define a class that has a {name} and optional base class(es).
-" {name} should be a |String| of valid identifier in Vim.
-" [bases] should be a class object or a |List| of class objects.
-" If no [bases] are given or [bases] is an empty |List|, the new class will subclass object.
-" Return the newly created class with only inherited attributes.
+" Define a class that has a {name} and optional [bases].
+"
+" {name} should be a |String| of valid identifier.
+" [bases] should be a class or a |List| of classes.
+" If no [bases] are given or [bases] is an empty |List|,
+" the new class will subclass `object`.
+"
+" Return the newly created class with inherited attributes.
 function! object#class#class(name, ...)
   let name = maktaba#ensure#IsString(a:name)
   let argc = object#util#ensure_argc(1, a:0)
@@ -220,35 +223,42 @@ function! object#class#class(name, ...)
 endfunction
 
 ""
-" Create a new instance.
-" This is done by first creating a skeleton object from the attributes
-" of the {cls} and then calling __init__ of the newly created object
-" with [args].
+" Create a new instance of {cls} applying [args].
+"
+" The `__init__` method will be called with [args].
 function! object#class#new(cls, ...)
   return object#class#new_(a:cls, a:000)
 endfunction
 
 ""
-" Create a new instance.
-" Take a |List| as {args} rather than variadic arguments.
+" Create a new instance of {cls} applying {args}.
+"
+" You can wrap it to write a constructor-like function:
+" >
+"   function! MyClass(...)
+"     return object#new_(s:MyClass, a:000)
+"   endfunction
+" <
 function! object#class#new_(cls, args)
+  let args = maktaba#ensure#IsList(a:args)
   let cls = object#class#ensure_class(a:cls)
   let obj = {
-        \ '__class__': a:cls,
+        \ '__class__': cls,
         \ }
-  call extend(obj, object#class#methods(a:cls))
-  call call(obj.__init__, a:args)
+  call extend(obj, object#class#methods(cls))
+  call call(obj.__init__, args)
   return obj
 endfunction
 
 ""
-" type(obj) -> class of obj.
+" Return the type of an object or create a new type dynamically.
+"
+" type(obj) -> obj.__class__
 "
 " type(name, bases, dict) -> a new type.
 function! object#class#type(...)
   if a:0 == 1
-    let obj = object#class#ensure_object(a:1)
-    return object#getattr(obj, '__class__')
+    return object#class#ensure_object(a:1).__class__
   endif
   if a:0 == 3
     return object#new(s:type_class, a:1, a:2, a:3)
@@ -257,8 +267,13 @@ function! object#class#type(...)
 endfunction
 
 ""
+" Retrieve method {name} bound to {obj} from the parent or sibling of {type}.
 "
-" @throws TypeError if !isinstance({type}, {obj})
+" Require object#isinstance({obj}, {type}) to be true.
+"
+" Require {type} is not the last class in the mro of {obj}.
+"
+" Require the attribute {name} is a |Funcref|.
 function! object#class#super(type, obj, name)
   let type = object#class#ensure_class(a:type)
   let obj = object#class#ensure_object(a:obj)
@@ -273,10 +288,7 @@ function! object#class#super(type, obj, name)
   catch /E684/ " IndexError
     throw object#TypeError('%s object has no superclass', object#types#name(obj))
   endtry
-  if has_key(next, name)
-    return function(maktaba#ensure#IsFuncref(next[name]), obj)
-  endif
-  throw object#except#throw_noattr(obj, name)
+  return function(maktaba#ensure#IsFuncref(object#getattr(next, name)), obj)
 endfunction
 
 ""
@@ -288,7 +300,6 @@ endfunction
 
 ""
 " Return whether {cls} is a subclass of {base}.
-" A class is considered a subclass of itself.
 function! object#class#issubclass(cls, base)
   return object#class#find_class(object#class#ensure_class(a:cls),
         \ object#class#ensure_class(a:base)) >= 0
@@ -308,6 +319,9 @@ function! object#class#is_valid_object(x)
   return object#hasattr(a:x, '__class__')
 endfunction
 
+"
+" A method is a |Funcref| attribute.
+"
 function! object#class#is_method(Key, Val)
   let Key = object#util#ensure_identifier(a:Key)
   return index(s:special_attrs, Key) < 0 && maktaba#value#IsFuncref(a:Val)
@@ -346,9 +360,7 @@ function! object#class#ensure_bases(x)
 endfunction
 
 "
-" Implementation of type.__init__. Initialize {cls} with class name,
-" base classes and attributes.
-" {bases} must be a List of classes.
+" Initialize a class with {name}, {bases} and a {dict} of attributes.
 "
 function! object#class#type_init(cls, name, bases, dict)
   let name = maktaba#ensure#IsString(a:name)
@@ -359,7 +371,7 @@ function! object#class#type_init(cls, name, bases, dict)
 endfunction
 
 "
-" Implemente the inheritance system.
+" Initialize various special attributes of a class.
 "
 function! object#class#class_init(cls, name, bases)
   let a:cls.__name__ = object#util#ensure_identifier(a:name)
@@ -372,15 +384,16 @@ function! object#class#class_init(cls, name, bases)
   endfor
 endfunction
 
-" Compute Method Resolution Order for {cls}
-" Require that each super class of it has a __mro__ list
+"
+" Compute Method Resolution Order for {cls}.
+"
 function! object#class#mro(cls)
   let bases = copy(a:cls.__bases__)
   let bases_mro = map(copy(bases), 'copy(v:val.__mro__)')
-  " Since cls by no means can appear in bases or bases_mro,
-  " it is safe to prepend it to the merged list in the end.
   let mro = object#class#merge(add(bases_mro, copy(bases)))
   if mro isnot# v:none
+    " Since cls by no means can appear in bases or bases_mro,
+    " it is safe to prepend it to the merged list.
     return insert(mro, a:cls)
   endif
   throw object#TypeError(
@@ -388,6 +401,10 @@ function! object#class#mro(cls)
         \ join(map(bases, 'v:val.__name__'), ', '))
 endfunction
 
+"
+" Whether {cls} appears at the tail of {list}.
+" The tail of a list is all the elements except the first one.
+"
 function! object#class#in_tail(cls, list, len)
   let i = 1
   while i < a:len
@@ -399,7 +416,9 @@ function! object#class#in_tail(cls, list, len)
   return 0
 endfunction
 
-" Merge the list of lists given by arguments into one list
+"
+" Merge the {list} of candidates in a C3 manner.
+"
 function! object#class#merge(list)
   let res = []
   let list = a:list
@@ -446,9 +465,11 @@ function! object#class#ensure_object(x)
   throw object#TypeError('not a valid object')
 endfunction
 
+"
 " Find a needle in the __mro__ of haystack.
 " Return the index of needle.
 " Return -1 if needle is not in haystack
+"
 function! object#class#find_class(needle, haystack)
   let mro = a:haystack.__mro__
   let i = 0

@@ -617,36 +617,50 @@ lambda.__call__([args])                                    *lambda.__call__()*
 FUNCTIONS                                               *object.vim-functions*
 
 object#class#class({name}, [bases])                     *object#class#class()*
-  Define a class that has a {name} and optional base class(es). {name} should
-  be a |String| of valid identifier in Vim. [bases] should be a class object
-  or a |List| of class objects. If no [bases] are given or [bases] is an empty
-  |List|, the new class will subclass object. Return the newly created class
-  with only inherited attributes.
+  Define a class that has a {name} and optional [bases].
+
+  {name} should be a |String| of valid identifier. [bases] should be a class
+  or a |List| of classes. If no [bases] are given or [bases] is an empty
+  |List|, the new class will subclass `object`.
+
+  Return the newly created class with inherited attributes.
 
 object#class#new({cls}, [args])                           *object#class#new()*
-  Create a new instance. This is done by first creating a skeleton object from
-  the attributes of the {cls} and then calling __init__ of the newly created
-  object with [args].
+  Create a new instance of {cls} applying [args].
+
+  The `__init__` method will be called with [args].
 
 object#class#new_({cls}, {args})                         *object#class#new_()*
-  Create a new instance. Take a |List| as {args} rather than variadic
-  arguments.
+  Create a new instance of {cls} applying {args}.
+
+  You can wrap it to write a constructor-like function:
+>
+    function! MyClass(...)
+      return object#new_(s:MyClass, a:000)
+    endfunction
+<
 
 object#class#type()                                      *object#class#type()*
-  type(obj) -> class of obj.
+  Return the type of an object or create a new type dynamically.
+
+  type(obj) -> obj.__class__
 
   type(name, bases, dict) -> a new type.
 
 object#class#super({type}, {obj}, {name})               *object#class#super()*
+  Retrieve method {name} bound to {obj} from the parent or sibling of {type}.
 
-  Throws ERROR(TypeError) if !isinstance({type}, {obj})
+  Require object#isinstance({obj}, {type}) to be true.
+
+  Require {type} is not the last class in the mro of {obj}.
+
+  Require the attribute {name} is a |Funcref|.
 
 object#class#isinstance({obj}, {cls})              *object#class#isinstance()*
   Return whether {obj} is an instance of {cls}.
 
 object#class#issubclass({cls}, {base})             *object#class#issubclass()*
-  Return whether {cls} is a subclass of {base}. A class is considered a
-  subclass of itself.
+  Return whether {cls} is a subclass of {base}.
 
 object#except#BaseException({type}, {msg}, {args})
                                                *object#except#BaseException()*
