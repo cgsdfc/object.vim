@@ -2,40 +2,55 @@
 " @section Class, class
 " This module provides functions for the creation and manipulation
 " of classes and instances. Below, the term "class" is used interchangably
-" with "type" to refer to the object representing a class
+" with "type" to refer to the object representing a class,
 " since there is no "old-style" class in object.vim. Every class
-" except `object` is derived from `object`. The term "class object" is avoided
+" is derived from `object` (except `object`). The term "class object" is avoided
 " since it reminds people of the "old-style" class.
 "
-" @subsection conventions-matter
-" The first important thing is to be substitutable to old conventions, which
-" means the class is returned by a function just like:
+" @subsection compared-with-related-approaches
+" There are different approaches to create classes in Vimscript. To
+" get the best of them, we compare them and show design rationales of
+" object.vim at the same time.
+"
+" The most common approach is via a simple assignment:
 " >
 "   let s:MyClass = {}
+"   function! s:MyClass.some_method()
+"     " some code
+"   endfunction
+"
+"   let var = deepcopy(s:MyClass)
 " <
-" Compared with the approaches that introduce new syntax,
-" respecting old conventions makes new code easy to write and understand.
+" This approach has the virtue of being brief, but obviously a plain `{}`
+" can't have too much features.
+"
 " Here is a command-based approach:
 " >
-"   Class A, somebases
+"   Class MyClass, some_bases
 "     " some methods
 "   EndClass
 " <
-" Another novel approach uses functions-inside-a-function, which requires all the methods to be
-" defined inside a "class-initializer" function:
+" This approach introduces new commands that begins and ends the class
+" definition. It looks very like a DSL, which goes against the aim of
+" object.vim, which says no new syntax is required.
+"
+" Another approach defines all the methods inside a function that creates the class:
 " >
-"   function! s:init_MyClass() dict
-"     call ClassInit(self, 'MyClass')
-"     function! self.some_method()
-"       some code
+"   function! s:GetMyClass()
+"     let s:MyClass = {}
+"     function! s:MyClass.some_method()
+"       " some code
 "     endfunction
 "     " more methods
+"     return deepcopy(s:MyClass)
 "   endfunction
-"   let s:MyClass = ClassNew('s:init_MyClass')
 " <
-" This approach can hardly find its place in practice.
-" With the current syntax, you create a new class and add methods to it
-" intuitively:
+" This approach looks nice as it bundles all the methods together. However,
+" it mixes together the definition of a class and the instantiation of it,
+" making both aspects less flexible.
+"
+" With these limitations in mind, object.vim is designed to be intuitively
+" usable yet very flexible:
 " >
 "   let s:Logger = object#class('Logger')
 "
@@ -57,16 +72,15 @@
 "   * a |List| of classes: derived from all those classes.
 "   * an empty list: the same as omitted.
 "
-" Note that the resulting class takes a copy of your base list so you are free
+" Note that the resulting class takes a copy of the base list so you are free
 " to modify it after `class()` returns.
 "
-" With MI comes MRO (Method Resolution Order) and I use C3 to construct the
+" With MI comes MRO (Method Resolution Order) and C3 algorithm is used to construct the
 " `__mro__` attribute for each class.  Methods are resolved statically based
 " on `__mro__`, which means the changes to `__bases__` will not cause a rerun
 " of method resolution. All the attributes from parents are added to their
 " child respecting its `__mro__`, which can be overridden naturally by adding
-" methods with the same names. The discussion above means you can call
-" parents' methods in several ways:
+" methods with the same names. This means you can call parents' methods in several ways:
 " >
 "   let s:Animal = object#class('Animal')
 "   function! s:Animal.make_sound()
@@ -87,7 +101,8 @@
 "   1
 " <
 " However, if the child is overriding a method of its parents, it can only
-" call the parents' version with `super()`, as in:
+" call the parents' version with `super()`,
+" which will look up methods in parents or siblings for you:
 " >
 "   function! s:Dog.make_sound()
 "     call object#super(s:Dog, self, 'make_sound')()
@@ -98,7 +113,6 @@
 "   Animal makes sound
 "   Dog makes sound
 " <
-" `super()` will look up methods in parents or siblings for you.
 "
 " @subsection special-attributes
 " Like Python, object.vim uses double-underscored names for special
@@ -108,41 +122,38 @@
 " Class:
 "   * __name__: the name of the class, a valid identifier.
 "   * __base__: the first direct base.
-"   * __bases__: the direct bases.
-"   * __mro__: the method resolution list.
-"   * __class__: always the `type` class currently.
+"   * __bases__: the list of direct bases.
+"   * __mro__: the list of method resolution order.
+"   * __class__: currently always the `type` class.
 "
 " Instance:
 "   * __class__: the type of this instance.
 "
-" The meanings of these class-specific special attributes are part of the
-" public interface of object.vim that you can count on.
 "
 " @subsection attributes
 " We have been talking about attributes, but what are they in the context of
 " object.vim? Basically everything inside a |Dict| with its name as an
 " identifier is an attribute. Particularly, if the attribute is a |Funcref|,
-" it is treated as methods for instance only. This is important since when an
+" it is treated as instance methods. This is important since when an
 " instance is created, it will have all the |Funcref| attributes of its class
 " as its methods. Anything other than |Funcref| stays in the class as it,
 " which implies:
-"   * A class does not have `classmethod`. You should not call methods on a
-"   class.
+"   * A class cannot have `classmethod`. You should not call methods on a class.
 "   * A class can have its own attributes, as long as they are not |Funcref|.
 "
 " The lack of `classmethod` sounds discouraging because classes are no longer
-" first-class object and they will fail with some protocols. That is just one
-" of the limitations.
+" first-class object and they will fail with some protocols.
+" That may be improved in the future.
 "
 " @subsection class-name-and-identity
 " There is no notion of class-registry in object.vim and the `name` argument
 " got passed to `class()` is not checked for uniqueness. This means it is
 " possible for two different class to have the same name. However, as long as the
-" variables holding the classes have distinct names, there won't be name crash.
+" variables holding the classes have distinct names, there won't be name crashes.
 " What's more, every class will have different identities testable by
 " `is#` since `class()` always creates new class. As currently the name of a
-" class is only used to provide `repr()`, not as the key to anything,
-" you are free to crash your class names with other's without doubt :-).
+" class is only used to provide its `repr()` (not as the key to anything),
+" you are free to crash your class names with other's without a doubt :-).
 "
 " @subsection exposing-class
 " As you write plugins you may wish to let others extend or instantiate your
