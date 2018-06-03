@@ -2,12 +2,14 @@ language: vim
 
 before_script: |
   git clone https://github.com/junegunn/vader.vim.git
+  git clone https://github.com/google/vim-maktaba.git
 
 script: |
   vim -Nu <(cat << VIMRC
   filetype off
   set rtp+=vader.vim
-  set rtp+=.
+  set rtp+=object.vim
+  set rtp+=vim-maktaba
   set rtp+=after
   filetype plugin indent on
   syntax enable
