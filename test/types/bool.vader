@@ -6,13 +6,16 @@
 Execute(bool() works with Number, List, Dict, String, Float and special variables);
 let input = [
       \ [ 0, 0], [ 1, 1 ], [ -1, 1],
-      \ [v:false, 0], [v:true, 1], [v:null, 0], [v:none, 0],
       \ [ [], 0 ], [ [0], 1 ],
       \ [ {}, 0 ], [ {'a':1}, 1],
       \ [ 0.0, 0 ], [ -0.0, 0], [ 1.2, 1], [ 0.000001, 1],
       \ [ '', 0 ], [ 'a', 1 ],
       \ [ function('tr'), 1]
       \ ]
+if object#util#has_special_variables()
+  call extend(input,
+        \ [[v:false, 0], [v:true, 1], [v:null, 0], [v:none, 0]])
+endif
 for [X, y] in input
   AssertEqual object#bool(X), y
 endfor

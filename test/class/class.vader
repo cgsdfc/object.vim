@@ -29,7 +29,7 @@ Assert g:vader_exception =~# 'TypeError'
 Log g:vader_exception
 
 Execute(Throws TypeError if bases is not valid classes);
-for x in [ {}, [1, 2, 3], ['a', v:none, v:false] ]
+for x in [ {}, [1, 2, 3], ]
   AssertThrows call object#class('Man', g:x)
   Assert g:vader_exception =~# 'TypeError'
   Log g:vader_exception

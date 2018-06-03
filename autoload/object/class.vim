@@ -408,7 +408,7 @@ function! object#class#mro(cls)
   let bases = copy(a:cls.__bases__)
   let bases_mro = map(copy(bases), 'copy(v:val.__mro__)')
   let mro = object#class#merge(add(bases_mro, copy(bases)))
-  if mro isnot# v:none
+  if mro isnot# 0
     " Since cls by no means can appear in bases or bases_mro,
     " it is safe to prepend it to the merged list.
     return insert(mro, a:cls)
@@ -448,15 +448,15 @@ function! object#class#merge(list)
       let cand = x[0]
       for y in list
         if object#class#in_tail(cand, y, len(y))
-          let cand = v:none
+          let cand = 0
           break
         endif
       endfor
-      if cand isnot# v:none
+      if cand isnot# 0
         break
       endif
     endfor
-    if cand is# v:none
+    if cand is# 0
       return cand
     endif
     call add(res, cand)

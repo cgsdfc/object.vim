@@ -90,14 +90,32 @@ function! object#mapping#unsigned(nr)
 endfunction
 
 ""
-" Return the hash value of {obj}. {obj} can be a |Number|, a
-" |String| a |Funcref| or special variables like |v:none| and |v:false|,
+" Return the hash value of {obj}.
+"
+" {obj} can be a |Number|, a |String| a |Funcref| or
+" special variables like |v:none| and |v:false| (if present),
 " or an object with __hash__() defined.
 "
 " @throws TypeError if hash() is not possible for {obj}.
 " @throws WrongType if __hash__ is not a |Funcref| or returns
 " something NAN (Not A Number).
-function! object#mapping#hash(obj)
+if object#util#has_special_variables()
+  function! object#mapping#hash(obj)
+    if a:obj is# v:none || a:obj is# v:false || a:obj is# v:null
+      return 0
+    endif
+    if a:obj is# v:true
+      return 1
+    endif
+    return object#mapping#hash_(a:obj)
+  endfunction
+else
+  function! object#mapping#hash(obj)
+    return object#mapping#hash_(a:obj)
+  endfunction
+endif
+
+function! object#mapping#hash_(obj)
   if maktaba#value#IsNumber(a:obj)
     return object#mapping#unsigned(a:obj)
   endif
@@ -106,12 +124,6 @@ function! object#mapping#hash(obj)
   endif
   if maktaba#value#IsFuncref(a:obj)
     return object#mapping#strhash(string(a:obj))
-  endif
-  if a:obj is# v:none || a:obj is# v:false || a:obj is# v:null
-    return 0
-  endif
-  if a:obj is# v:true
-    return 1
   endif
   if object#protocols#hasattr(a:obj, '__hash__')
     return maktaba#ensure#IsNumber(object#protocols#call(a:obj.__hash__))

@@ -1,6 +1,6 @@
 " vim:ft=vim
 "
-" Tes hashing for Number and special variables
+" Tes hashing for Number and special variables (if present)
 "
 
 Execute(hash(Number) should be non-negative);
@@ -10,11 +10,15 @@ for i in range(-500, 500)
 endfor
 
 Execute(hash() works with special variables);
-let input = [ v:null, v:none, v:false, ]
-for x in input
-  AssertEqual 0, object#hash(x)
-endfor
-AssertEqual 1, object#hash(v:true)
+if object#util#has_special_variables()
+  let input = [ v:null, v:none, v:false, ]
+  for x in input
+    AssertEqual 0, object#hash(x)
+  endfor
+  AssertEqual 1, object#hash(v:true)
+else
+  Log 'No special variables available. Skip'
+endif
 
 Execute(hash() should treat Funcref as if they are string()'ed);
 let input = [ 'empty', 'len', 'items', 'values' ]

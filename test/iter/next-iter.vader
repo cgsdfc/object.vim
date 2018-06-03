@@ -18,7 +18,10 @@ for i in input
 endfor
 
 Execute(iter() throws TypeError for non-iterable);
-let non_iterable = [ 1, {}, function('tr'), v:none, v:false  ]
+let non_iterable = [ 1, {}, function('tr'), ]
+if object#util#has_special_variables()
+  call extend(non_iterable, [v:none, v:false])
+endif
 if has('float')
   call add(non_iterable, 1.1)
 endif

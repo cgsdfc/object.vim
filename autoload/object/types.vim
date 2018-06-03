@@ -119,7 +119,6 @@ endfunction
 " For |Funcref|,
 "
 " Hook into __bool__.
-" TODO: Move bool(), int(), float() into types
 if has('float')
   function! object#types#bool(obj)
     if maktaba#value#IsFloat(a:obj)

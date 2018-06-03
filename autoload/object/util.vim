@@ -54,3 +54,8 @@ function! object#util#hiding_getattr(pattern, name) dict
   endif
   return self[a:name]
 endfunction
+
+function! object#util#has_special_variables()
+  return exists('v:none') && exists('v:false') &&
+        \ exists('v:true') && exists('v:null')
+endfunction

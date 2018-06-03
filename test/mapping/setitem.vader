@@ -36,8 +36,11 @@ AssertEqual 'cannot setitem', g:vader_exception
 
 Execute(Throws TypeError with types like String, Number or Boolean);
 let input = [
-      \ 'str', 1, v:false, v:true, v:none, v:null,
+      \ 'str', 1,
       \ ]
+if object#util#has_special_variables()
+  call extend(input, [v:false, v:true, v:none, v:null,])
+endif
 if has('float')
   call add(input, 1.0)
 endif

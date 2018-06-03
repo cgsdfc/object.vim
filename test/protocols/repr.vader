@@ -15,11 +15,13 @@ let input = [
       \ ["''", ''],
       \ [ "{'name': 1}", {'name': 1}],
       \ ['[]', []],
-      \ [ 'v:none', v:none],
       \ ['{}', {}],
       \ [ "'string'", 'string'],
       \ ]
 
+if object#util#has_special_variables()
+  call add(input, ['v:none', v:none])
+endif
 for [should, x] in input
   AssertEqual should, object#repr(x)
 endfor

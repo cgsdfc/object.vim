@@ -43,3 +43,16 @@ for x in ['x', 'y']
   Log g:vader_exception
   Assert g:vader_exception =~# 'AttributeError'
 endfor
+
+Execute (has_special_variables() can detect 4 special vars);
+if object#util#has_special_variables()
+  Assert v:false is v:false
+  Assert v:true is v:true
+  Assert v:none is v:none
+  Assert v:null is v:null
+else
+  let names = ['v:false', 'v:none', 'v:null', 'v:true',]
+  for x in names
+    AssertEqual 0, exists(x)
+  endfor
+endif

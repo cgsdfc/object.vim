@@ -39,8 +39,11 @@ endfor
 
 Execute (Throws TypeError if the type doesn't support it);
 let input = [
-      \ v:none, v:false, v:true, function('empty'),
+      \ function('empty'),
       \ ]
+if object#util#has_special_variables()
+  call extend(input, [v:false, v:true, v:none, v:null,])
+endif
 for X in input
   AssertThrows call object#getitem(g:X, 0)
   Assert g:vader_exception =~# 'TypeError'
