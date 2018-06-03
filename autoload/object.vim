@@ -2,8 +2,7 @@
 " @section Introduction, intro
 " @stylized object
 " @library
-" @order intro version protocols class mapping iter file types lambda
-" dicts functions exceptions
+" @order intro protocols class mapping iter file types lambda dicts functions exceptions
 " >
 "                              __      _           __
 "                       ____  / /_    (_)__  _____/ /_
@@ -69,8 +68,8 @@
 " <
 " Note that to avoid differing signature problems in the chained calls
 " of `super()`, the above cooperative methods take arbitrary number of
-" arguments, which produces the `call call(...)` verbosity, which may be
-" addressed by using a |Dict| as argument:
+" arguments, which produces the `call call(...)` verbosity. It can be
+" made brief by using a |Dict| as argument:
 " >
 "   let s:Shape = object#class('Shape')
 "   function! s:Shape.__init__(kwdict)
@@ -87,43 +86,74 @@
 "
 " What surprises you is that the `super()` of object.vim does not return
 " a proxy object but just a plain |Funcref|, which deviates the spirit of
-" "everything is an object" and make signature strange. Well for now, what I can
+" "everything is an object" and make the signature strange. Well for now, what I can
 " say is only "this is a trade-off of convenience and efficiency". For those
 " unpleasant about this decision, please look at the
-" |Why super() is like this| for more details.
+" |Why-super()-is-like-this| for more details.
+"
+" Dear readers, there is a lot more interesting stuffs to explore about
+" object.vim, such as lambda and iterator so please read on.
 "
 "
 " @subsection motivation
-" object.vim is based on the semantics of Python2.7 but it is _not_ an effort
-" to port a complete Python2.7 to Vim. Nor is it a Python implementation in
-" Vim that sounds like Jython or IronPython. In fact, what it tries to do is
-" borrow the benefits from Python and get the best of Vim.
-" aims to be an augmentation to the built-in function as well as existing
-" coding convensions, rather than correction or reinvention. To achieve this,
-" it strives for the following:
-"   * Always enhance and be compatible with built-in functions.
-"   * Always works with built-in types.
-"   * Minimal principle: only core functions are provided.
+" Well the first question that I asked myself at the beginning of this project
+" is: What? you want to create a DSL in Vim that looks like Python and you
+" expect those who use pure Python or pure Vimscript for their plugins to like
+" your hybridization that sounds like Vimthon?
 "
-" Keeping this in mind, object.vim tries to built an object-oriented framework
-" as well as a bunch of useful modules built on top of that. With object.vim
-" you can create and loop over iterators, read and write files with objects,
-" create lambda functions with intuitive syntax and hash arbitrary objects.
-" Most fundamentally, you can define full-fledged classes that seamlessly
-" integrate with all these protocols.
+" Well first of all, I don't expect people to like my plugin and I just
+" find it fun to write an OOP framework for Vim. That's my motivation.
 "
-" object.vim also hides some of the dark sides of Vim so a robust and
-" consistent interface is possible. For the ease of use and code modularity,
-" object.vim put evarything available to the users in the `object#` namespace and
-" implements them in the sub-namespace such as `object#file#`. The benefit
-" is that user can use any functionality of object.vim without the need to
-" remember its sub-namespace. This also implies that anything in the sub-namespace
-" is implementation details, upon which users should not rely.
+" Second, I personally don't
+" think it is a DSL because it is just a bunch of functions that work
+" together. There is no new syntax to learn (which means extra rules to
+" obey).
+" You just pick up a piece of tool you want to use and it (should) works out of the
+" box.
 "
-" In terms of implementation reference, object.vim is loosely based on
-" Python2.7. But
+" Third, I am not doing hybridization like Emacs in Vim or vice versa, which
+" explains why we have such a limited number of functions compared with the
+" versatile libraries of Python. Those who expect a complete Python layer
+" over Vimscript will be disappointed by the fact that not even the standard library `sys`
+" is found. What's more, some counterparts of Python have different signatures
+" or even different behaviors, which will be explained in details. Most of
+" the time, we strive for Python compatibility since that won't surprise people
+" gravely.
 "
-" May the object be with you!
+" In short, what we provide is an OOP framework that feels familiar to Python
+" and hopefully, useful for Vim plugin writers.
+"
+"
+" @subsection features
+" object.vim provides several handy modules:
+"   * class module: inheritance and instantiation.
+"   * iter module: iterator for |List| and |String| and helper functions.
+"   * file module: plain old file object for line-oriented I/O.
+"   * lambda module: create one-liner easily and `for` loop construct.
+"   * mapping module: hash arbitrary object and generic `getitem()`,
+"   `setitem()`.
+"   * types module: top level class like `object`, `type` and conversion
+"   protocols like `bool()`.
+"
+" @subsection testing
+" I use `vader.vim` (|https://github.com/junegunn/vader.vim|) for unit tests. A comprehensive test suite for each module
+" is found at `object.vim/test`. To run all the test, use:
+" >
+"   object.vim/test/run-tests.sh
+" <
+"
+" @subsection dependency
+" The only dependency is `vim-maktaba` (|https://github.com/google/vim-maktaba|).
+" I use it to deal the built-in types of Vimscript.
+" You need a Vim with version >= 7.4 to work.
+"
+" @subsection author
+"   * author: cgsdfc
+"   * email: cgsdfc@126.com or 2far2long@gmail.com
+"   (Use the first one as long as you can since I only periodically check the second one)
+"
+"
+" That's it, folks. May the object be with you!
 "
 
 ""

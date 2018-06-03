@@ -95,7 +95,7 @@ endfunction
 
 ""
 "
-" @throws TypeError if !isinstance({obj}, {cls})
+" @throws TypeError if !isinstance({type}, {obj})
 function! object#class#super(type, obj, name)
   let type = object#class#ensure_class(a:type)
   let obj = object#class#ensure_object(a:obj)

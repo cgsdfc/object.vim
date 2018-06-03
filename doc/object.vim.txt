@@ -1,5 +1,5 @@
-*object.vim.txt*
-                                                         *object* *object.vim*
+*object.vim.txt*	Object-Oriented Framework
+cgsdfc                                                   *object* *object.vim*
 
 ==============================================================================
 CONTENTS                                                 *object.vim-contents*
@@ -28,35 +28,147 @@ INTRODUCTION                                                *object.vim-intro*
                               /___/
 
 <
-object.vim is a library plugin that provides object protocols for Vim. It aims
-to be an augmentation to the built-in function as well as existing coding
-convensions, rather than correction or reinvention. To achieve this, it
-strives for the following:
-  * Always enhance and be compatible with built-in functions.
-  * Always works with built-in types.
-  * Minimal principle: only core functions are provided.
 
-Keeping this in mind, object.vim tries to built an object-oriented framework
-as well as a bunch of useful modules built on top of that. With object.vim you
-can create and loop over iterators, read and write files with objects, create
-lambda functions with intuitive syntax and hash arbitrary objects. Most
-fundamentally, you can define full-fledged classes that seamlessly integrate
-with all these protocols.
+QUICK-START
+object.vim is an object-oriented framework for plugin writers of Vim. It aims
+to augment and enrich the existing techniques for OOP in Vim. That means
+instead of doing this:
+>
+  let s:MyAwesomeClass = {}
+<
+you can do this:
+>
+  let s:MyAwesomeClass = object#class('MyAwesomeClass')
+<
+And yes, you type the class name twice, but here is the prizes:
+>
+  echo object#repr(s:MyAwesomeClass)
+  <type 'MyAwesomeClass'>
 
-object.vim also hides some of the dark sides of Vim so a robust and consistent
-interface is possible. For the ease of use and code modularity, object.vim put
-evarything available to the users in the `object#` namespace and implements
-them in the sub-namespace such as `object#file#`. The benefit is that user can
-use any functionality as if as they are built-in to object.vim. This also
-implies that anything in the sub-namespace of `object#` is implementation
-details and subjects to changes, upon which users should not rely.
+  let awesome = object#new(s:MyAwesomeClass)
+  echo object#repr(awesome)
+  <'MyAwesomeClass' object>
+<
 
-In terms of API styles, object.vim is loosely based on the common parts of Vim
-and Python2. Whenever possible, it strives for simplicity and elegance. It is
-also believed that a small core is better a huge code base, which is easier to
-understand and make use of.
+What you get is a type that works out of the box instead of a plain |Dict|.
+There is a lot more you can do with object.vim, such as multiple inheritance.
+Although people nearly always frown on madly complicated class hierarchy,
+object.vim make it possible for you to make people mad :). Powered by
+C3-linearization, you get exactly the same MRO as examplified by
+|https://rhettinger.wordpress.com/2011/05/26/super-considered-super/|:
+>
+  let s:LoggingDict = object#class('LoggingDict', somedict)
+  let s:LoggingOD = object#class('LoggingOD', [s:LoggingDict, s:OrderedDict)
 
-Happy with the object!
+  echo object#repr(s:LoggingOD.__mro__)
+  [<type 'LoggingOD'>,
+   <type 'LoggingDict'>,
+   <type 'OrderedDict'>,
+   <type, 'somedict'>,
+   <type, 'object'>]
+<
+
+And yes, you can use `super()` with a little more verbosity:
+>
+  let s:Shape = object#class('Shape')
+  function! s:Shape.__init__(shapename, ...)
+    let self.shapename = a:shapename
+    call call(object#super(s:Shape, self, '__init__'), a:000)
+  endfunction
+
+  let s:ColoredShape = object#class('ColoredShape', s:Shape)
+  function! s:ColoredShape.__init__(color, ...)
+    let self.color = a:color
+    call call(object#super(s:ColoredShape, self, '__init__'), a:000)
+  endfunction
+<
+Note that to avoid differing signature problems in the chained calls of
+`super()`, the above cooperative methods take arbitrary number of arguments,
+which produces the `call call(...)` verbosity. It can be made brief by using a
+|Dict| as argument:
+>
+  let s:Shape = object#class('Shape')
+  function! s:Shape.__init__(kwdict)
+    let self.shapename = get(a:kwdict, 'shapename')
+    call object#super(s:Shape, self, '__init__')(a:kwdict)
+  endfunction
+
+  let s:ColoredShape = object#class('ColoredShape', s:Shape)
+  function! s:ColoredShape.__init__(kwdict)
+    let self.color = get(a:kwdict, 'color')
+    call object#super(s:ColoredShape, self, '__init__')(a:kwdict)
+  endfunction
+<
+
+What surprises you is that the `super()` of object.vim does not return a proxy
+object but just a plain |Funcref|, which deviates the spirit of "everything is
+an object" and make the signature strange. Well for now, what I can say is
+only "this is a trade-off of convenience and efficiency". For those unpleasant
+about this decision, please look at the |Why-super()-is-like-this| for more
+details.
+
+Dear readers, there is a lot more interesting stuffs to explore about
+object.vim, such as lambda and iterator so please read on.
+
+
+MOTIVATION
+Well the first question that I asked myself at the beginning of this project
+is: What? you want to create a DSL in Vim that looks like Python and you
+expect those who use pure Python or pure Vimscript for their plugins to like
+your hybridization that sounds like Vimthon?
+
+Well first of all, I don't expect people to like my plugin and I just find it
+fun to write an OOP framework for Vim. That's my motivation.
+
+Second, I personally don't think it is a DSL because it is just a bunch of
+functions that work together. There is no new syntax to learn (which means
+extra rules to obey). You just pick up a piece of tool you want to use and it
+(should) works out of the box.
+
+Third, I am not doing hybridization like Emacs in Vim or vice versa, which
+explains why we have such a limited number of functions compared with the
+versatile libraries of Python. Those who expect a complete Python layer over
+Vimscript will be disappointed by the fact that not even the standard library
+`sys` is found. What's more, some counterparts of Python have different
+signatures or even different behaviors, which will be explained in details.
+Most of the time, we strive for Python compatibility since that won't surprise
+people gravely.
+
+In short, what we provide is an OOP framework that feels familiar to Python
+and hopefully, useful for Vim plugin writers.
+
+
+FEATURES
+object.vim provides several handy modules:
+  * class module: inheritance and instantiation.
+  * iter module: iterator for |List| and |String| and helper functions.
+  * file module: plain old file object for line-oriented I/O.
+  * lambda module: create one-liner easily and `for` loop construct.
+  * mapping module: hash arbitrary object and generic `getitem()`,
+    `setitem()`.
+  * types module: top level class like `object`, `type` and conversion
+    protocols like `bool()`.
+
+TESTING
+I use `vader.vim` (|https://github.com/junegunn/vader.vim|) for unit tests. A
+comprehensive test suite for each module is found at `object.vim/test`. To run
+all the test, use:
+>
+  object.vim/test/run-tests.sh
+<
+
+DEPENDENCY
+The only dependency is `vim-maktaba`
+(|https://github.com/google/vim-maktaba|). I use it to deal the built-in types
+of Vimscript. You need a Vim with version >= 7.4 to work.
+
+AUTHOR
+  * author: cgsdfc
+  * email: cgsdfc@126.com or 2far2long@gmail.com (Use the first one as long as
+    you can since I only periodically check the second one)
+
+
+That's it, folks. May the object be with you!
 
 
 ==============================================================================
@@ -75,19 +187,16 @@ relationships. Inheritance is possible. The methods of base classes are added
 from left to right across the [bases] when class() is called. The methods
 defined for this class effectively override those from bases.
 
-
 Features:
-  * Multiple inheritance.
-  * Calling methods from supers.
+  * Multiple inheritance with MRO (Method Resolution Order) based on C3.
+  * Working `super()` that effectively calls parent or sibling's methods.
+  * Create new types dynamically using both `object#class()` and
+    `object#type()`.
   * Type identification.
 
-Drawbacks:
-  * Use more space for the house keeping attributes.
-  * Takes more time for the class and instance creation.
-
 Limitations:
-  * Methods are resolved statically at class creation time, which makes the
-    class object even larger.
+  * Methods are resolved statically at class creation time.
+  * super() return |Funcref| rather than super object.
 
 ==============================================================================
 MAPPING                                                   *object.vim-mapping*
@@ -356,17 +465,16 @@ object#class#type()                                      *object#class#type()*
 
   type(name, bases, dict) -> a new type.
 
-object#class#super({cls}, {obj}, {method})              *object#class#super()*
-  Return a method from the direct base {cls} of {obj}. This is done by binding
-  the methods of {cls} to {obj}.
+object#class#super({type}, {obj}, {name})               *object#class#super()*
 
-  Throws ERROR(TypeError) if {cls} is not a direct base of {obj}.
+  Throws ERROR(TypeError) if !isinstance({type}, {obj})
 
 object#class#isinstance({obj}, {cls})              *object#class#isinstance()*
   Return whether {obj} is an instance of {cls}.
 
 object#class#issubclass({cls}, {base})             *object#class#issubclass()*
-  Return wheter {cls} is a subclass of {base}.
+  Return whether {cls} is a subclass of {base}. A class is considered a
+  subclass of itself.
 
 object#except#BaseException({type}, {msg}, {args})
                                                *object#except#BaseException()*
