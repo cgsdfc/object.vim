@@ -2,7 +2,7 @@
 " @section Introduction, intro
 " @stylized object
 " @library
-" @order intro protocols class mapping iter file types lambda dicts functions exceptions
+" @order intro protocols class mapping iter file types lambda dicts functions exceptions motivation
 " >
 "                              __      _           __
 "                       ____  / /_    (_)__  _____/ /_
@@ -83,11 +83,44 @@
 "     call object#super(s:ColoredShape, self, '__init__')(a:kwdict)
 "   endfunction
 " <
-" There is a lot more interesting stuffs about object.vim
-" such as lambda and iterator. Read on.
 "
+" @subsection features
+" object.vim implements its features in the following modules:
 "
-" @subsection motivation
+"   * class:    inheritance and instantiation.
+"   * iter:     iterator for |List| and |String| and helper functions.
+"   * file:     plain old file object for line-oriented I/O.
+"   * lambda:   create one-liner easily and `for()` loop construct.
+"   * mapping:  hash arbitrary object and generic `getitem()`, `setitem()`.
+"   * types:    top level classes like `object`, `type` and conversion protocols like `bool()`.
+"
+" Note that although these features are implemented in separate files, they
+" are kind-of imported into a shallow namespace for the ease of use so please
+" use `object#class()` instead of `object#class#class()`. Please consider
+" everything in namespaces deeper than `object` as implementation details and
+" avoid using them as much as you can. However, each individual function is still
+" documented with its full name, as found in @section(functions).
+"
+" @subsection testing
+" I use `vader.vim` for unit tests. A comprehensive test suite for each module
+" can be found in `object.vim/test`. To run all the test, use:
+" >
+"   object.vim/test/run-tests.sh
+" <
+"
+" @subsection dependency
+"   * `vim-maktaba`: |https://github.com/google/vim-maktaba|, version >= 1.16.0
+"   * `vader.vim`: |https://github.com/junegunn/vader.vim|
+"   * `Vim`: version >= 7.4
+"
+" @subsection author
+"   * author: @plugin(author)
+"   * email: cgsdfc@126.com
+"
+" There are a lot more interesting stuffs about object.vim. Read on.
+
+""
+" @section Motivation, motivation
 " Well the first question that I asked myself at the beginning of this project
 " is: What? you want to create a DSL in Vim that looks like Python and you
 " expect those who use pure Python or pure Vimscript for their plugins to like
@@ -115,45 +148,7 @@
 " In short, what we provide is an OOP framework that feels familiar to Python
 " and hopefully, useful for Vim plugin writers.
 "
-"
-" @subsection features
-" object.vim provides several handy modules:
-"   * class module: inheritance and instantiation.
-"   * iter module: iterator for |List| and |String| and helper functions.
-"   * file module: plain old file object for line-oriented I/O.
-"   * lambda module: create one-liner easily and `for` loop construct.
-"   * mapping module: hash arbitrary object and generic `getitem()`,
-"   `setitem()`.
-"   * types module: top level class like `object`, `type` and conversion
-"   protocols like `bool()`.
-"
-" Note that although these features are implemented in separate files, they
-" are kind-of imported into a shallow namespace for the ease of use so please
-" use `object#class()` instead of `object#class#class()`. Please consider
-" everything in namespaces deeper than `object` as implementation details and
-" avoid using them as much as you can. However, each individual function is still
-" documented with its full name, as found in @section(functions).
-"
-" @subsection testing
-" I use `vader.vim` (|https://github.com/junegunn/vader.vim|) for unit tests. A comprehensive test suite for each module
-" is found at `object.vim/test`. To run all the test, use:
-" >
-"   object.vim/test/run-tests.sh
-" <
-"
-" @subsection dependency
-" The only dependency is `vim-maktaba` (|https://github.com/google/vim-maktaba|).
-" I use it to deal the built-in types of Vimscript.
-" You need a Vim with version >= 7.4 to work.
-"
-" @subsection author
-"   * author: @plugin(author)
-"   * email: cgsdfc@126.com or 2far2long@gmail.com
-"   (Use the first one as long as you can since I only periodically check the second one)
-"
-"
-" That's it, folks. May the object be with you!
-"
+
 
 "
 " class.vim

@@ -14,6 +14,7 @@ CONTENTS                                                 *object.vim-contents*
   9. Dictionaries...........................................|object.vim-dicts|
   10. Functions.........................................|object.vim-functions|
   11. Exceptions.......................................|object.vim-exceptions|
+  12. Motivation.......................................|object.vim-motivation|
 
 ==============================================================================
 INTRODUCTION                                                *object.vim-intro*
@@ -99,47 +100,17 @@ a |Dict| as argument:
     call object#super(s:ColoredShape, self, '__init__')(a:kwdict)
   endfunction
 <
-There is a lot more interesting stuffs about object.vim such as lambda and
-iterator. Read on.
-
-
-MOTIVATION
-Well the first question that I asked myself at the beginning of this project
-is: What? you want to create a DSL in Vim that looks like Python and you
-expect those who use pure Python or pure Vimscript for their plugins to like
-your hybridization that sounds like Vimthon?
-
-Well first of all, I don't expect people to like my plugin and I just find it
-fun to write an OOP framework for Vim. That's my motivation.
-
-Second, I personally don't think it is a DSL because it is just a bunch of
-functions that work together. There is no new syntax to learn (which means
-extra rules to obey). You just pick up a piece of tool you want to use and it
-(should) works out of the box.
-
-Third, I am not doing hybridization like Emacs in Vim or vice versa, which
-explains why we have such a limited number of functions compared with the
-versatile libraries of Python. Those who expect a complete Python layer over
-Vimscript will be disappointed by the fact that not even the standard library
-`sys` is found. What's more, some counterparts of Python have different
-signatures or even different behaviors, which will be explained in details.
-Most of the time, we strive for Python compatibility since that won't surprise
-people gravely.
-
-In short, what we provide is an OOP framework that feels familiar to Python
-and hopefully, useful for Vim plugin writers.
-
 
 FEATURES
-object.vim provides several handy modules:
-  * class module: inheritance and instantiation.
-  * iter module: iterator for |List| and |String| and helper functions.
-  * file module: plain old file object for line-oriented I/O.
-  * lambda module: create one-liner easily and `for` loop construct.
-  * mapping module: hash arbitrary object and generic `getitem()`,
-    `setitem()`.
-  * types module: top level class like `object`, `type` and conversion
-    protocols like `bool()`.
+object.vim implements its features in the following modules:
+
+  * class:    inheritance and instantiation.
+  * iter:     iterator for |List| and |String| and helper functions.
+  * file:     plain old file object for line-oriented I/O.
+  * lambda:   create one-liner easily and `for()` loop construct.
+  * mapping:  hash arbitrary object and generic `getitem()`, `setitem()`.
+  * types:    top level classes like `object`, `type` and conversion protocols
+    like `bool()`.
 
 Note that although these features are implemented in separate files, they are
 kind-of imported into a shallow namespace for the ease of use so please use
@@ -149,26 +120,22 @@ them as much as you can. However, each individual function is still documented
 with its full name, as found in |object.vim-functions|.
 
 TESTING
-I use `vader.vim` (|https://github.com/junegunn/vader.vim|) for unit tests. A
-comprehensive test suite for each module is found at `object.vim/test`. To run
-all the test, use:
+I use `vader.vim` for unit tests. A comprehensive test suite for each module
+can be found in `object.vim/test`. To run all the test, use:
 >
   object.vim/test/run-tests.sh
 <
 
 DEPENDENCY
-The only dependency is `vim-maktaba`
-(|https://github.com/google/vim-maktaba|). I use it to deal the built-in types
-of Vimscript. You need a Vim with version >= 7.4 to work.
+  * `vim-maktaba`: |https://github.com/google/vim-maktaba|, version >= 1.16.0
+  * `vader.vim`: |https://github.com/junegunn/vader.vim|
+  * `Vim`: version >= 7.4
 
 AUTHOR
   * author: cgsdfc
-  * email: cgsdfc@126.com or 2far2long@gmail.com (Use the first one as long as
-    you can since I only periodically check the second one)
+  * email: cgsdfc@126.com
 
-
-That's it, folks. May the object be with you!
-
+There are a lot more interesting stuffs about object.vim. Read on.
 
 ==============================================================================
 PROTOCOLS                                               *object.vim-protocols*
@@ -623,7 +590,7 @@ lambda.__call__([args])                                    *lambda.__call__()*
 ==============================================================================
 FUNCTIONS                                               *object.vim-functions*
 
-class({name}, [bases])                                  *object#class#class()*
+object#class#class({name}, [bases])                     *object#class#class()*
   Define a class that has a {name} and optional [bases].
 
   {name} should be a |String| of valid identifier. [bases] should be a class
@@ -647,7 +614,7 @@ object#class#new_({cls}, {args})                         *object#class#new_()*
     endfunction
 <
 
-object#class#type()                                      *object#class#type()*
+objec#class#type([args])                                 *object#class#type()*
   Return the type of an object or create a new type dynamically.
 
   type(obj) -> obj.__class__
@@ -879,6 +846,35 @@ Key out of range for sequences.
                                                               *ERROR(IOError)*
 File not writable or readable. Operation on a closed file. Thrown by file
 objects usually.
+
+==============================================================================
+MOTIVATION                                             *object.vim-motivation*
+
+Well the first question that I asked myself at the beginning of this project
+is: What? you want to create a DSL in Vim that looks like Python and you
+expect those who use pure Python or pure Vimscript for their plugins to like
+your hybridization that sounds like Vimthon?
+
+Well first of all, I don't expect people to like my plugin and I just find it
+fun to write an OOP framework for Vim. That's my motivation.
+
+Second, I personally don't think it is a DSL because it is just a bunch of
+functions that work together. There is no new syntax to learn (which means
+extra rules to obey). You just pick up a piece of tool you want to use and it
+(should) works out of the box.
+
+Third, I am not doing hybridization like Emacs in Vim or vice versa, which
+explains why we have such a limited number of functions compared with the
+versatile libraries of Python. Those who expect a complete Python layer over
+Vimscript will be disappointed by the fact that not even the standard library
+`sys` is found. What's more, some counterparts of Python have different
+signatures or even different behaviors, which will be explained in details.
+Most of the time, we strive for Python compatibility since that won't surprise
+people gravely.
+
+In short, what we provide is an OOP framework that feels familiar to Python
+and hopefully, useful for Vim plugin writers.
+
 
 
 vim:tw=78:ts=8:ft=help:norl:

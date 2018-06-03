@@ -204,7 +204,6 @@ let s:None = object#None()
 let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__', '__mro__']
 
 ""
-" @function class({name}, [bases])
 " Define a class that has a {name} and optional [bases].
 "
 " {name} should be a |String| of valid identifier.
@@ -269,6 +268,7 @@ function! object#class#new_(cls, args)
 endfunction
 
 ""
+" @function objec#class#type([args])
 " Return the type of an object or create a new type dynamically.
 "
 " type(obj) -> obj.__class__
