@@ -3,6 +3,7 @@ language: vim
 before_script: |
   git clone https://github.com/junegunn/vader.vim.git
   git clone https://github.com/google/vim-maktaba.git
+  sudo apt-get install vim -y
 
 script: |
   vim -Nu <(cat << VIMRC
