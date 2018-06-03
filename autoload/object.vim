@@ -109,8 +109,9 @@
 " <
 "
 " @subsection dependency
-"   * `vim-maktaba`: |https://github.com/google/vim-maktaba|, version >= 1.16.0
+"   * `vim-maktaba`: |https://github.com/google/vim-maktaba|
 "   * `vader.vim`: |https://github.com/junegunn/vader.vim|
+"   * `vimdoc`: |https://github.com/google/vimdoc| (developers)
 "   * `Vim`: version >= 7.4
 "
 " @subsection author
