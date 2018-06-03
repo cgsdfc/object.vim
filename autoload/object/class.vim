@@ -113,6 +113,23 @@
 "   Animal makes sound
 "   Dog makes sound
 " <
+" What surprises you is that the `super()` does not return
+" a proxy object but just a plain |Funcref|, which deviates the spirit of
+" "everything is an object".
+" This is a trade-off of convenience and efficiency.
+" Creating a super object is expensive since for those attributes to be
+" present, we have to put them into the super object and due to the
+" chained-calling nature of `super()`, multiple super objects may be
+" created during one call to `super()`. We can create them lazily and cache
+" them in each instance, but that adds complexity to the implementation.
+" Yet hopefully, this will be implemented in the future as it looks and feels better
+" than the current `super()`. Compare:
+" >
+"  call object#super(s:MyClass, self).__init__()
+"  call object#super(s:MyClass, self, '__init__')()
+" <
+" The second one looks just stupid.
+"
 "
 " @subsection special-attributes
 " Like Python, object.vim uses double-underscored names for special
@@ -187,6 +204,7 @@ let s:None = object#None()
 let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__', '__mro__']
 
 ""
+" @function class({name}, [bases])
 " Define a class that has a {name} and optional [bases].
 "
 " {name} should be a |String| of valid identifier.

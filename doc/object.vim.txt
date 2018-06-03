@@ -1,4 +1,4 @@
-*object.vim.txt*	Object-Oriented Framework
+*object.vim.txt*	An Object-Oriented Framework for Vimscript
 cgsdfc                                                   *object* *object.vim*
 
 ==============================================================================
@@ -84,8 +84,8 @@ And yes, you can use `super()` with a little more verbosity:
 <
 Note that to avoid differing signature problems in the chained calls of
 `super()`, the above cooperative methods take arbitrary number of arguments,
-which produces the `call call(...)` verbosity. It can be made brief by using a
-|Dict| as argument:
+which produces the `call` `call(...)` verbosity. It can be made brief by using
+a |Dict| as argument:
 >
   let s:Shape = object#class('Shape')
   function! s:Shape.__init__(kwdict)
@@ -99,16 +99,8 @@ which produces the `call call(...)` verbosity. It can be made brief by using a
     call object#super(s:ColoredShape, self, '__init__')(a:kwdict)
   endfunction
 <
-
-What surprises you is that the `super()` of object.vim does not return a proxy
-object but just a plain |Funcref|, which deviates the spirit of "everything is
-an object" and make the signature strange. Well for now, what I can say is
-only "this is a trade-off of convenience and efficiency". For those unpleasant
-about this decision, please look at the |Why-super()-is-like-this| for more
-details.
-
-Dear readers, there is a lot more interesting stuffs to explore about
-object.vim, such as lambda and iterator so please read on.
+There is a lot more interesting stuffs about object.vim such as lambda and
+iterator. Read on.
 
 
 MOTIVATION
@@ -303,6 +295,21 @@ siblings for you:
   Animal makes sound
   Dog makes sound
 <
+What surprises you is that the `super()` does not return a proxy object but
+just a plain |Funcref|, which deviates the spirit of "everything is an
+object". This is a trade-off of convenience and efficiency. Creating a super
+object is expensive since for those attributes to be present, we have to put
+them into the super object and due to the chained-calling nature of `super()`,
+multiple super objects may be created during one call to `super()`. We can
+create them lazily and cache them in each instance, but that adds complexity
+to the implementation. Yet hopefully, this will be implemented in the future
+as it looks and feels better than the current `super()`. Compare:
+>
+ call object#super(s:MyClass, self).__init__()
+ call object#super(s:MyClass, self, '__init__')()
+<
+The second one looks just stupid.
+
 
 SPECIAL-ATTRIBUTES
 Like Python, object.vim uses double-underscored names for special attributes.
@@ -616,7 +623,7 @@ lambda.__call__([args])                                    *lambda.__call__()*
 ==============================================================================
 FUNCTIONS                                               *object.vim-functions*
 
-object#class#class({name}, [bases])                     *object#class#class()*
+class({name}, [bases])                                  *object#class#class()*
   Define a class that has a {name} and optional [bases].
 
   {name} should be a |String| of valid identifier. [bases] should be a class

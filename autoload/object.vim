@@ -68,7 +68,7 @@
 " <
 " Note that to avoid differing signature problems in the chained calls
 " of `super()`, the above cooperative methods take arbitrary number of
-" arguments, which produces the `call call(...)` verbosity. It can be
+" arguments, which produces the `call` `call(...)` verbosity. It can be
 " made brief by using a |Dict| as argument:
 " >
 "   let s:Shape = object#class('Shape')
@@ -83,16 +83,8 @@
 "     call object#super(s:ColoredShape, self, '__init__')(a:kwdict)
 "   endfunction
 " <
-"
-" What surprises you is that the `super()` of object.vim does not return
-" a proxy object but just a plain |Funcref|, which deviates the spirit of
-" "everything is an object" and make the signature strange. Well for now, what I can
-" say is only "this is a trade-off of convenience and efficiency". For those
-" unpleasant about this decision, please look at the
-" |Why-super()-is-like-this| for more details.
-"
-" Dear readers, there is a lot more interesting stuffs to explore about
-" object.vim, such as lambda and iterator so please read on.
+" There is a lot more interesting stuffs about object.vim
+" such as lambda and iterator. Read on.
 "
 "
 " @subsection motivation
@@ -155,7 +147,7 @@
 " You need a Vim with version >= 7.4 to work.
 "
 " @subsection author
-"   * author: cgsdfc
+"   * author: @plugin(author)
 "   * email: cgsdfc@126.com or 2far2long@gmail.com
 "   (Use the first one as long as you can since I only periodically check the second one)
 "
