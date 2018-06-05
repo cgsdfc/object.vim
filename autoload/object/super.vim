@@ -21,10 +21,10 @@
 "
 "   let c = object#new(s:ColoredShape, {'color':'red', 'shapename':'circle'})
 " <
-" What `super()` does is to locate the next type in the MRO and
+" What `super()` does is locating the next type in the MRO and
 " returns an object that has all the methods of this type bound to the
 " invoking object. The proxy object is further cached in the invoking object,
-" which makes following accesses to it a constant-time operation.
+" which makes following access to it faster.
 "
 " @subsection use-cases-of-two-supers
 " Currently two ways to call methods of parents and siblings are provided

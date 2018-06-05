@@ -4,9 +4,9 @@ cgsdfc                                                   *object* *object.vim*
 ==============================================================================
 CONTENTS                                                 *object.vim-contents*
   1. Introduction...........................................|object.vim-intro|
-  2. Protocols..........................................|object.vim-protocols|
-  3. Class..................................................|object.vim-class|
-  4. Super..................................................|object.vim-super|
+  2. Class..................................................|object.vim-class|
+  3. Super..................................................|object.vim-super|
+  4. Protocols..........................................|object.vim-protocols|
   5. Mapping..............................................|object.vim-mapping|
   6. Iterator................................................|object.vim-iter|
   7. File....................................................|object.vim-file|
@@ -107,14 +107,6 @@ AUTHOR
   * email: cgsdfc@126.com
 
 There are a lot more interesting stuffs about object.vim. Read on.
-
-==============================================================================
-PROTOCOLS                                               *object.vim-protocols*
-
-A set of basic hookable functions that inspect and operate on different
-properties of an object. A protocol in this context means an global function
-that has well defined behaviours for built-in types and can be overriden by
-the corresponding methods with double underscores names.
 
 ==============================================================================
 CLASS                                                       *object.vim-class*
@@ -221,32 +213,8 @@ in several ways:
   1
 <
 However, if the child is overriding a method of its parents, it can only call
-the parents' version with `super()`, which will look up methods in parents or
-siblings for you:
->
-  function! s:Dog.make_sound()
-    call object#super(s:Dog, self, 'make_sound')()
-    echo 'Dog makes sound'
-  endfunction
-
-  call dog.make_sound()
-  Animal makes sound
-  Dog makes sound
-<
-What surprises you is that the `super()` does not return a proxy object but
-just a plain |Funcref|, which deviates the spirit of "everything is an
-object". This is a trade-off of convenience and efficiency. Creating a super
-object is expensive since for those attributes to be present, we have to put
-them into the super object and due to the chained-calling nature of `super()`,
-multiple super objects may be created during one call to `super()`. We can
-create them lazily and cache them in each instance, but that adds complexity
-to the implementation. Yet hopefully, this will be implemented in the future
-as it looks and feels better than the current `super()`. Compare:
->
- call object#super(s:MyClass, self).__init__()
- call object#super(s:MyClass, self, '__init__')()
-<
-The second one looks just stupid.
+the parents' version with `super()`. See |object.vim-super| for more
+information.
 
 
 SPECIAL-ATTRIBUTES
@@ -339,6 +307,10 @@ Most typically, you can initialize base class via `super()`:
 
   let c = object#new(s:ColoredShape, {'color':'red', 'shapename':'circle'})
 <
+What `super()` does is locating the next type in the MRO and returns an object
+that has all the methods of this type bound to the invoking object. The proxy
+object is further cached in the invoking object, which makes following access
+to it faster.
 
 USE-CASES-OF-TWO-SUPERS
 Currently two ways to call methods of parents and siblings are provided and
@@ -394,6 +366,14 @@ have the same name, conflicts are handled by having a list of super objects
 for each name. When the `type` and `obj` have been validated, `super()`
 consults the cache before going through the MRO. When the cache misses, it
 goes all the way to create a super object and fill in the cache.
+
+==============================================================================
+PROTOCOLS                                               *object.vim-protocols*
+
+A set of basic hookable functions that inspect and operate on different
+properties of an object. A protocol in this context means an global function
+that has well defined behaviours for built-in types and can be overriden by
+the corresponding methods with double underscores names.
 
 ==============================================================================
 MAPPING                                                   *object.vim-mapping*
@@ -964,7 +944,7 @@ object#types#dict([iter])                                *object#types#dict()*
 >
     dict() -> an empty dictionary.
     dict(iterable) -> initiazed with 2-list items.
-    dict(iterable, lambda) -> applies lambda to iterable, initiazed with the
+    dict(iterable, str) -> applies str to iterable, initiazed with the
       resulting list.
     dict(plain dictionary) -> a copy of the argument.
 <

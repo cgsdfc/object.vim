@@ -101,34 +101,8 @@
 "   1
 " <
 " However, if the child is overriding a method of its parents, it can only
-" call the parents' version with `super()`,
-" which will look up methods in parents or siblings for you:
-" >
-"   function! s:Dog.make_sound()
-"     call object#super(s:Dog, self, 'make_sound')()
-"     echo 'Dog makes sound'
-"   endfunction
-"
-"   call dog.make_sound()
-"   Animal makes sound
-"   Dog makes sound
-" <
-" What surprises you is that the `super()` does not return
-" a proxy object but just a plain |Funcref|, which deviates the spirit of
-" "everything is an object".
-" This is a trade-off of convenience and efficiency.
-" Creating a super object is expensive since for those attributes to be
-" present, we have to put them into the super object and due to the
-" chained-calling nature of `super()`, multiple super objects may be
-" created during one call to `super()`. We can create them lazily and cache
-" them in each instance, but that adds complexity to the implementation.
-" Yet hopefully, this will be implemented in the future as it looks and feels better
-" than the current `super()`. Compare:
-" >
-"  call object#super(s:MyClass, self).__init__()
-"  call object#super(s:MyClass, self, '__init__')()
-" <
-" The second one looks just stupid.
+" call the parents' version with `super()`. See @section(super) for more
+" information.
 "
 "
 " @subsection special-attributes
