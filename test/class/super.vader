@@ -1,76 +1,132 @@
 " vim: ft=vim
+" The file test the super() and super_() functions.
+" Please refer to the document in super.vim for their differences.
 
-Execute (Throws TypeError if isinstance(obj, type) is false);
+"
+" Common Behaviors
+"
+
+Before;
+let object = object#object_()
 let X = object#class('X')
 let Y = object#class('Y')
-function! X.__init__()
-  call object#super(g:Y, self, '__init__')
+let Z = object#class('Z')
+
+let Base = object#class('Base')
+let Sibling = object#class('Sibling')
+let Derived = object#class('Derived', [Base, Sibling])
+
+function! Base.__init__()
+  call object#super_(g:Base, self, '__init__')()
+  let self.base = 1
 endfunction
-AssertThrows call object#new(g:X)
-Assert g:vader_exception =~# 'TypeError'
-Log g:vader_exception
+
+function! Sibling.__init__()
+  call object#super_(g:Sibling, self, '__init__')()
+  let self.sibling = 1
+endfunction
+
+function! Derived.__init__()
+  call object#super_(g:Derived, self, '__init__')()
+  let self.derived = 1
+endfunction
+
+
+Execute (Throws TypeError if isinstance(obj, type) is false);
+function! X.__init__()
+  call object#super(g:Y, self)
+endfunction
+
+function! Y.__init__()
+  call object#super_(g:X, self, '__init__')
+endfunction
+
+for Cls in [X, Y]
+  AssertThrows call object#new(g:Cls)
+  Assert g:vader_exception =~# 'TypeError'
+  Log g:vader_exception
+endfor
 
 Execute (Throws TypeError if obj is not an object);
-let Y = object#class('Y')
-AssertThrows call object#super(g:Y, 1, '__init__')
+
+AssertThrows call object#super_(g:Y, 1, '__init__')
 Assert g:vader_exception =~# 'TypeError'
 Log g:vader_exception
+
+AssertThrows call object#super(g:Y, 1)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
 
 Execute (Throws TypeError if type is not a class);
-let Y = object#class('Y')
 let y = object#new(Y)
-AssertThrows call object#super(1, g:y, '__init__')
+
+AssertThrows call object#super_(1, g:y, '__init__')
 Assert g:vader_exception =~# 'TypeError'
 Log g:vader_exception
 
+AssertThrows call object#super(1, g:y)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+
+Execute (Throws TypeError if there is no next class in MRO);
+let o = object#object()
+
+AssertThrows call object#super_(g:object, g:o, '__init__')
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+AssertThrows call object#super(g:object, g:o)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+" End of Common Beheviors.
+
+"
+" Test super_()
+"
+
+Execute (Forward call to direct parents and sibling);
+
+let x = object#new(Derived)
+AssertEqual [x.base, x.derived, x.sibling], [1, 1, 1]
+let y = object#new(Base)
+AssertEqual y.base, 1
+let z = object#new(Sibling)
+AssertEqual z.sibling, 1
+
+
 Execute (Throws WrongType or ValueError if name is not a String or an identifier);
-let Y = object#class('Y')
 let y = object#new(Y)
 let input = [1, range(2), '$x']
+
 for x in input
-  AssertThrows call object#super(g:Y, g:y, g:x)
+  AssertThrows call object#super_(g:Y, g:y, g:x)
   Assert g:vader_exception =~# '\v\CWrongType|ValueError'
   Log g:vader_exception
 endfor
 
-Execute (Throws TypeError if there is no next class in MRO);
-let object = object#object_()
-let o = object#object()
-AssertThrows call object#super(g:object, g:o, '__init__')
-Log g:vader_exception
 
 Execute (Throws AttributeError if name cannot be found);
-let Y = object#class('Y')
 let X = object#class('X', Y)
+
 function! X.__init__()
-  call object#super(g:Y, self, 'non_existing')
+  call object#super_(g:X, self, 'non_existing')
 endfunction
+
 AssertThrows call object#new(g:X)
 Assert g:vader_exception =~# 'AttributeError'
 Log g:vader_exception
 
+
 "
-" super_()
+" Test super()
 "
 
-Execute (Does forward call to parents or siblings);
-let X = object#class('X')
-function! X.__init__()
-  let self.x = 1
-endfunction
-
-let Y = object#class('Y', X)
-function! Y.__init__()
-  let sup = object#super_(g:Y, self)
-  Log object#dir(sup)
-  Assert sup.__self__ is# self
-  Assert sup.__self_class__ is# object#type(self)
-  Assert sup.__thisclass__ is# g:Y
-
-  call sup.__init__()
-  let self.y = 1
-endfunction
-
-let y = object#new(Y)
-AssertEqual y.x, 1
-AssertEqual y.y, 1
+Execute (Has correct attributes);
+let x = object#new(X)
+let su = object#super(X, x)
+Assert su.__self__ is# x
+Assert su.__thisclass__ is# X
+Assert su.__self_class__ is# x.__class__
+Assert object#repr(su) is# "<'super' object>"

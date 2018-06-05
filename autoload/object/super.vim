@@ -31,7 +31,7 @@
 " `__super__` is not created. However, when cooperative inheritance is used,
 " a sinle chained call to `super_()` results in O(len(MRO)^2) time to resolve
 " all the methods along the way. Therefore, if you make sparse calls to
-" `super_()` and you want to minimize the space of your instances, you may use
+" the methods of parents and you want to minimize the space of your instances, you may use
 " `super_()` since the time won't be a problem. However, in present of a
 " long MRO and frequent calls to `super_()`, you may prefer `super()`.
 "
@@ -70,7 +70,6 @@
 
 let s:super = object#type('super', [], {
       \ '__init__': function('object#super#__init__'),
-      \ '__repr__': function('object#super#__repr__'),
       \})
 
 ""
@@ -97,10 +96,11 @@ function! object#super#super(type, obj)
   endif
 
   let idx = object#class#find_class(type, obj.__class__)
+  let mro = obj.__class__.__mro__
   if idx < 0
     throw object#TypeError('super_() requires isinstance(type, obj)')
   endif
-  if len(obj.__class__.__mro__) - 1 == idx
+  if len(mro) - 1 == idx
     throw object#TypeError('%s object has no superclass', object#types#name(obj))
   endif
 
@@ -119,10 +119,6 @@ function! object#super#__init__(type, obj, list) dict
     let rebind = map(methods, 'function("object#super#call", [v:val], self)')
     call extend(self, rebind, 'keep')
   endfor
-endfunction
-
-function! object#super#__repr__() dict
-  return printf('<super: %s, %s>', self.__thisclass__.__name__, object#repr(self.__self__))
 endfunction
 
 function! object#super#call(X, ...) dict
