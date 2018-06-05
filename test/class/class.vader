@@ -23,9 +23,9 @@ AssertThrows call object#class(1)
 Assert g:vader_exception =~# 'WrongType'
 Log g:vader_exception
 
-Execute(Throws TypeError if bases is neither a List nor a class);
+Execute(Throws WrongType if bases is neither a List nor a class);
 AssertThrows call object#class('Man', 2)
-Assert g:vader_exception =~# 'TypeError'
+Assert g:vader_exception =~# 'WrongType'
 Log g:vader_exception
 
 Execute(Throws TypeError if bases is not valid classes);

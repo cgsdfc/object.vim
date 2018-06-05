@@ -28,8 +28,8 @@ endfunction
 
 for Cls in [X, Y]
   AssertThrows call object#new(g:Cls)
-  Assert g:vader_exception =~# 'TypeError'
   Log g:vader_exception
+  Assert g:vader_exception =~# 'TypeError'
 endfor
 
 Execute (Throws TypeError if obj is not an object);
@@ -175,31 +175,29 @@ function! X1.__init__()
   let self.x1 = 1
 endfunction
 
-function! X1.__repr__()
-  return 'X1 object'
-endfunction
-
 function! X2.__init__()
   call object#super(g:X2, self).__init__()
   let self.x2 = 1
 endfunction
 
-function! X2.__repr__()
-  return 'X2 object'
-endfunction
-
 function! Derived.__init__()
   call object#super(g:Derived, self).__init__()
   let self.derived = 1
-  " debug call object#repr(object#super(g:Derived, self))
-  Log object#super(g:Derived, self).__repr__()
-endfunction
-
-function! Derived.__repr__()
-  return 'Derived object'
 endfunction
 
 let x = object#new(Derived)
 AssertEqual [x.x1, x.x2, x.derived], [1, 1, 1]
-Log object#repr(x.__super__)
+
+
+Execute (Forward __repr__());
+function! Base.__repr__()
+  return 'Base instance'
+endfunction
+
+function! Derived.__repr__()
+  return object#super(g:Derived, self).__repr__()
+endfunction
+
+let x = object#new(Derived)
+AssertEqual object#repr(x), 'Base instance'
 

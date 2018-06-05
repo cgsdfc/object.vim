@@ -213,29 +213,21 @@ let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__', '__mro_
 "
 " Return the newly created class with inherited attributes.
 function! object#class#class(name, ...)
-  let name = maktaba#ensure#IsString(a:name)
   let argc = object#util#ensure_argc(1, a:0)
 
   " Figure out the bases list
   if !argc
-    let bases = [s:object_class]
-  elseif maktaba#value#IsList(a:1)
-    if empty(a:1)
-      let bases = [s:object_class]
-    else
-      let bases = copy(a:1)
-    endif
+    let bases = []
   elseif maktaba#value#IsDict(a:1)
     let bases = [a:1]
   else
-    throw object#TypeError("'bases' should be a class or a List of classes")
+    let bases = a:1
   endif
 
-  call object#class#ensure_bases(bases)
   let cls = {
         \ '__class__' : s:type_class,
-        \ }
-  call object#class#class_init(cls, name, bases)
+        \}
+  call object#class#class_init(cls, a:name, bases)
   return cls
 endfunction
 
@@ -321,6 +313,7 @@ endfunction
 
 "
 " Extract methods from {cls}.
+" {cls} will be copied first.
 "
 function! object#class#methods(cls)
   return filter(copy(a:cls), 'object#class#is_method(v:key, v:val)')
@@ -331,7 +324,8 @@ endfunction
 " non-duplicate classes.
 "
 function! object#class#ensure_bases(x)
-  let base = map(a:x, 'object#class#ensure_class(v:val)')
+  let base = map(maktaba#ensure#IsList(a:x),
+        \  'object#class#ensure_class(v:val)')
   let N = len(base)
   if N == 1
     return base
@@ -355,10 +349,8 @@ endfunction
 " Initialize a class with {name}, {bases} and a {dict} of attributes.
 "
 function! object#class#type_init(cls, name, bases, dict)
-  let name = maktaba#ensure#IsString(a:name)
-  let bases = maktaba#ensure#IsList(a:bases)
   let dict = maktaba#ensure#IsDict(a:dict)
-  call object#class#class_init(a:cls, name, bases)
+  call object#class#class_init(a:cls, a:name, a:bases)
   call extend(a:cls, object#class#methods(dict), 'force')
 endfunction
 
@@ -367,8 +359,9 @@ endfunction
 "
 function! object#class#class_init(cls, name, bases)
   let a:cls.__name__ = object#util#ensure_identifier(a:name)
-  let a:cls.__bases__ = object#class#ensure_bases(a:bases)
-  let a:cls.__base__ = a:bases[0]
+  let a:cls.__bases__ = empty(a:bases) ? [s:object_class]:
+        \ copy(object#class#ensure_bases(a:bases))
+  let a:cls.__base__ = a:cls.__bases__[0]
   let a:cls.__mro__ = object#class#mro(a:cls)
 
   for x in a:cls.__mro__
