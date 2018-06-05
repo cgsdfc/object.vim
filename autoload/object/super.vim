@@ -1,5 +1,30 @@
 ""
 " @section Super, super
+" `super()` is a way for a class to call methods of their parents and siblings while
+" overriding them. In this section you will learn how to use the two forms of
+" `super()` provided by object.vim.
+"
+" @subsection usage
+" Most typically, you can initialize base class via `super()`:
+" >
+"   let s:Shape = object#class('Shape')
+"   function! s:Shape.__init__(kwdict)
+"     let self.shapename = get(a:kwdict, 'shapename')
+"     call object#super(s:Shape, self).__init__(a:kwdict)
+"   endfunction
+"
+"   let s:ColoredShape = object#class('ColoredShape', s:Shape)
+"   function! s:ColoredShape.__init__(kwdict)
+"     let self.color = get(a:kwdict, 'color')
+"     call object#super(s:ColoredShape, self).__init__(a:kwdict)
+"   endfunction
+"
+"   let c = object#new(s:ColoredShape, {'color':'red', 'shapename':'circle'})
+" <
+" What `super()` does is to locate the next type in the MRO and
+" returns an object that has all the methods of this type bound to the
+" invoking object. The proxy object is further cached in the invoking object,
+" which makes following accesses to it a constant-time operation.
 "
 " @subsection use-cases-of-two-supers
 " Currently two ways to call methods of parents and siblings are provided

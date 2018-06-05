@@ -167,7 +167,7 @@ endfunction
 " >
 "   dict() -> an empty dictionary.
 "   dict(iterable) -> initiazed with 2-list items.
-"   dict(iterable, lambda) -> applies lambda to iterable, initiazed with the resulting list.
+"   dict(iterable, str) -> applies str to iterable, initiazed with the resulting list.
 "   dict(plain dictionary) -> a copy of the argument.
 " <
 "
@@ -189,7 +189,8 @@ function! object#types#dict(...)
   let iter = object#iter(a:1)
   let list = a:0 == 2 ? object#map(iter, a:2) : object#list(iter)
 
-  for x in map(list, 's:ensure_2_lists(v:val)')
+  for item in list
+    let x = s:ensure_2_lists(item)
     let dict[x[0]] = x[1]
   endfor
   return dict
@@ -224,5 +225,3 @@ function! object#types#list(...)
     return list
   endtry
 endfunction
-
-

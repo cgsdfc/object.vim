@@ -70,37 +70,6 @@ C3-linearization, you get exactly the same MRO as examplified by
    <type, 'object'>]
 <
 
-And yes, you can use `super()` with a little more verbosity:
->
-  let s:Shape = object#class('Shape')
-  function! s:Shape.__init__(shapename, ...)
-    let self.shapename = a:shapename
-    call call(object#super(s:Shape, self, '__init__'), a:000)
-  endfunction
-
-  let s:ColoredShape = object#class('ColoredShape', s:Shape)
-  function! s:ColoredShape.__init__(color, ...)
-    let self.color = a:color
-    call call(object#super(s:ColoredShape, self, '__init__'), a:000)
-  endfunction
-<
-Note that to avoid differing signature problems in the chained calls of
-`super()`, the above cooperative methods take arbitrary number of arguments,
-which produces the `call` `call(...)` verbosity. It can be made brief by using
-a |Dict| as argument:
->
-  let s:Shape = object#class('Shape')
-  function! s:Shape.__init__(kwdict)
-    let self.shapename = get(a:kwdict, 'shapename')
-    call object#super(s:Shape, self, '__init__')(a:kwdict)
-  endfunction
-
-  let s:ColoredShape = object#class('ColoredShape', s:Shape)
-  function! s:ColoredShape.__init__(kwdict)
-    let self.color = get(a:kwdict, 'color')
-    call object#super(s:ColoredShape, self, '__init__')(a:kwdict)
-  endfunction
-<
 
 FEATURES
 object.vim implements its features in the following modules:
@@ -349,6 +318,27 @@ classes. Here are the ways to do so:
 ==============================================================================
 SUPER                                                       *object.vim-super*
 
+`super()` is a way for a class to call methods of their parents and siblings
+while overriding them. In this section you will learn how to use the two forms
+of `super()` provided by object.vim.
+
+USAGE
+Most typically, you can initialize base class via `super()`:
+>
+  let s:Shape = object#class('Shape')
+  function! s:Shape.__init__(kwdict)
+    let self.shapename = get(a:kwdict, 'shapename')
+    call object#super(s:Shape, self).__init__(a:kwdict)
+  endfunction
+
+  let s:ColoredShape = object#class('ColoredShape', s:Shape)
+  function! s:ColoredShape.__init__(kwdict)
+    let self.color = get(a:kwdict, 'color')
+    call object#super(s:ColoredShape, self).__init__(a:kwdict)
+  endfunction
+
+  let c = object#new(s:ColoredShape, {'color':'red', 'shapename':'circle'})
+<
 
 USE-CASES-OF-TWO-SUPERS
 Currently two ways to call methods of parents and siblings are provided and
