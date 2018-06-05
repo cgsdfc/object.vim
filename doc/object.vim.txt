@@ -6,15 +6,16 @@ CONTENTS                                                 *object.vim-contents*
   1. Introduction...........................................|object.vim-intro|
   2. Protocols..........................................|object.vim-protocols|
   3. Class..................................................|object.vim-class|
-  4. Mapping..............................................|object.vim-mapping|
-  5. Iterator................................................|object.vim-iter|
-  6. File....................................................|object.vim-file|
-  7. Types..................................................|object.vim-types|
-  8. Lambda................................................|object.vim-lambda|
-  9. Dictionaries...........................................|object.vim-dicts|
-  10. Functions.........................................|object.vim-functions|
-  11. Exceptions.......................................|object.vim-exceptions|
-  12. Motivation.......................................|object.vim-motivation|
+  4. Super..................................................|object.vim-super|
+  5. Mapping..............................................|object.vim-mapping|
+  6. Iterator................................................|object.vim-iter|
+  7. File....................................................|object.vim-file|
+  8. Types..................................................|object.vim-types|
+  9. Lambda................................................|object.vim-lambda|
+  10. Dictionaries..........................................|object.vim-dicts|
+  11. Functions.........................................|object.vim-functions|
+  12. Exceptions.......................................|object.vim-exceptions|
+  13. Motivation.......................................|object.vim-motivation|
 
 ==============================================================================
 INTRODUCTION                                                *object.vim-intro*
@@ -346,6 +347,65 @@ classes. Here are the ways to do so:
 <
 
 ==============================================================================
+SUPER                                                       *object.vim-super*
+
+
+USE-CASES-OF-TWO-SUPERS
+Currently two ways to call methods of parents and siblings are provided and
+let's talk about the cases when you may use one of them.
+>
+  super_(type, obj)
+<
+It creates a proxy object delegating almost all the method calls to parents
+and siblings. The super objects are cached in the the invoking object, i.e.,
+`__self__` so later calls to `super_()` with specific `type` and `obj`
+effectively retrieves the cached objects. That means if you have used a lot of
+`super()`s in a class, you can use `super_()` to speed up. However, since the
+nature of static method resolution, the number of methods of one super object
+grows linearly to the size of the MRO. Since all the classes in the MRO except
+the first one may result in a distinct super object, the total number of
+methods of those super objects is ordered by O(len(MRO)^2), which is always
+the case when cooperative inheritance is in used. Therefore, if you have a
+somehow deep class hierarchy, be careful with the space overhead with the
+instances of those leaf classes, especially when each of your classes has a
+non-trivial number of methods. In short, use `super_()` if you densely call
+different methods of parents and siblings while the depth of your class
+hierarchy is modest.
+>
+  super(type, obj, name)
+<
+It searches the MRO started from the next of `type` and returns the first
+method matching `name`. There isn't any caching behind the sense so
+`__super__` is not created. However, when cooperative inheritance is used, a
+sinle chained call to `super()` results in O(len(MRO)^2) time to resolve all
+the methods along the way. Therefore, if you make sparse calls to `super()`
+and you want to minimize the space of your instances, you may use `super()`
+since the time won't be a problem. However, in present of a long MRO and
+frequent calls to `super()`, you may prefer `super_()`.
+
+You are recommended to use `super_()` at first and only when "Out Of Memory"
+arises should you turn some `super_()` to `super()` because not only the
+syntax of `super_()` looks more nature (more like Python), but the attributes
+of super objects aid inspection. Mixing both of them in one single class is
+not recommended, since both of their benefits may be lost (you asked for a
+cache but you didn't use it). However, you can mix them in different classes
+of one hierarchy, especially using `super()` in those leaf classes whose MRO
+is long.
+
+CACHING-SUPER
+To save time, `super_()` caches the super objects of each `type` in each `obj`
+with a special attribute `__super__`. Unlike other special attribute like
+`__mro__`, the structure of this one is kept private, which means you should
+not count on it. In the future, inspection of it may be provided.
+
+The current `__super__` keeps a dictionary of all the created super objects
+hashed with the name of their `__thisclass__`. Since different classes can
+have the same name, conflicts are handled by having a list of super objects
+for each name. When the `type` and `obj` have been validated, `super_()`
+consults the cache before going through the MRO. When the cache misses, it
+goes all the way to create a super object and fill in the cache.
+
+==============================================================================
 MAPPING                                                   *object.vim-mapping*
 
 An interface to key-value containers. A mapping is an object that supports
@@ -507,6 +567,53 @@ Examples:
 ==============================================================================
 DICTIONARIES                                                *object.vim-dicts*
 
+                                                             *object.vim.dict*
+A wrapper class of built-in |Dict|.
+
+dict.__init__()                                              *dict.__init__()*
+  Initialize a dict
+
+dict.__repr__()                                              *dict.__repr__()*
+  Representation of a dict.
+
+dict.__bool__()                                              *dict.__bool__()*
+  Test for emptiness of the dict.
+
+dict.__getitem__({idx})                                   *dict.__getitem__()*
+  Get an item from the dict.
+
+dict.__setitem__({idx}, {val})                            *dict.__setitem__()*
+  Set value for a dict item.
+
+dict.__len__()                                                *dict.__len__()*
+  Return the length of the dict.
+
+dict.clear()                                                    *dict.clear()*
+  Remove all items from the dict.
+
+dict.copy()                                                      *dict.copy()*
+  Return a shallow copy of the dict.
+
+dict.get({key}, [default])                                        *dict.get()*
+  Get a value from the dict and fall back on [default].
+  Throws ERROR(KeyError) if the key is not present and no [default] is given.
+
+dict.items()                                                    *dict.items()*
+  Return a list of 2-lists for the items of the dict.
+
+dict.values()                                                  *dict.values()*
+  Return a list from the values of the dict.
+
+dict.keys()                                                      *dict.keys()*
+  Return a list from the keys of the dict.
+
+dict.setdefault({key}, {default})                          *dict.setdefault()*
+  Get and set {default} for the {key}.
+
+dict.pop({key}, [default])                                        *dict.pop()*
+  Remove the specified {key} and return the corresponding value. If {key} is
+  not found, [default] is returned if given, otherwise KeyError if thrown.
+
                                                              *object.vim.file*
 
 file.read()                                                      *file.read()*
@@ -588,6 +695,69 @@ lambda.__call__([args])                                    *lambda.__call__()*
   Throws ERROR(TypeError) if the actual arguments do not match the
   formal arguments declared via names.
 
+                                                             *object.vim.list*
+A wrapper class of built-in |List|.
+
+list.__init__()                                              *list.__init__()*
+  Initialize a list.
+
+list.__repr__()                                              *list.__repr__()*
+  Representation of a list.
+
+list.__bool__()                                              *list.__bool__()*
+  Test for emptiness of the list.
+
+list.__getitem__({idx})                                   *list.__getitem__()*
+  Get an item from the list.
+
+list.__setitem__({idx}, {val})                            *list.__setitem__()*
+  Set value for a list item.
+
+list.__iter__()                                              *list.__iter__()*
+  Return an iterator over the list.
+
+list.__len__()                                                *list.__len__()*
+  Return the length of the list.
+
+list.append({item})                                            *list.append()*
+  Add an item to the end of the list.
+
+list.count({value})                                             *list.count()*
+  Count the occurrences of {value}.
+
+list.extend({iterable})                                        *list.extend()*
+  Extend the list by appending elements from the {iterable}.
+
+list.index({value}, [start])                                    *list.index()*
+  Return the first index of {value} starting from [start].
+  Throws ERROR(ValueError) if the {value} is not present.
+
+list.insert({index}, {item})                                   *list.insert()*
+  Insert an {item} before {index} .
+
+list.pop([index])                                                 *list.pop()*
+  Remove and return the item at [index] @default index=last.
+  Throws ERROR(IndexError) if the list is empty or [index] is out of range.
+
+list.remove({value})                                           *list.remove()*
+  Remove the first occurrence of {value}.
+  Throws ERROR(ValueError) if {value} is not present.
+
+list.reverse()                                                *list.reverse()*
+  Reverse the list in-place.
+
+list.sort([cmp])                                                 *list.sort()*
+  Sort the list in-place. A [cmp] |Funcref| can be used to customize ordering
+  of elements.
+
+                                                            *object.vim.super*
+An object that forwards method calls to parents or siblings of a type.
+
+Special attributes:
+  * __self__:       the bound object.
+  * __self_class__: type of the bound object.
+  * __thisclass__:  type that got passed to `super_()`.
+
 ==============================================================================
 FUNCTIONS                                               *object.vim-functions*
 
@@ -621,15 +791,6 @@ object#class#type([args])                                *object#class#type()*
   type(obj) -> obj.__class__
 
   type(name, bases, dict) -> a new type.
-
-object#class#super({type}, {obj}, {name})               *object#class#super()*
-  Retrieve method {name} bound to {obj} from the parent or sibling of {type}.
-
-  Require object#isinstance({obj}, {type}) to be true.
-
-  Require {type} is not the last class in the mro of {obj}.
-
-  Require the attribute {name} is a |Funcref|.
 
 object#class#isinstance({obj}, {cls})              *object#class#isinstance()*
   Return whether {obj} is an instance of {cls}.
@@ -724,14 +885,8 @@ object#lambda#for({iterable}, {names}, {cmd})            *object#lambda#for()*
     call object#for('key val', items({'a': 1}), 'echo key val')
 <
 
-object#mapping#hash({obj})                             *object#mapping#hash()*
-  Return the hash value of {obj}. {obj} can be a |Number|, a |String| a
-  |Funcref| or special variables like |v:none| and |v:false|, or an object
-  with __hash__() defined.
-
-  Throws ERROR(TypeError) if hash() is not possible for {obj}.
-  Throws ERROR(WrongType) if __hash__ is not a |Funcref| or returns
-  something NAN (Not A Number).
+object#list#list_()                                      *object#list#list_()*
+  Return the list type.
 
 object#mapping#getitem({obj}, {key})                *object#mapping#getitem()*
   Return the value at {key} in {obj} as if {obj} is a mapping. If {obj} is a
@@ -779,6 +934,23 @@ object#protocols#dir({obj})                           *object#protocols#dir()*
   Return a |List| of names of all attributes from {obj}. If {obj} defines
   __dir__(), it is called instead.
 
+
+object#super#super_({type}, {obj})                     *object#super#super_()*
+  Return a super object bound to {obj} that delegates method calls to the
+  parents and siblings of {type}.
+
+  Throws ERROR(TypeError) if object#isinstance({obj}, {type}) is false.
+  Throws ERROR(TypeError) if {type} is at the end of the MRO of {obj}.
+
+object#super#super({type}, {obj}, {name})               *object#super#super()*
+  Retrieve method {name} bound to {obj} from the parent or sibling of {type}.
+
+  The MRO of {obj} is visited started from {type} and the first attribute with
+  {name} that is a |Funcref|, i.e., the first method, is returned.
+
+  Throws ERROR(TypeError) if object#isinstance({obj}, {type}) is false.
+  Throws ERROR(TypeError) if {type} is at the end of the MRO of {obj}.
+  Throws ERROR(AttributeError) if {name} cannot be resolved.
 
 object#types#object()                                  *object#types#object()*
   Create a plain object.

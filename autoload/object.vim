@@ -2,7 +2,7 @@
 " @section Introduction, intro
 " @stylized object
 " @library
-" @order intro protocols class mapping iter file types lambda dicts functions exceptions motivation
+" @order intro protocols class super mapping iter file types lambda dicts functions exceptions motivation
 " >
 "                              __      _           __
 "                       ____  / /_    (_)__  _____/ /_
@@ -161,10 +161,6 @@ endfunction
 
 function! object#type(...) abort
   return call('object#class#type', a:000)
-endfunction
-
-function! object#super(...) abort
-  return call('object#class#super', a:000)
 endfunction
 
 function! object#new_(...) abort
@@ -369,4 +365,16 @@ endfunction
 
 function! object#for(...) abort
   return call('object#lambda#for', a:000)
+endfunction
+
+"
+" super.vim
+"
+
+function! object#super(...) abort
+  return call('object#super#super', a:000)
+endfunction
+
+function! object#super_(...) abort
+  return call('object#super#super_', a:000)
 endfunction

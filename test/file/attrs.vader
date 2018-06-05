@@ -3,34 +3,12 @@
 
 Before;
 let file_ = object#file_()
-let private_attrs = object#file#patterns()[-1]
 let files = map(range(5), 'tempname()')
 call map(copy(files), 'writefile([], v:val)')
-
-"
-" Hiding private attributes
-"
 
 Execute(file object looks fine);
 Log object#dir(file_)
 Log object#repr(file_)
-
-Execute(private attributes not showing up);
-let f = object#open(files[0])
-for x in object#dir(f)
-  Assert x !~# private_attrs
-endfor
-
-Execute(setattr() on file object should throw AttributeError);
-let f = object#open(files[0])
-AssertThrows call object#setattr(g:f, 'x', 1)
-Log g:vader_exception
-Assert g:vader_exception =~# 'AttributeError.*no attribute'
-
-for x in object#dir(f)
-  AssertThrows call object#setattr(g:f, g:x, 1)
-  Assert g:vader_exception =~# 'AttributeError.*readonly'
-endfor
 
 "
 " Initial attributes right after open()'ed

@@ -41,6 +41,7 @@
 
 ""
 " @dict file
+" A file object for line-oriented I/O.
 
 let s:private_attrs = '\v\C(_read|_written)'
 
@@ -54,25 +55,22 @@ let s:writable = '\v\C([aw]|r.*\+)'
 " The pattern for readable mode is a mode_pattern that contains 'r', w+ or a+.
 let s:readable = '\v\C(r|[aw].*\+)'
 
-let s:file = object#class('file')
-let s:file.read = function('object#file#read')
-let s:file.readline = function('object#file#readline')
-let s:file.readlines = function('object#file#readlines')
-let s:file.write = function('object#file#write')
-let s:file.writeline = function('object#file#writeline')
-let s:file.writelines = function('object#file#writelines')
-let s:file.flush = function('object#file#flush')
-let s:file.close = function('object#file#close')
-let s:file.readable = function('object#file#readable')
-let s:file.writable = function('object#file#writable')
-
-let s:file.__init__ = function('object#file#__init__')
-let s:file.__repr__ = function('object#file#__repr__')
-let s:file.__bool__ = function('object#file#__bool__')
-let s:file.__iter__ = function('object#file#__iter__')
-let s:file.__dir__ = function('object#util#hiding_dir', [s:private_attrs])
-let s:file.__getattr__ = function('object#util#hiding_getattr', [s:private_attrs])
-let s:file.__setattr__ = function('object#util#readonly_setattr')
+let s:file = object#type('file', [], {
+      \ '__init__': function('object#file#__init__'),
+      \ '__repr__': function('object#file#__repr__'),
+      \ '__bool__': function('object#file#__bool__'),
+      \ '__iter__': function('object#file#__iter__'),
+      \ 'read': function('object#file#read'),
+      \ 'readline': function('object#file#readline'),
+      \ 'readlines': function('object#file#readlines'),
+      \ 'write': function('object#file#write'),
+      \ 'writeline': function('object#file#writeline'),
+      \ 'writelines': function('object#file#writelines'),
+      \ 'flush': function('object#file#flush'),
+      \ 'close': function('object#file#close'),
+      \ 'readable': function('object#file#readable'),
+      \ 'writable': function('object#file#writable'),
+      \})
 
 ""
 " Open a file. The [mode] can be 'r', 'w' or 'a' for reading (default),

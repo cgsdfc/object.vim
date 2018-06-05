@@ -26,7 +26,7 @@ Strive for maximum convenience and compatibility with built-in functions.
 
 # Status
 Currently this project is in alpha stage. Most of the API is stable with some exceptions.
-Features are adding in and so is tests. Feel free to try it out. Feedbacks are welcome.
+Features are adding in and so are tests. Feel free to try it out. Feedbacks are welcome.
 _Don't put it into real battles right now._
 
 # Installation

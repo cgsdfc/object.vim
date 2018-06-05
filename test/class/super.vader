@@ -49,3 +49,28 @@ AssertThrows call object#new(g:X)
 Assert g:vader_exception =~# 'AttributeError'
 Log g:vader_exception
 
+"
+" super_()
+"
+
+Execute (Does forward call to parents or siblings);
+let X = object#class('X')
+function! X.__init__()
+  let self.x = 1
+endfunction
+
+let Y = object#class('Y', X)
+function! Y.__init__()
+  let sup = object#super_(g:Y, self)
+  Log object#dir(sup)
+  Assert sup.__self__ is# self
+  Assert sup.__self_class__ is# object#type(self)
+  Assert sup.__thisclass__ is# g:Y
+
+  call sup.__init__()
+  let self.y = 1
+endfunction
+
+let y = object#new(Y)
+AssertEqual y.x, 1
+AssertEqual y.y, 1

@@ -285,31 +285,6 @@ function! object#class#type(...)
 endfunction
 
 ""
-" Retrieve method {name} bound to {obj} from the parent or sibling of {type}.
-"
-" Require object#isinstance({obj}, {type}) to be true.
-"
-" Require {type} is not the last class in the mro of {obj}.
-"
-" Require the attribute {name} is a |Funcref|.
-function! object#class#super(type, obj, name)
-  let type = object#class#ensure_class(a:type)
-  let obj = object#class#ensure_object(a:obj)
-  let name = object#util#ensure_identifier(a:name)
-  let idx = object#class#find_class(type, obj.__class__)
-  if idx < 0
-    throw object#TypeError('super() requires isinstance(type, obj)')
-  endif
-  let mro = obj.__class__.__mro__
-  try
-    let next = mro[idx + 1]
-  catch /E684/ " IndexError
-    throw object#TypeError('%s object has no superclass', object#types#name(obj))
-  endtry
-  return function(maktaba#ensure#IsFuncref(object#getattr(next, name)), obj)
-endfunction
-
-""
 " Return whether {obj} is an instance of {cls}.
 function! object#class#isinstance(obj, cls)
   return object#class#find_class(a:cls,
