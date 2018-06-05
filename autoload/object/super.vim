@@ -96,31 +96,39 @@ function! object#super#super(type, obj)
     let obj.__super__[type.__name__] = []
   endif
 
-  let idx = object#class#find_class(type, obj.__class__)
-  if idx < 0
-    throw object#TypeError('super_() requires isinstance(type, obj)')
-  endif
-
-  let idx += 1
-  let mro = obj.__class__.__mro__
-  let N = len(mro)
-  if N == idx
-    throw object#TypeError('%s object has no superclass', object#types#name(obj))
-  endif
-
+  let [idx, N, mro] = object#super#find_super(type, obj)
   let super = object#new(s:super, type, obj, idx, N, mro)
   call add(obj.__super__[type.__name__], super)
+
   return super
 endfunction
 
-function! object#super#__init__(type, obj, start, end, list) dict
+"
+" Find the super based on find_class().
+" Check for various failures.
+function! object#super#find_super(type, obj)
+  let idx = object#class#find_class(a:type, a:obj.__class__)
+  if idx < 0
+    throw object#TypeError('isinstance(type, obj) required')
+  endif
+
+  let idx += 1
+  let mro = a:obj.__class__.__mro__
+  let N = len(mro)
+  if N == idx
+    throw object#TypeError('%s object has no superclass', object#types#name(a:obj))
+  endif
+  return [idx, N, mro]
+endfunction
+
+function! object#super#__init__(type, obj, start, end, mro) dict
   let self.__self__ = a:obj
   let self.__self_class__ = a:obj.__class__
   let self.__thisclass__ = a:type
   let i = a:start
 
   while i < a:end
-    let methods = object#class#methods(a:list[i])
+    let methods = object#class#methods(a:mro[i])
     let rebind = map(methods, 'function("object#super#call", [v:val], self)')
     " Force out the methods of super derived from object.
     " If we don't do that, methods like __init__(), __repr__() can't be
@@ -151,17 +159,7 @@ function! object#super#super_(type, obj, name)
   let obj = object#class#ensure_object(a:obj)
   let name = object#util#ensure_identifier(a:name)
 
-  let idx = object#class#find_class(type, obj.__class__)
-  if idx < 0
-    throw object#TypeError('super() requires isinstance(type, obj)')
-  endif
-
-  let idx += 1
-  let mro = obj.__class__.__mro__
-  let N = len(mro)
-  if idx == N
-    throw object#TypeError('%s object has no superclass', object#types#name(obj))
-  endif
+  let [idx, N, mro] = object#super#find_super(type, obj)
 
   while idx < N
     if has_key(mro[idx], name) && maktaba#value#IsFuncref(mro[idx][name])

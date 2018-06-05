@@ -354,46 +354,46 @@ USE-CASES-OF-TWO-SUPERS
 Currently two ways to call methods of parents and siblings are provided and
 let's talk about the cases when you may use one of them.
 >
-  super_(type, obj)
+  super(type, obj)
 <
 It creates a proxy object delegating almost all the method calls to parents
 and siblings. The super objects are cached in the the invoking object, i.e.,
-`__self__` so later calls to `super_()` with specific `type` and `obj`
-effectively retrieves the cached objects. That means if you have used a lot of
-`super()`s in a class, you can use `super_()` to speed up. However, since the
-nature of static method resolution, the number of methods of one super object
-grows linearly to the size of the MRO. Since all the classes in the MRO except
-the first one may result in a distinct super object, the total number of
-methods of those super objects is ordered by O(len(MRO)^2), which is always
-the case when cooperative inheritance is in used. Therefore, if you have a
-somehow deep class hierarchy, be careful with the space overhead with the
-instances of those leaf classes, especially when each of your classes has a
-non-trivial number of methods. In short, use `super_()` if you densely call
+`__self__` so later calls to `super()` with specific `type` and `obj`
+effectively retrieves the cached objects. That means if you use lots of
+methods from parents in a class, you can use `super()` to speed up. However,
+since the nature of static method resolution, the number of methods of one
+super object grows linearly to the size of the MRO. Since all the classes in
+the MRO except the first one may result in a distinct super object, the total
+number of methods of those super objects is ordered by O(len(MRO)^2), which is
+always the case when cooperative inheritance is in used. Therefore, if you
+have a somehow deep class hierarchy, be careful with the space overhead with
+the instances of those leaf classes, especially when each of your classes has
+a non-trivial number of methods. In short, use `super()` if you densely call
 different methods of parents and siblings while the depth of your class
 hierarchy is modest.
 >
-  super(type, obj, name)
+  super_(type, obj, name)
 <
 It searches the MRO started from the next of `type` and returns the first
 method matching `name`. There isn't any caching behind the sense so
 `__super__` is not created. However, when cooperative inheritance is used, a
-sinle chained call to `super()` results in O(len(MRO)^2) time to resolve all
-the methods along the way. Therefore, if you make sparse calls to `super()`
-and you want to minimize the space of your instances, you may use `super()`
-since the time won't be a problem. However, in present of a long MRO and
-frequent calls to `super()`, you may prefer `super_()`.
+sinle chained call to `super_()` results in O(len(MRO)^2) time to resolve all
+the methods along the way. Therefore, if you make sparse calls to the methods
+of parents and you want to minimize the space of your instances, you may use
+`super_()` since the time won't be a problem. However, in present of a long
+MRO and frequent calls to `super_()`, you may prefer `super()`.
 
-You are recommended to use `super_()` at first and only when "Out Of Memory"
-arises should you turn some `super_()` to `super()` because not only the
-syntax of `super_()` looks more nature (more like Python), but the attributes
+You are recommended to use `super()` at first and only when "Out Of Memory"
+arises should you turn some `super()` to `super_()` because not only the
+syntax of `super()` looks more nature (more like Python), but the attributes
 of super objects aid inspection. Mixing both of them in one single class is
 not recommended, since both of their benefits may be lost (you asked for a
 cache but you didn't use it). However, you can mix them in different classes
-of one hierarchy, especially using `super()` in those leaf classes whose MRO
+of one hierarchy, especially using `super_()` in those leaf classes whose MRO
 is long.
 
 CACHING-SUPER
-To save time, `super_()` caches the super objects of each `type` in each `obj`
+To save time, `super()` caches the super objects of each `type` in each `obj`
 with a special attribute `__super__`. Unlike other special attribute like
 `__mro__`, the structure of this one is kept private, which means you should
 not count on it. In the future, inspection of it may be provided.
@@ -401,7 +401,7 @@ not count on it. In the future, inspection of it may be provided.
 The current `__super__` keeps a dictionary of all the created super objects
 hashed with the name of their `__thisclass__`. Since different classes can
 have the same name, conflicts are handled by having a list of super objects
-for each name. When the `type` and `obj` have been validated, `super_()`
+for each name. When the `type` and `obj` have been validated, `super()`
 consults the cache before going through the MRO. When the cache misses, it
 goes all the way to create a super object and fill in the cache.
 
@@ -521,7 +521,7 @@ They are:
 ==============================================================================
 LAMBDA                                                     *object.vim-lambda*
 
-Create inline function in one line of code. It is an enhanced version of
+Create a function in one line of code. It is an enhanced version of
 |maktaba#function#FromExpr()|.
 
 Features:
@@ -538,7 +538,7 @@ Limitations:
   * Only one dictionary can be captured as closure at most, which means you
     cannot access both `s:` and `l:` from the lambda at once. But there is a
     simple workaround for this: > :let both_s_and_l = { 's': s:, 'l': l: }
-    :echo object#lambda('x', 'x > 1 ? c.s.var : l.s.var')(1) <
+    :echo object#lambda('x', 'x > 1 ? c.s.var : c.l.var')(1) <
   * The number of arguments to the lambda is limited by the maximum number
     allowed by Vim.
 
@@ -615,6 +615,7 @@ dict.pop({key}, [default])                                        *dict.pop()*
   not found, [default] is returned if given, otherwise KeyError if thrown.
 
                                                              *object.vim.file*
+A file object for line-oriented I/O.
 
 file.read()                                                      *file.read()*
   Read the the whole of the file, return it as a string. Lines are joint with
@@ -673,6 +674,7 @@ file.__repr__()                                              *file.__repr__()*
   __repr__(file) <==> repr(file)
 
                                                            *object.vim.lambda*
+An object that backups the one-line function.
 
 lambda.__init__({names}, {code}, [closure])                *lambda.__init__()*
   Initialize the |object.vim.lambda| object from a |String| of names to be
@@ -935,14 +937,14 @@ object#protocols#dir({obj})                           *object#protocols#dir()*
   __dir__(), it is called instead.
 
 
-object#super#super_({type}, {obj})                     *object#super#super_()*
+object#super#super({type}, {obj})                       *object#super#super()*
   Return a super object bound to {obj} that delegates method calls to the
   parents and siblings of {type}.
 
   Throws ERROR(TypeError) if object#isinstance({obj}, {type}) is false.
   Throws ERROR(TypeError) if {type} is at the end of the MRO of {obj}.
 
-object#super#super({type}, {obj}, {name})               *object#super#super()*
+object#super#super_({type}, {obj}, {name})             *object#super#super_()*
   Retrieve method {name} bound to {obj} from the parent or sibling of {type}.
 
   The MRO of {obj} is visited started from {type} and the first attribute with
