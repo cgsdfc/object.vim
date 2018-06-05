@@ -79,6 +79,7 @@ let s:super = object#type('super', [], {
 " @throws TypeError if object#isinstance({obj}, {type}) is false.
 " @throws TypeError if {type} is at the end of the MRO of {obj}.
 function! object#super#super(type, obj)
+  " TODO: if we have __new__()
   let type = object#class#ensure_class(a:type)
   let obj = object#class#ensure_object(a:obj)
 
@@ -96,31 +97,42 @@ function! object#super#super(type, obj)
   endif
 
   let idx = object#class#find_class(type, obj.__class__)
-  let mro = obj.__class__.__mro__
   if idx < 0
     throw object#TypeError('super_() requires isinstance(type, obj)')
   endif
-  if len(mro) - 1 == idx
+
+  let idx += 1
+  let mro = obj.__class__.__mro__
+  let N = len(mro)
+  if N == idx
     throw object#TypeError('%s object has no superclass', object#types#name(obj))
   endif
 
-  let super = object#new(s:super, type, obj, mro[idx+1:])
+  let super = object#new(s:super, type, obj, idx, N, mro)
   call add(obj.__super__[type.__name__], super)
   return super
 endfunction
 
-function! object#super#__init__(type, obj, list) dict
+function! object#super#__init__(type, obj, start, end, list) dict
   let self.__self__ = a:obj
   let self.__self_class__ = a:obj.__class__
   let self.__thisclass__ = a:type
-  unlet self.__init__
-  for x in a:list
-    let methods = object#class#methods(x)
+  let i = a:start
+
+  while i < a:end
+    let methods = object#class#methods(a:list[i])
     let rebind = map(methods, 'function("object#super#call", [v:val], self)')
-    call extend(self, rebind, 'keep')
-  endfor
+    " Force out the methods of super derived from object.
+    " If we don't do that, methods like __init__(), __repr__() can't be
+    " forwarded.
+    call extend(self, rebind, i == a:start ? 'force' : 'keep')
+    let i += 1
+  endwhile
 endfunction
 
+"
+" High ordered function that take a Funcref X and apply args to it
+" with dict bound to __self__.
 function! object#super#call(X, ...) dict
   return call(a:X, a:000, self.__self__)
 endfunction
