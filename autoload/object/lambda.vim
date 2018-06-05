@@ -1,6 +1,6 @@
 ""
 " @section Lambda, lambda
-" Create inline function in one line of code. It is an
+" Create a function in one line of code. It is an
 " enhanced version of |maktaba#function#FromExpr()|.
 "
 " Features:
@@ -19,7 +19,7 @@
 "   a simple workaround for this:
 "   >
 "     :let both_s_and_l = { 's': s:, 'l': l: }
-"     :echo object#lambda('x', 'x > 1 ? c.s.var : l.s.var')(1)
+"     :echo object#lambda('x', 'x > 1 ? c.s.var : c.l.var')(1)
 "   <
 "   * The number of arguments to the lambda is limited by the maximum number
 "     allowed by Vim.
@@ -48,11 +48,13 @@
 
 ""
 " @dict lambda
+" An object that backups the one-line function.
 
 
-let s:lambda = object#class('lambda')
-let s:lambda.__init__ = function('object#lambda#__init__')
-let s:lambda.__call__ = function('object#lambda#__call__')
+let s:lambda = object#type('lambda', [], {
+      \ '__init__': function('object#lambda#__init__'),
+      \ '__call__': function('object#lambda#__call__'),
+      \})
 
 
 ""
@@ -151,7 +153,6 @@ endfunction
 "
 " The for() loop
 "
-
 
 "
 " Execute {__excmds} with {__items} set as items

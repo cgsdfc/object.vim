@@ -5,14 +5,14 @@
 " Currently two ways to call methods of parents and siblings are provided
 " and let's talk about the cases when you may use one of them.
 " >
-"   super_(type, obj)
+"   super(type, obj)
 " <
 " It creates a proxy object delegating almost all the
 " method calls to parents and siblings. The super objects are cached in the
-" the invoking object, i.e., `__self__` so later calls to `super_()` with
+" the invoking object, i.e., `__self__` so later calls to `super()` with
 " specific `type` and `obj` effectively retrieves the cached objects. That
-" means if you have used a lot of `super()`s in a class, you can use
-" `super_()` to speed up. However, since the nature of static method
+" means if you use lots of methods from parents in a class, you can use
+" `super()` to speed up. However, since the nature of static method
 " resolution, the number of methods of one super object grows linearly to
 " the size of the MRO. Since all the classes in the MRO except the first one
 " may result in a distinct super object, the total number of methods of those super
@@ -21,31 +21,31 @@
 " deep class hierarchy, be careful with the space overhead with the
 " instances of those leaf classes, especially when each of your classes has a
 " non-trivial number of methods.
-" In short, use `super_()` if you densely call different methods of parents
+" In short, use `super()` if you densely call different methods of parents
 " and siblings while the depth of your class hierarchy is modest.
 " >
-"   super(type, obj, name)
+"   super_(type, obj, name)
 " <
 " It searches the MRO started from the next of `type` and returns the
 " first method matching `name`. There isn't any caching behind the sense so
 " `__super__` is not created. However, when cooperative inheritance is used,
-" a sinle chained call to `super()` results in O(len(MRO)^2) time to resolve
+" a sinle chained call to `super_()` results in O(len(MRO)^2) time to resolve
 " all the methods along the way. Therefore, if you make sparse calls to
-" `super()` and you want to minimize the space of your instances, you may use
-" `super()` since the time won't be a problem. However, in present of a
-" long MRO and frequent calls to `super()`, you may prefer `super_()`.
+" `super_()` and you want to minimize the space of your instances, you may use
+" `super_()` since the time won't be a problem. However, in present of a
+" long MRO and frequent calls to `super_()`, you may prefer `super()`.
 "
-" You are recommended to use `super_()` at first and only when "Out Of Memory"
-" arises should you turn some `super_()` to `super()` because not only the
-" syntax of `super_()` looks more nature (more like Python), but the attributes of super objects
+" You are recommended to use `super()` at first and only when "Out Of Memory"
+" arises should you turn some `super()` to `super_()` because not only the
+" syntax of `super()` looks more nature (more like Python), but the attributes of super objects
 " aid inspection. Mixing both of them in
 " one single class is not recommended, since both of their benefits may be
 " lost (you asked for a cache but you didn't use it).
 " However, you can mix them in different classes of one hierarchy,
-" especially using `super()` in those leaf classes whose MRO is long.
+" especially using `super_()` in those leaf classes whose MRO is long.
 "
 " @subsection caching-super
-" To save time, `super_()` caches the super objects of each `type` in each
+" To save time, `super()` caches the super objects of each `type` in each
 " `obj` with a special attribute `__super__`. Unlike other special
 " attribute like `__mro__`, the structure of this one is kept private, which
 " means you should not count on it. In the future, inspection of it may
@@ -54,7 +54,7 @@
 " The current `__super__` keeps a dictionary of all the created super objects
 " hashed with the name of their `__thisclass__`. Since different classes can
 " have the same name, conflicts are handled by having a list of super objects
-" for each name. When the `type` and `obj` have been validated, `super_()`
+" for each name. When the `type` and `obj` have been validated, `super()`
 " consults the cache before going through the MRO. When the cache misses, it
 " goes all the way to create a super object and fill in the cache.
 
@@ -79,7 +79,7 @@ let s:super = object#type('super', [], {
 "
 " @throws TypeError if object#isinstance({obj}, {type}) is false.
 " @throws TypeError if {type} is at the end of the MRO of {obj}.
-function! object#super#super_(type, obj)
+function! object#super#super(type, obj)
   let type = object#class#ensure_class(a:type)
   let obj = object#class#ensure_object(a:obj)
 
@@ -138,7 +138,7 @@ endfunction
 " @throws TypeError if object#isinstance({obj}, {type}) is false.
 " @throws TypeError if {type} is at the end of the MRO of {obj}.
 " @throws AttributeError if {name} cannot be resolved.
-function! object#super#super(type, obj, name)
+function! object#super#super_(type, obj, name)
   let type = object#class#ensure_class(a:type)
   let obj = object#class#ensure_object(a:obj)
   let name = object#util#ensure_identifier(a:name)
