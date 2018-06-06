@@ -8,6 +8,7 @@ let s:dict = object#type('dict', [], {
       \ '__bool__': function('object#dict#__bool__'),
       \ '__getitem__': function('object#dict#__getitem__'),
       \ '__setitem__': function('object#dict#__setitem__'),
+      \ '__contains__': function('object#dict#__contains__'),
       \ 'clear': function('object#list#clear'),
       \ 'copy': function('object#list#copy'),
       \ 'get': function('object#list#get'),
@@ -23,7 +24,6 @@ let s:dict = object#type('dict', [], {
 " @dict dict
 " Initialize a dict
 function! object#dict#__init__(...)
-  call call(object#super(s:dict, self).__init__, a:000)
   let self._dict = call('object#dict', a:000)
 endfunction
 
@@ -66,6 +66,13 @@ endfunction
 " Set value for a dict item.
 function! object#dict#__setitem__(idx, val) dict
   return object#setitem(self._dict, a:idx, a:val)
+endfunction
+
+""
+" @dict dict
+" Set value for a dict item.
+function! object#dict#__contains__(key) dict
+  return object#contains(self._dict, a:key)
 endfunction
 
 ""

@@ -62,6 +62,10 @@ function! s:None.__repr__()
   return ''
 endfunction
 
+function! s:None.__bool__()
+  return 0
+endfunction
+
 let s:object_class.__repr__ = function('object#types#repr')
 let s:type_class.__repr__ = function('object#types#repr')
 let s:none_class.__repr__ = function('object#types#repr')

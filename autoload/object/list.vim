@@ -8,6 +8,7 @@ let s:list = object#type('list', [], {
       \ '__bool__': function('object#list#__bool__'),
       \ '__getitem__': function('object#list#__getitem__'),
       \ '__setitem__': function('object#list#__setitem__'),
+      \ '__contains__': function('object#list#__contains__'),
       \ '__iter__': function('object#list#__iter__'),
       \ 'append': function('object#list#append'),
       \ 'count': function('object#list#count'),
@@ -60,6 +61,13 @@ endfunction
 " Set value for a list item.
 function! object#list#__setitem__(idx, val) dict
   return object#setitem(self._list, a:idx, a:val)
+endfunction
+
+""
+" @dict list
+" Test whether {item} is in list.
+function! object#list#__contains__(item) dict
+  return object#contains(self._list, a:item)
 endfunction
 
 ""

@@ -111,3 +111,22 @@ function! object#protocols#dir(obj)
   endif
   return maktaba#ensure#IsList(object#protocols#call(obj.__dir__))
 endfunction
+
+""
+" Test whether {item} is in {obj}.
+function! object#protocols#contains(item, obj)
+  if maktaba#value#IsList(a:obj)
+    return index(a:obj, a:item) >= 0
+  endif
+  if maktaba#value#IsString(a:obj)
+    return stridx(a:obj, maktaba#ensure#IsString(a:item)) >= 0
+  endif
+  if object#hasattr(a:obj, '__contains__')
+    return maktaba#ensure#IsBool(
+          \ object#protocols#call(a:obj.__contains__, a:item))
+  endif
+  if maktaba#value#IsDict(a:obj)
+    return has_key(a:obj, maktaba#ensure#IsString(a:item))
+  endif
+  return 0
+endfunction

@@ -549,8 +549,13 @@ dict.__repr__()                                              *dict.__repr__()*
 dict.__bool__()                                              *dict.__bool__()*
   Test for emptiness of the dict.
 
-dict.__getitem__({idx})                                   *dict.__getitem__()*
-  Get an item from the dict.
+dict.__getitem__({key})                                   *dict.__getitem__()*
+  Get an item from the dict. If {key} is not present but the subclass of dict
+  defines a `__missing__` method, return or throw whatever it returns or
+  throws. `__missing__` must be a method.
+
+  Throws ERROR(KeyError) if {key} is not present.
+  Throws ERROR(WrongType) if `__missing__` is not a |Funcref|.
 
 dict.__setitem__({idx}, {val})                            *dict.__setitem__()*
   Set value for a dict item.
@@ -562,11 +567,12 @@ dict.clear()                                                    *dict.clear()*
   Remove all items from the dict.
 
 dict.copy()                                                      *dict.copy()*
-  Return a shallow copy of the dict.
+  Return a shallow copy of the dict object.
 
 dict.get({key}, [default])                                        *dict.get()*
   Get a value from the dict and fall back on [default].
-  Throws ERROR(KeyError) if the key is not present and no [default] is given.
+  Throws ERROR(KeyError) if the {key} is not present and no [default] is
+  given.
 
 dict.items()                                                    *dict.items()*
   Return a list of 2-lists for the items of the dict.
@@ -583,6 +589,12 @@ dict.setdefault({key}, {default})                          *dict.setdefault()*
 dict.pop({key}, [default])                                        *dict.pop()*
   Remove the specified {key} and return the corresponding value. If {key} is
   not found, [default] is returned if given, otherwise KeyError if thrown.
+
+dict.extend({dict_like}, [dict_like], [flag])                  *dict.extend()*
+  Extend the dict with a [dict_like] object, which can be a |object.vim.dict|
+  object, a plain |Dict| or an iterable that yields 2-lists. If an optional
+  [flag] is given, it should be one of 'keep', 'force' and 'error', which will
+  be passed to built-in |extend()|.
 
                                                              *object.vim.file*
 A file object for line-oriented I/O.

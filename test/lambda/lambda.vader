@@ -2,6 +2,7 @@
 "
 " Test the lambda() function
 "
+
 Before;
 let args = [
       \ ['x', 'toupper(x)'],
@@ -10,6 +11,7 @@ let args = [
       \ ['x y z', '[x, y, z]'],
       \ ['x y', 'x . y'],
       \]
+
 let eval_answers = [
       \ [ ['a'], 'A'],
       \ [ [1, 2], 3],
@@ -20,6 +22,7 @@ let eval_answers = [
 
 let N = len(args)
 AssertEqual N, len(eval_answers)
+
 
 "
 " Create lambda Funcref and object and ensure that they produce
@@ -33,6 +36,7 @@ for i in range(N)
   AssertEqual lambda_out, eval_answers[i][1]
 endfor
 
+
 Execute (The object returned by lambda_() has correct attributes);
 for x in range(N)
   let f = call('object#lambda_', args[x])
@@ -41,11 +45,13 @@ for x in range(N)
   AssertEqual call(f.__call__, eval_answers[x][0]), eval_answers[x][1]
 endfor
 
+
 Execute (Examine the repr of lambda object);
 let f = object#lambda_('x', 'x + 1', g:)
 Log object#repr(object#type(f))
 Log object#repr(f)
 Log object#dir(f)
+
 
 Execute (Corner case: taking no argument);
 let L = object#lambda_('', '1')
@@ -64,7 +70,9 @@ function! TestLocal()
   AssertEqual f.__closure__, l:
   AssertEqual f.__call__(), l:foo
 endfunction
+
 call TestLocal()
+
 
 Execute (Closure works for a:);
 function! TestArgs(list)
@@ -72,9 +80,11 @@ function! TestArgs(list)
   AssertEqual a:, f.__closure__
   call f.__call__()
 endfunction
+
 let list = []
 call TestArgs(list)
 AssertEqual list, [1]
+
 
 Execute (Closure works for s:);
 let s:script_var = 1
@@ -86,6 +96,7 @@ for x in range(10)
   let s:script_var = x
   AssertEqual f.__call__(), x
 endfor
+
 
 Execute (Closure works for g:);
 let g:this_is_an_intended_long_name = 10
@@ -100,40 +111,46 @@ AssertThrows call object#lambda('x y z', 'x > 0 ? y : z')(1, 2)
 Log g:vader_exception
 Assert g:vader_exception =~# 'TypeError'
 
+
 Execute (Throws TypeError when formal < actual);
 AssertThrows call object#lambda('x y', 'x > 0 ? y : z')(1, 2, 3)
 Log g:vader_exception
 Assert g:vader_exception =~# 'TypeError'
+
 
 Execute (Throws WrongType when closure given but not a Dict);
 AssertThrows call object#lambda('x', 'string(x)', 1)
 Log g:vader_exception
 Assert g:vader_exception =~# 'WrongType'
 
+
 Execute (Throws Undefined variable when closure is used in code but not given);
 AssertThrows call object#lambda('', 'c.undefined')()
 Log g:vader_exception
 Assert g:vader_exception =~# 'Undefined'
+
 AssertThrows call object#lambda('', 'undefined')()
 Assert g:vader_exception =~# 'Undefined'
 Log g:vader_exception
+
 
 Execute (Impl variable ``a:__lambda`` can be accessed from lambda);
 " Create a lambda that simply returns the lambda itself
 let f = object#lambda_('', 'a:__lambda')
 AssertEqual f.__call__(), f
 
+
 "
 " The WrongType throwing when code or name is not valid String
 " is not tested because they are based on maktaba#ensure library
 " which should do its job well.
 "
-" TOOD: Check duplicate argument names.
 Execute (The limit of number of arguments is 20);
 let limit = 20
 let args = join(map(range(limit), '"arg_" . string(v:val)'))
 let F = object#lambda(args, '1')
 AssertEqual 1, call(F, range(limit))
+
 
 Execute (Throws ValueError if duplicate names are given);
 AssertThrows call object#lambda('x x', 'x')
