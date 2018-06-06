@@ -5,6 +5,9 @@
 " that has well defined behaviours for built-in types and can be overriden by
 " the corresponding methods with double underscores names.
 
+" TODO:
+"   * add contains <==> __contains__
+"   * fix the __getattribute__ and __getattr__
 
 "
 " Call a __protocol__ function {X} (ensure {X} is a Funcref)

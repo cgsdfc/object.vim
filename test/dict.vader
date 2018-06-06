@@ -1,0 +1,4 @@
+" vim: ft=vim
+" Test the dict wrapper
+
+Execute(init an emp);

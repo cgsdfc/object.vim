@@ -36,20 +36,20 @@ endfor
 Execute (The object returned by lambda_() has correct attributes);
 for x in range(N)
   let f = call('object#lambda_', args[x])
-  AssertEqual f.code, args[x][1]
-  AssertEqual f.argv, object#lambda#make_names(args[x][0])
+  AssertEqual f.__code__, args[x][1]
+  AssertEqual f.__argv__, object#lambda#make_names(args[x][0])
   AssertEqual call(f.__call__, eval_answers[x][0]), eval_answers[x][1]
 endfor
 
 Execute (Examine the repr of lambda object);
-let f = object#lambda_('x', 'x + 1')
+let f = object#lambda_('x', 'x + 1', g:)
 Log object#repr(object#type(f))
 Log object#repr(f)
 Log object#dir(f)
 
 Execute (Corner case: taking no argument);
 let L = object#lambda_('', '1')
-AssertEqual L.argv, []
+AssertEqual L.__argv__, []
 AssertEqual L.__call__(), 1
 
 "
@@ -60,8 +60,8 @@ Execute (Closure works for l:);
 function! TestLocal()
   let l:foo = 1
   let f = object#lambda_('', 'c.foo', l:)
-  Assert has_key(f, 'closure')
-  AssertEqual f.closure, l:
+  Assert has_key(f, '__closure__')
+  AssertEqual f.__closure__, l:
   AssertEqual f.__call__(), l:foo
 endfunction
 call TestLocal()
@@ -69,7 +69,7 @@ call TestLocal()
 Execute (Closure works for a:);
 function! TestArgs(list)
   let f = object#lambda_('', 'add(c.list, 1)', a:)
-  AssertEqual a:, f.closure
+  AssertEqual a:, f.__closure__
   call f.__call__()
 endfunction
 let list = []
@@ -80,7 +80,7 @@ Execute (Closure works for s:);
 let s:script_var = 1
 let f = object#lambda_('', 'c.script_var', s:)
 " The s: in AssertEqual will be the one of the vader code.
-" AssertEqual f.closure, s:
+" AssertEqual f.__closure__, s:
 
 for x in range(10)
   let s:script_var = x

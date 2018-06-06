@@ -76,11 +76,11 @@ let s:lambda = object#type('lambda', [], {
 " [closure] is not a |Dict|.
 function! object#lambda#__init__(names, code, ...) dict
   call object#util#ensure_argc(1, a:0)
-  let self.code = maktaba#ensure#IsString(a:code)
-  let self.argv = object#lambda#make_names(a:names)
-  let self.argc = len(self.argv)
+  let self.__code__ = maktaba#ensure#IsString(a:code)
+  let self.__argv__ = object#lambda#make_names(a:names)
+  let self.__argc__ = len(self.__argv__)
   if a:0 == 1
-    let self.closure = maktaba#ensure#IsDict(a:1)
+    let self.__closure__ = maktaba#ensure#IsDict(a:1)
   endif
 endfunction
 
@@ -113,20 +113,20 @@ endfunction
 
 " Evaluate the {__lambda} object.
 function! object#lambda#eval(__lambda, __nargs, __args)
-  if a:__nargs ==# a:__lambda.argc
-    if has_key(a:__lambda, 'closure')
-      let c = a:__lambda.closure
+  if a:__nargs ==# a:__lambda.__argc__
+    if has_key(a:__lambda, '__closure__')
+      let c = a:__lambda.__closure__
     endif
     let __i = 0
-    while __i < a:__lambda.argc
-      let {a:__lambda.argv[__i]} = a:__args[__i]
+    while __i < a:__lambda.__argc__
+      let {a:__lambda.__argv__[__i]} = a:__args[__i]
       let __i += 1
     endwhile
-    return eval(a:__lambda.code)
+    return eval(a:__lambda.__code__)
   endif
   throw object#TypeError(
         \'lambda takes exactly %d arguments (%d given)',
-        \ a:__lambda.argc, a:__nargs)
+        \ a:__lambda.__argc__, a:__nargs)
 endfunction
 
 ""

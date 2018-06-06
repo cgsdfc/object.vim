@@ -10,13 +10,12 @@ let s:dict = object#type('dict', [], {
       \ '__setitem__': function('object#dict#__setitem__'),
       \ 'clear': function('object#list#clear'),
       \ 'copy': function('object#list#copy'),
-      \ 'fromkeys': function('object#list#fromkeys'),
       \ 'get': function('object#list#get'),
       \ 'items': function('object#list#items'),
       \ 'keys': function('object#list#keys'),
       \ 'pop': function('object#list#pop'),
       \ 'setdefault': function('object#list#setdefault'),
-      \ 'update': function('object#list#update'),
+      \ 'extend': function('object#list#extend'),
       \ 'values': function('object#list#values'),
       \})
 
@@ -24,7 +23,7 @@ let s:dict = object#type('dict', [], {
 " @dict dict
 " Initialize a dict
 function! object#dict#__init__(...)
-  " TODO: call super()
+  call call(object#super(s:dict, self).__init__, a:000)
   let self._dict = call('object#dict', a:000)
 endfunction
 
@@ -45,8 +44,21 @@ endfunction
 ""
 " @dict dict
 " Get an item from the dict.
-function! object#dict#__getitem__(idx) dict
-  return object#getitem(self._dict, a:idx)
+" If {key} is not present but the subclass of dict defines a `__missing__`
+" method, return or throw whatever it returns or throws. `__missing__` must
+" be a method.
+"
+" @throws KeyError if {key} is not present.
+" @throws WrongType if `__missing__` is not a |Funcref|.
+function! object#dict#__getitem__(key) dict
+  try
+    return object#getitem(self._dict, a:key)
+  catch /KeyError/
+    if has_key(self, '__missing__')
+      return maktaba#ensure#IsFuncref(self.__missing__)(a:key)
+    endif
+    throw v:exception
+  endtry
 endfunction
 
 ""
@@ -72,9 +84,11 @@ endfunction
 
 ""
 " @dict dict
-" Return a shallow copy of the dict.
+" Return a shallow copy of the dict object.
 function! object#dict#copy() dict
-  return copy(self._dict)
+  " Effectively call object#dict(self._dict), which
+  " shallow-copy the |Dict|.
+  return object#new(s:dict, self._dict)
 endfunction
 
 """
@@ -86,11 +100,11 @@ endfunction
 ""
 " @dict dict
 " Get a value from the dict and fall back on [default].
-" @throws KeyError if the key is not present and no [default] is given.
+" @throws KeyError if the {key} is not present and no [default] is given.
 function! object#dict#get(key, ...) dict
   call object#util#ensure_argc(1, a:0)
   try
-    return self.__getitem__(a:key)
+    return object#getitem(self._dict, a:key)
   catch /KeyError/
     if a:0 == 1
       return a:1
@@ -125,9 +139,9 @@ endfunction
 " Get and set {default} for the {key}.
 function! object#dict#setdefault(key, default) dict
   try
-    return self.__getitem__(a:key)
+    return object#getitem(self._dict, a:key)
   catch /KeyError/
-    call self.__setitem__(a:key, a:default)
+    call object#setitem(self._dict, a:key, a:default)
     return a:default
   endtry
 endfunction
@@ -138,7 +152,42 @@ endfunction
 " If {key} is not found, [default] is returned if given,
 " otherwise KeyError if thrown.
 function! object#dict#pop(key, ...)
-  
+  call object#util#ensure_argc(1, a:0)
+  try
+    let val = object#getitem(self._dict, a:key)
+  catch /KeyError/
+    if a:0 == 1
+      return a:1
+    endif
+    throw v:exception
+  endtry
+  unlet self._dict[a:key]
+  return val
 endfunction
 
+""
+" @dict dict
+" Extend the dict with a [dict_like] object, which can be
+" a @dict(dict) object, a plain |Dict| or an iterable
+" that yields 2-lists.
+" If an optional [flag] is given, it should be one of
+" 'keep', 'force' and 'error', which will be passed to built-in
+" |extend()|.
+function! object#dict#extend(dict_like, ...)
+  call object#util#ensure_argc(1, a:0)
+  " It must be at least a |Dict|.
+  let dict_like = maktaba#ensure#IsDict(a:dict_like)
+  if object#isinstance(dict_like, s:dict)
+    let d = dict_like._dict
+  elseif object#hasattr(dict_like, '__iter__')
+    let d = object#dict(dict_like)
+  else
+    let d = dict_like
+  endif
 
+  if a:0 == 1
+    call extend(self._dict, d, maktaba#ensure#IsString(a:1))
+  else
+    call extend(self._dict, d)
+  endif
+endfunction
