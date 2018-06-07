@@ -193,8 +193,8 @@ function! object#types#dict(...)
   let iter = object#iter(a:1)
   let list = a:0 == 2 ? object#map(iter, a:2) : object#list(iter)
 
-  for item in list
-    let x = s:ensure_2_lists(item)
+  for Item in list
+    let x = s:ensure_2_lists(Item)
     let dict[x[0]] = x[1]
   endfor
   return dict

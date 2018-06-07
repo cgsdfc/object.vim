@@ -21,6 +21,12 @@ let s:dict = object#type('dict', [], {
       \})
 
 ""
+" Return the dict type.
+function! object#dict#dict_()
+  return s:dict
+endfunction
+
+""
 " @dict dict
 " Initialize a dict
 function! object#dict#__init__(...)
@@ -70,7 +76,7 @@ endfunction
 
 ""
 " @dict dict
-" Set value for a dict item.
+" Test whether {key} is in dict.
 function! object#dict#__contains__(key) dict
   return object#contains(self._dict, a:key)
 endfunction

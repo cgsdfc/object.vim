@@ -347,3 +347,17 @@ endfunction
 function! object#super_(...) abort
   return call('object#super#super_', a:000)
 endfunction
+
+"
+" list.vim
+"
+function! object#list_() abort
+  return object#list#list_()
+endfunction
+
+"
+" dict.vim
+"
+function! object#dict_() abort
+  return object#dict#dict_()
+endfunction
