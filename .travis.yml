@@ -3,31 +3,35 @@
 # https://whileimautomaton.net/2013/02/08211255
 # and :h vader
 
-language: vim
+sudo: false
+language: ruby
 cache:
   directories:
     - $HOME/.rvm
     - $HOME/.vvm
+
+matrix:
+  include:
+    - env: TESTVIM=vim
+    # - env: TESTVIM=nvim
 
 before_install:
   - curl https://raw.githubusercontent.com/kana/vim-version-manager/master/bin/vvm | python - setup; true
   - source ~/.vvm/etc/login
   - vvm update_itself
   - vvm use vimorg--v8.0.1529 --install --with-features=huge
-  -
   - rvm use 2.5.0 --install --binary --fuzzy
 
-before_script: |
-  git clone https://github.com/junegunn/vader.vim.git
-  git clone https://github.com/google/vim-maktaba.git
+install:
+  - pip install --user covimerage
 
-script: |
-  vim -Nu <(cat << VIMRC
-  filetype off
-  set rtp+=vader.vim
-  set rtp+=vim-maktaba
-  set rtp+=.
-  set rtp+=after
-  filetype plugin indent on
-  syntax enable
-  VIMRC) -c 'Vader! test/object.vader' > /dev/null
+before_script:
+  - git clone https://github.com/junegunn/vader.vim.git
+  - git clone https://github.com/google/vim-maktaba.git
+
+script:
+  - VADER_TEST_VIM="covimerage run --source $PWD --data-file $PWD/.coverage.covimerage $TESTVIM" ./test/run-tests.sh
+
+after_success:
+  - covimerage -vv xml
+  - bash <(curl -s https://codecov.io/bash) -X search -X gcov -X coveragepy -f coverage.xml -F $TESTVIM
