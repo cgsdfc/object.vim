@@ -16,15 +16,18 @@ function! object#dict#dict(...)
   if !a:0
     return {}
   endif
-
-  let dict_like = maktaba#ensure#IsDict(a:1)
-  if object#isinstance(dict_like, s:dict)
-    return copy(dict_like._dict)
+  if object#isinstance(a:1, s:dict)
+    return copy(a:1._dict)
   endif
-  if has_key(dict_like, '__next__')
-    return object#dict#from_iter(dict_like)
-  endif
-  return copy(dict_like)
+  try
+    let iter = object#iter(a:1)
+  catch /TypeError/
+    if maktaba#value#IsDict(a:1)
+      return copy(a:1)
+    endif
+    throw object#TypeError('wrong type: %s', object#types#name(a:1))
+  endtry
+  return object#dict#from_iter(a:1)
 endfunction
 
 ""
