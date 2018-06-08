@@ -180,7 +180,7 @@ function! object#file#flush() dict
     return
   endif
   try
-    call writefile(self._written, self.name, s:write_flags(self.mode))
+    call writefile(self._written, self.name, s:write_flags(self))
   catch /E482/
     throw object#IOError('cannot create file %s', string(self.name))
   endtry
@@ -293,14 +293,24 @@ endfunction
 "
 " a stands for append.
 " b stands for binary.
-function! s:write_flags(mode)
-  return join(map(['a', 'b'], 'stridx(a:mode, v:val)>0?v:val:""'), '')
+function! s:write_flags(file)
+  if has_key(a:file, '_wflags')
+    return a:file._wflags
+  endif
+  let flags = join(map(['a', 'b'], 'stridx(a:file.mode, v:val)>0?v:val:""'), '')
+  let a:file._wflags = flags
+  return flags
 endfunction
 
 "
 " Extract flags to |readfile()| from mode string.
-function! s:read_flags(mode)
-  return stridx(a:mode, 'b')>0?'b':''
+function! s:read_flags(file)
+  if has_key(a:file, '_rflags')
+    return a:file._rflags
+  endif
+  let flags = stridx(a:file.mode, 'b')>0?'b':''
+  let a:file._rflags = flags
+  return flags
 endfunction
 
 "
@@ -340,7 +350,7 @@ function! s:lazy_readfile(file)
     return
   endif
   try
-    let lines = readfile(a:file.name, s:read_flags(a:file.mode))
+    let lines = readfile(a:file.name, s:read_flags(a:file))
   catch /E484/
     throw object#IOError('cannot open file %s', string(a:file.name))
   catch /E485/

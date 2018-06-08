@@ -5,7 +5,7 @@ Before;
 let files = map(range(5), 'tempname()')
 call map(copy(files), 'writefile([], v:val)')
 
-let basename = maktaba#path#Basename(g:vader_file) 
+let basename = maktaba#path#Basename(g:vader_file)
 if  basename is# 'reading.vader'
   let test_dir = fnamemodify(g:vader_file, ':h:h')
 else
@@ -18,6 +18,7 @@ Assert filereadable(lipsum_text)
 let data = split(repeat('a', 10))
 let read_family = ['read', 'readline', 'readlines']
 
+
 Execute(read() returns all the lines joint with NL);
 try
   let f = object#open(lipsum_text)
@@ -27,10 +28,12 @@ catch
   Log 'Test failed'
 endtry
 
+
 Execute(a second call to f.read() should return '');
 let f = object#open(lipsum_text)
 call f.read()
 AssertEqual f.read(), ''
+
 
 Execute(f.readline() should retrieve each line without tailing NL);
 let t = files[0]
@@ -45,6 +48,7 @@ try
 catch
   Log v:exception
 endtry
+
 
 Execute(f.readlines() returns a list of all lines in f, which is equal to readfile());
 let f = object#open(lipsum_text)
@@ -62,6 +66,7 @@ Assert maktaba#path#Exists(t)
 call setfperm(t, '-w-------')
 AssertThrows call object#open(g:t, 'r')
 Assert g:vader_exception =~# 'IOError'
+
 
 Execute(After open()'ed successfully, read() family throw IOError if f becomes unreadable);
 let t = files[0]
@@ -89,6 +94,7 @@ for x in read_family
   AssertThrows call g:f[g:x]()
   Assert g:vader_exception =~# 'IOError'
 endfor
+
 
 After;
 call map(files, 'delete(v:val)')

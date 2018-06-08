@@ -1,3 +1,3 @@
 #!/bin/bash
 
-vim -N -c 'Vader! object.vader'
+vim -c 'Vader! ./object.vader' > /dev/null

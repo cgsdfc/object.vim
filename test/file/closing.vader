@@ -1,8 +1,12 @@
-
+" vim: ft=vim
 Before;
+let files = map(range(5), 'tempname()')
+call map(copy(files), 'writefile([], v:val)')
+
 
 Execute (After closed, repr displays 'closed file');
-
 Execute (After closed, all file operation fails except close());
 call f.close()
 
+After;
+call map(files, 'delete(v:val)')

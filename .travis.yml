@@ -8,6 +8,7 @@ cache:
   directories:
     - $HOME/.rvm
     - $HOME/.vvm
+
 before_install:
   - curl https://raw.githubusercontent.com/kana/vim-version-manager/master/bin/vvm | python - setup; true
   - source ~/.vvm/etc/login
@@ -19,7 +20,6 @@ before_install:
 before_script: |
   git clone https://github.com/junegunn/vader.vim.git
   git clone https://github.com/google/vim-maktaba.git
-  sudo apt-get install vim -y
 
 script: |
   vim -Nu <(cat << VIMRC

@@ -10,6 +10,7 @@ let write_family = ['write', 'writeline', 'writelines']
 let files = map(range(5), 'tempname()')
 call map(copy(files), 'writefile([], v:val)')
 
+
 Execute(a single call to write(str) writes a _line_ to f);
 let t = files[0]
 let f = object#open(t, 'w')
@@ -17,6 +18,7 @@ let f = object#open(t, 'w')
 call f.write('aaa')
 call f.close()
 AssertEqual ['aaa'], readfile(t)
+
 
 Execute(write() concats to the current line of f);
 let t = files[0]
@@ -26,6 +28,7 @@ let data = [ 'This ', 'is ', 'an ', 'apple.' ]
 call map(copy(data), 'f.write(v:val)')
 call f.close()
 AssertEqual join(data, ''), readfile(t)[0]
+
 
 Execute(multiple writeline()'s is equal to a single writelines());
 let data = split(repeat('a', 10), '')
@@ -58,10 +61,12 @@ for x in write_family[:1]
   Assert g:vader_exception =~# 'WrongType'
 endfor
 
+
 Execute(writelines throws WrongType for iter that returns non-String);
 AssertThrows call object#open(g:files[0], 'w').writelines(range(10))
 Log g:vader_exception
 Assert g:vader_exception =~# 'WrongType'
+
 
 Execute(writelines() throws TypeError for non-iterable input);
 let f = object#open(files[0], 'w')
@@ -75,18 +80,19 @@ call setfperm(t, 'r--------')
 AssertThrows call object#open(g:t, 'w')
 Assert g:vader_exception =~# 'IOError'
 
+
 Execute(Although open()'ed writable, f.write() and friends throw IOError if f becomes unwritable);
 let t = files[0]
 Assert filewritable(t)
 
 let f = object#open(t, 'w')
-
 call setfperm(t, 'r--------')
+
 for x in write_family
   AssertThrows call object#getattr(g:f, g:x)('aaa')
   Assert g:vader_exception =~# 'IOError'
 endfor
 
-" TODO: test append and binary.
+
 After;
 call map(files, 'delete(v:val)')
