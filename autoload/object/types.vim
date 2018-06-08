@@ -42,22 +42,17 @@ call object#types#install(s:type, 'type', s:type, s:object, [s:type, s:object])
 call object#types#install(s:NoneType, 'NoneType', s:type, s:object, [s:NoneType, s:type, s:object])
 
 "
-" Representation string.
+" object and type
 "
-function! object#types#repr() dict
-  return printf('<%s object>', string(self.__class__.__name__))
-endfunction
-
-let s:object.__repr__ = function('object#types#repr')
-let s:type.__repr__ = function('object#types#repr')
-
-function! s:object.__init__()
-endfunction
+for s:obj in [s:object, s:type]
+  function! s:obj.__repr__()
+    return printf('<%s object>', string(self.__class__.__name__))
+  endfunction
+endfor
 
 "
 " NoneType
 "
-
 for s:obj in [s:NoneType, s:None]
   function! s:obj.__init__()
     throw object#TypeError('cannot create NoneType instance')
@@ -69,6 +64,10 @@ for s:obj in [s:NoneType, s:None]
     return 0
   endfunction
 endfor
+
+" Actually an NOP.
+function! s:object.__init__()
+endfunction
 
 "
 " type() creates new class when called with 3 arguments.
