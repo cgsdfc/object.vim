@@ -1,0 +1,24 @@
+" vim: ft=vim
+" Subclassing dict class
+Before;
+let dict = object#dict_()
+
+Execute(__missing__ hook);
+let MyDict = object#class('MyDict', dict)
+Log object#repr(MyDict)
+
+function! MyDict.__init__(...)
+  call call(object#super(g:MyDict, self).__init__, a:000)
+endfunction
+
+function! MyDict.__missing__(Key)
+  return 0
+endfunction
+
+let x = object#new(MyDict)
+AssertEqual object#getitem(x, 'foo'), 0
+Assert !x.has_key('foo')
+
+Assert object#isinstance(x, dict)
+Assert object#issubclass(MyDict, dict)
+Log object#repr(MyDict.__mro__)
