@@ -13,37 +13,6 @@ AssertEqual F(1), 1
 AssertThrows call F(1,2)
 AssertThrows call F(1,2,3)
 
-Execute(hiding_dir() can hide things from being dir()'ed);
-let pattern = '\v\C(_read|_written)'
-let cls = { '_read': 1, '_written': 2, 'write': 3,
-      \ '__dir__': function('object#util#hiding_dir', [pattern]),
-      \}
-let dir = object#dir(cls)
-for x in ['_written', '_read']
-  Assert index(dir, x) < 0
-endfor
-
-Execute(hiding_getattr() can hide things from being getattr()'ed);
-let pattern = '\v\C(_read|_written)'
-let cls = { '_read': 1, '_written': 2, 'write': 3,
-      \ '__getattr__': function('object#util#hiding_getattr', [pattern]),
-      \}
-for x in ['_read', '_written', 'x']
-  AssertThrows call object#getattr(g:cls, g:x)
-  Assert g:vader_exception =~# 'AttributeError'
-endfor
-
-Execute(readonly_attrs() always throws AttributeError);
-let cls = {
-      \ '__setattr__': function('object#util#readonly_setattr'),
-      \ 'x': 1,
-      \}
-for x in ['x', 'y']
-  AssertThrows call object#setattr(g:cls, g:x, 1)
-  Log g:vader_exception
-  Assert g:vader_exception =~# 'AttributeError'
-endfor
-
 Execute (has_special_variables() can detect 4 special vars);
 if object#util#has_special_variables()
   Assert v:false is v:false

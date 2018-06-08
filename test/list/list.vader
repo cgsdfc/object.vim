@@ -13,7 +13,8 @@ let input = [
       \ [ repeat('a', 10), split(repeat('a ', 10), ' ') ],
       \]
 
-for [iterable, list] in   let x = object#list(iterable)
+for [iterable, list] in input
+  let x = object#list(iterable)
   AssertEqual x, list
   Assert x isnot# list
 endfor
