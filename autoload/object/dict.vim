@@ -2,24 +2,41 @@
 " @dict dict
 " A wrapper class of built-in |Dict|.
 
-let s:dict = object#type('dict', [], {
-      \ '__init__': function('object#dict#__init__'),
-      \ '__len__': function('object#dict#__len__'),
-      \ '__repr__': function('object#dict#__repr__'),
-      \ '__bool__': function('object#dict#__bool__'),
-      \ '__getitem__': function('object#dict#__getitem__'),
-      \ '__setitem__': function('object#dict#__setitem__'),
-      \ '__contains__': function('object#dict#__contains__'),
-      \ 'clear': function('object#list#clear'),
-      \ 'copy': function('object#list#copy'),
-      \ 'get': function('object#list#get'),
-      \ 'items': function('object#list#items'),
-      \ 'keys': function('object#list#keys'),
-      \ 'pop': function('object#list#pop'),
-      \ 'setdefault': function('object#list#setdefault'),
-      \ 'extend': function('object#list#extend'),
-      \ 'values': function('object#list#values'),
-      \})
+let s:dict = object#class('dict')
+
+""
+" Create a plain |Dict|.
+" >
+"   dict() -> an empty dictionary.
+"   dict(iterable) -> initiazed with 2-list items.
+"   dict(plain dictionary) -> a copy of the argument.
+"   dict(@dict(dict) object) -> a copy of the underlying |Dict|.
+" <
+"
+" Turn an iterator that returns 2-list into a |Dict|.
+" If no [iter] is given, an empty |Dict| is returned.
+" If a |Dict| is given, it is effectively |copy()|'ed.
+function! object#dict#dict(...)
+  call object#util#ensure_argc(1, a:0)
+  if !a:0
+    return {}
+  endif
+
+  let dict_like = maktaba#ensure#IsDict(a:1)
+  if object#isinstance(dict_like, s:dict)
+    return copy(dict_like._dict)
+  endif
+  if has_key(dict_like, '__next__')
+    return object#dict#from_iter(dict_like)
+  endif
+  return copy(dict_like)
+endfunction
+
+""
+" Create a @dict(dict) object
+function! object#dict#_dict(...)
+  return object#new_(s:dict, a:000)
+endfunction
 
 ""
 " Return the dict type.
@@ -29,26 +46,23 @@ endfunction
 
 ""
 " @dict dict
-" Initialize a dict with [args], which can be:
-"   * a plain |Dict| -> copy args.
-"   * a @dict(dict) object -> copy underlying |Dict|.
-"   * an iterable -> fill with 2-lists item.
-"   * an iterable and a |String| -> fill with map(iterable, string).
-function! object#dict#__init__(...) dict
+" Initialize a dict with [args].
+" See @function(object#dict#dict) for signature.
+function! s:dict.__init__(...)
   let self._dict = call('object#dict', a:000)
 endfunction
 
 ""
 " @dict dict
 " Representation of a dict.
-function! object#dict#__repr__() dict
-  return object#repr(self._dict)
+function! s:dict.__repr__()
+  return object#dict#repr(self._dict)
 endfunction
 
 ""
 " @dict dict
 " Test for emptiness of the dict.
-function! object#dict#__bool__() dict
+function! s:dict.__bool__()
   return object#bool(self._dict)
 endfunction
 
@@ -61,12 +75,12 @@ endfunction
 "
 " @throws KeyError if {key} is not present.
 " @throws WrongType if `__missing__` is not a |Funcref|.
-function! object#dict#__getitem__(key) dict
+function! s:dict.__getitem__(Key)
   try
-    return object#getitem(self._dict, a:key)
+    return object#getitem(self._dict, a:Key)
   catch /KeyError/
     if has_key(self, '__missing__')
-      return maktaba#ensure#IsFuncref(self.__missing__)(a:key)
+      return maktaba#ensure#IsFuncref(self.__missing__)(a:Key)
     endif
     throw v:exception
   endtry
@@ -75,54 +89,48 @@ endfunction
 ""
 " @dict dict
 " Set value for a dict item.
-function! object#dict#__setitem__(idx, val) dict
-  return object#setitem(self._dict, a:idx, a:val)
+function! s:dict.__setitem__(Idx, Val)
+  return object#setitem(self._dict, a:Idx, a:Val)
 endfunction
 
 ""
 " @dict dict
 " Test whether {key} is in dict.
-function! object#dict#__contains__(key) dict
-  return object#contains(self._dict, a:key)
+function! s:dict.__contains__(Key)
+  return object#contains(self._dict, a:Key)
 endfunction
 
 ""
 " @dict dict
 " Return the length of the dict.
-function! object#dict#__len__() dict
+function! s:dict.__len__()
   return object#len(self._dict)
 endfunction
 
 ""
 " @dict dict
 " Remove all items from the dict.
-function! object#dict#clear() dict
+function! s:dict.clear()
   let self._dict = {}
 endfunction
 
 ""
 " @dict dict
 " Return a shallow copy of the dict object.
-function! object#dict#copy() dict
+function! s:dict.copy()
   " Effectively call object#dict(self._dict), which
   " shallow-copy the |Dict|.
   return object#new(s:dict, self._dict)
 endfunction
 
-"""
-"" @dict dict
-"function! object#dict#fromkeys(iterable, ...)
-"  call object#util#ensure_argc(1, a:0)
-"  let value = a:0 == 1? a:1 : object#None()
-
 ""
 " @dict dict
 " Get a value from the dict and fall back on [default].
 " @throws KeyError if the {key} is not present and no [default] is given.
-function! object#dict#get(key, ...) dict
+function! s:dict.get(Key, ...)
   call object#util#ensure_argc(1, a:0)
   try
-    return object#getitem(self._dict, a:key)
+    return object#getitem(self._dict, a:Key)
   catch /KeyError/
     if a:0 == 1
       return a:1
@@ -134,53 +142,34 @@ endfunction
 ""
 " @dict dict
 " Return a list of 2-lists for the items of the dict.
-function! object#dict#items() dict
+function! s:dict.items()
   return items(self._dict)
 endfunction
 
 ""
 " @dict dict
 " Return a list from the values of the dict.
-function! object#dict#values() dict
+function! s:dict.values()
   return values(self._dict)
 endfunction
 
 ""
 " @dict dict
 " Return a list from the keys of the dict.
-function! object#dict#keys() dict
+function! s:dict.keys()
   return keys(self._dict)
 endfunction
 
 ""
 " @dict dict
 " Get and set {default} for the {key}.
-function! object#dict#setdefault(key, default) dict
+function! s:dict.setdefault(Key, Default)
   try
-    return object#getitem(self._dict, a:key)
+    return object#getitem(self._dict, a:Key)
   catch /KeyError/
-    call object#setitem(self._dict, a:key, a:default)
-    return a:default
+    call object#setitem(self._dict, a:Key, a:Default)
+    return a:Default
   endtry
-endfunction
-
-""
-" @dict dict
-" Remove the specified {key} and return the corresponding value.
-" If {key} is not found, [default] is returned if given,
-" otherwise KeyError if thrown.
-function! object#dict#pop(key, ...)
-  call object#util#ensure_argc(1, a:0)
-  try
-    let val = object#getitem(self._dict, a:key)
-  catch /KeyError/
-    if a:0 == 1
-      return a:1
-    endif
-    throw v:exception
-  endtry
-  unlet self._dict[a:key]
-  return val
 endfunction
 
 ""
@@ -191,10 +180,11 @@ endfunction
 " If an optional [flag] is given, it should be one of
 " 'keep', 'force' and 'error', which will be passed to built-in
 " |extend()|.
-function! object#dict#extend(dict_like, ...)
+function! s:dict.extend(Dict_like, ...)
   call object#util#ensure_argc(1, a:0)
+
   " It must be at least a |Dict|.
-  let dict_like = maktaba#ensure#IsDict(a:dict_like)
+  let dict_like = maktaba#ensure#IsDict(a:Dict_like)
   if object#isinstance(dict_like, s:dict)
     let d = dict_like._dict
   elseif object#hasattr(dict_like, '__iter__')
@@ -208,4 +198,49 @@ function! object#dict#extend(dict_like, ...)
   else
     call extend(self._dict, d)
   endif
+endfunction
+
+""
+" @dict dict
+" Remove the specified {key} and return the corresponding value.
+" If {key} is not found, [default] is returned if given,
+" otherwise KeyError if thrown.
+function! s:dict.pop(Key, ...)
+  call object#util#ensure_argc(1, a:0)
+  try
+    let val = object#getitem(self._dict, a:Key)
+  catch /KeyError/
+    if a:0 == 1
+      return a:1
+    endif
+    throw v:exception
+  endtry
+  unlet self._dict[a:Key]
+  return val
+endfunction
+
+function! object#dict#repr(dict)
+  return printf('{%s}', join(map(items(a:dict),
+        \ 'printf("''%s'': %s", v:val[0], object#repr(v:val[1]))'), ', '))
+endfunction
+
+function! object#dict#ensure_2_lists(X)
+  if maktaba#value#IsList(a:X) && len(a:X) == 2
+    return a:X
+  endif
+  throw object#TypeError('not a 2-lists')
+endfunction
+
+" Create a |Dict| from an iterator.
+function! object#dict#from_iter(iter)
+  let iter = object#iter(a:iter)
+  let d = {}
+  try
+    while 1
+      let X = object#dict#ensure_2_lists(object#next(iter))
+      let d[X[0]] = X[1]
+    endwhile
+  catch /StopIteration/
+    return d
+  endtry
 endfunction

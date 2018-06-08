@@ -260,14 +260,6 @@ function! object#bool(...) abort
   return call('object#types#bool', a:000)
 endfunction
 
-function! object#list(...) abort
-  return call('object#types#list', a:000)
-endfunction
-
-function! object#dict(...) abort
-  return call('object#types#dict', a:000)
-endfunction
-
 "
 " iter.vim
 "
@@ -355,9 +347,25 @@ function! object#list_() abort
   return object#list#list_()
 endfunction
 
+function! object#list(...) abort
+  return call('object#list#list', a:000)
+endfunction
+
+function! object#_list(...) abort
+  return call('object#list#_list', a:000)
+endfunction
+
 "
 " dict.vim
 "
 function! object#dict_() abort
   return object#dict#dict_()
+endfunction
+
+function! object#dict(...) abort
+  return call('object#dict#dict', a:000)
+endfunction
+
+function! object#_dict(...) abort
+  return call('object#dict#_dict', a:000)
 endfunction

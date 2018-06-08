@@ -76,11 +76,10 @@ function! object#protocols#repr(obj)
     return maktaba#ensure#IsString(object#protocols#call(a:obj.__repr__))
   endif
   if maktaba#value#IsList(a:obj)
-    return printf('[%s]', join(map(copy(a:obj), 'object#repr(v:val)'), ', '))
+    return object#list#repr(a:obj)
   endif
   if maktaba#value#IsDict(a:obj)
-    return printf('{%s}', join(map(items(a:obj),
-          \ 'printf("''%s'': %s", v:val[0], object#repr(v:val[1]))'), ', '))
+    return object#dict#repr(a:obj)
   endif
   return string(a:obj)
 endfunction

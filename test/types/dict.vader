@@ -19,8 +19,13 @@ let iter = object#iter(two_list)
 let correct = {'1': 'a', '2': 'b', '3': 'c'}
 AssertEqual correct, object#dict(iter)
 
-Execute (When a third arg is given, used as a lambda on the iter);
-AssertEqual object#dict('abc', '[toupper(v:val), v:val]'), {'A': 'a', 'B': 'b', 'C': 'c'}
+" The signature dict(iter, str) is no longer supported. It complicates
+" things for subclass. And it can be substituted by using map(). Here is
+" the original test case:
+"
+" Execute (When a third arg is given, used as a lambda on the iter);
+" AssertEqual object#dict('abc', '[toupper(v:val), v:val]'), {'A': 'a', 'B': 'b', 'C': 'c'}
+" object#dict(object#map('abc',  '[toupper(v:val), v:val]'))
 
 Execute(Throws TypeError when the iter returns non-2-list);
 let input = [
