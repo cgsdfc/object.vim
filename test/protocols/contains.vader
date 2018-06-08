@@ -1,0 +1,58 @@
+" vim: ft=vim
+
+Execute(String);
+Assert object#contains('this', 'this is a string')
+Assert object#contains('is', 'this is a string')
+Assert object#contains('a', 'this is a string')
+Assert object#contains('string', 'this is a string')
+Assert !object#contains('that', 'this is a string')
+
+
+Execute(Corner case: empty string);
+Assert object#contains('', 'haystack')
+Assert object#contains('', '')
+Assert !object#contains('needle', '')
+
+
+Execute(List);
+let haystack = range(10)
+for needle in haystack
+  Assert object#contains(needle, haystack)
+endfor
+
+Assert !object#contains(-1, haystack)
+Assert !object#contains(10, haystack)
+
+
+Execute(Dict);
+let haystack = {
+      \ 'Germany': 'Berlin',
+      \ 'United State': 'Hashington DC',
+      \ 'England': 'London',
+      \ 'France': 'Paris',
+      \ 'Russia': 'Moscow',
+      \}
+
+for x in keys(haystack)
+  Assert object#contains(x, haystack)
+endfor
+
+Assert !object#contains('NoWhere', haystack)
+
+
+Execute(User-defined __contains__);
+let X = object#class('X')
+function! X.__contains__(Key)
+  return 1
+endfunction
+
+let x = object#new(X)
+for i in range(10)
+  Assert object#contains(i, x)
+endfor
+
+Execute(When the haystack does not provide membership tesing, false is returned);
+let input = [ function('tr'), 1 ]
+for X in input
+  Assert !object#contains(1, X)
+endfor

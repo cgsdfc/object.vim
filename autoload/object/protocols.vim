@@ -6,7 +6,6 @@
 " the corresponding methods with double underscores names.
 
 " TODO:
-"   * add contains <==> __contains__
 "   * fix the __getattribute__ and __getattr__
 
 "
@@ -113,7 +112,7 @@ endfunction
 
 ""
 " Test whether {item} is in {obj}.
-function! object#protocols#contains(obj, item)
+function! object#protocols#contains(item, obj)
   if maktaba#value#IsList(a:obj)
     return index(a:obj, a:item) >= 0
   endif

@@ -95,7 +95,7 @@ endfunction
 " @dict dict
 " Test whether {key} is in dict.
 function! s:dict.__contains__(Key)
-  return object#contains(self._dict, a:Key)
+  return object#contains(a:Key, self._dict)
 endfunction
 
 ""
