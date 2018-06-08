@@ -12,10 +12,9 @@
 "   * NoneType(type): The class of the None object, the place holder for
 "   absence of sensible values, such as the base class of object.
 
-"
+
 " Get the typename of {obj}. If {obj} is a type,
 " 'type' will be returned always.
-"
 function! object#types#name(obj)
   if object#hasattr(a:obj, '__class__')
     return string(a:obj.__class__.__name__)
@@ -23,10 +22,7 @@ function! object#types#name(obj)
   return string(maktaba#value#TypeName(a:obj))
 endfunction
 
-"
-" Install the __base__, __name__ and __class__ attributes
-" for {obj}.
-"
+" Install special attrs.
 function! object#types#install(obj, name, class, base, mro)
   let a:obj.__name__ = a:name
   let a:obj.__base__ = a:base
@@ -35,21 +31,14 @@ function! object#types#install(obj, name, class, base, mro)
   let a:obj.__mro__ = a:mro
 endfunction
 
-let s:object_class = {}
-let s:type_class = {}
-let s:none_class = {}
-let s:None = { '__class__' : s:none_class }
+let s:object = {}
+let s:type = {}
+let s:NoneType = {}
+let s:None = { '__class__' : s:NoneType }
 
-call object#types#install(s:object_class, 'object', s:type_class, s:None,
-      \ [s:object_class])
-call object#types#install(s:none_class, 'NoneType', s:type_class, s:object_class,
-      \ [s:none_class, s:type_class, s:object_class])
-call object#types#install(s:type_class, 'type', s:type_class, s:object_class,
-      \ [s:type_class, s:object_class])
-
-"
-" Define basic methods for the top classes.
-"
+call object#types#install(s:object, 'object', s:type, s:None, [s:object])
+call object#types#install(s:type, 'type', s:type, s:object, [s:type, s:object])
+call object#types#install(s:NoneType, 'NoneType', s:type, s:object, [s:NoneType, s:type, s:object])
 
 "
 " Representation string.
@@ -58,54 +47,59 @@ function! object#types#repr() dict
   return printf('<%s object>', string(self.__class__.__name__))
 endfunction
 
-function! s:None.__repr__()
-  return ''
+let s:object.__repr__ = function('object#types#repr')
+let s:type.__repr__ = function('object#types#repr')
+
+function! s:object.__init__()
 endfunction
 
-function! s:None.__bool__()
-  return 0
-endfunction
+"
+" NoneType
+"
 
-let s:object_class.__repr__ = function('object#types#repr')
-let s:type_class.__repr__ = function('object#types#repr')
-let s:none_class.__repr__ = function('object#types#repr')
-
-function! s:object_class.__init__()
-endfunction
-
-function! s:none_class.__init__()
+function! s:NoneType.__init__()
   throw object#TypeError('cannot create NoneType instance')
 endfunction
 
+function! s:NoneType.__repr__()
+  return ''
+endfunction
+
+function! s:NoneType.__bool__()
+  return 0
+endfunction
+
+" Since we cannot object#new().
+call extend(s:None, object#class#methods(s:NoneType))
+
 "
-" The type() creates new class when called with 3 arguments.
-"
-function! s:type_class.__init__(name, bases, dict)
+" type() creates new class when called with 3 arguments.
+function! s:type.__init__(name, bases, dict)
   call object#class#type_init(self, a:name, a:bases, a:dict)
 endfunction
 
 ""
 " Create a plain object.
 function! object#types#object()
-  return object#new(s:object_class)
+  return object#new(s:object)
 endfunction
 
 ""
 " Return the object class
 function! object#types#object_()
-  return s:object_class
+  return s:object
 endfunction
 
 ""
 " Return the type class
 function! object#types#type_()
-  return s:type_class
+  return s:type
 endfunction
 
 ""
 " Return the NoneType class
 function! object#types#NoneType()
-  return s:none_class
+  return s:NoneType
 endfunction
 
 ""
@@ -159,4 +153,3 @@ function! object#types#bool_nofloat(obj)
     call object#except#not_avail('bool', a:obj)
   endtry
 endfunction
-

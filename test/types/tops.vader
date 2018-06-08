@@ -8,17 +8,19 @@ let NoneType = object#NoneType()
 let None = object#None()
 let tops = [ object, type, NoneType ]
 
-Execute(subclass relationship of top classes);
 
+Execute(subclass relationship of top classes);
 Assert object.__base__ is# None
 AssertEqual object.__bases__, [None]
 Assert type.__base__ is# object
 Assert NoneType.__base__ is# object
 
+
 Execute(instance relationship of top classes);
 for x in tops
   Assert x.__class__ is# type
 endfor
+
 
 Execute(repr() works with top classes);
 for x in tops
@@ -30,3 +32,14 @@ Execute (MRO for top classes);
 AssertEqual object.__mro__, [object]
 AssertEqual type.__mro__, [type, object]
 AssertEqual NoneType.__mro__, [NoneType, type, object]
+
+
+Execute(Special object: None);
+Assert None.__class__ is# NoneType
+AssertEqual 0, object#bool(None), 'None is false'
+AssertEqual '', object#repr(None), 'None is nothing'
+AssertThrows call object#new(g:NoneType)
+
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+Log object#dir(None)
