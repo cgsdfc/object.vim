@@ -4,4 +4,3 @@ data_file = .coverage.covimerage
 
 [report]
 show_missing = true
-include = covimerage/*,tests/*

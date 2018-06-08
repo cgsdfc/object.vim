@@ -3,15 +3,16 @@
 "
 
 Execute(ensure_argc() works with argc <= atmost);
-function! F(...)
+function! MyFunc(...)
   let argc = object#util#ensure_argc(1, a:0)
   return argc
 endfunction
 
-AssertEqual F(), 0
-AssertEqual F(1), 1
-AssertThrows call F(1,2)
-AssertThrows call F(1,2,3)
+AssertEqual MyFunc(), 0
+AssertEqual MyFunc(1), 1
+AssertThrows call MyFunc(1,2)
+AssertThrows call MyFunc(1,2,3)
+
 
 Execute (has_special_variables() can detect 4 special vars);
 if object#util#has_special_variables()
