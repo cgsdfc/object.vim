@@ -1,0 +1,59 @@
+"
+" Common Behaviors
+"
+
+Before;
+let object = object#object_()
+let X = object#class('X')
+let Y = object#class('Y')
+let Z = object#class('Z')
+
+Execute (Throws TypeError if isinstance(obj, type) is false);
+function! X.__init__()
+  call object#super(g:Y, self)
+endfunction
+
+function! Y.__init__()
+  call object#super_(g:X, self, '__init__')
+endfunction
+
+for Cls in [X, Y]
+  AssertThrows call object#new(g:Cls)
+  Log g:vader_exception
+  Assert g:vader_exception =~# 'TypeError'
+endfor
+
+Execute (Throws TypeError if obj is not an object);
+
+AssertThrows call object#super_(g:Y, 1, '__init__')
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+AssertThrows call object#super(g:Y, 1)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+
+Execute (Throws TypeError if type is not a class);
+let y = object#new(Y)
+
+AssertThrows call object#super_(1, g:y, '__init__')
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+AssertThrows call object#super(1, g:y)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+
+Execute (Throws TypeError if there is no next class in MRO);
+let o = object#object()
+
+AssertThrows call object#super_(g:object, g:o, '__init__')
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+AssertThrows call object#super(g:object, g:o)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+" End of Common Beheviors.

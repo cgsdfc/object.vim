@@ -93,9 +93,7 @@
 "   * __thisclass__:  type that got passed to `super_()`.
 
 
-let s:super = object#type('super', [], {
-      \ '__init__': function('object#super#__init__'),
-      \})
+let s:super = object#class('super')
 
 ""
 " Return a super object bound to {obj} that delegates method calls to the parents and
@@ -146,7 +144,7 @@ function! object#super#find_super(type, obj)
   return [idx, N, mro]
 endfunction
 
-function! object#super#__init__(type, obj, start, end, mro) dict
+function! s:super.__init__(type, obj, start, end, mro)
   let self.__self__ = a:obj
   let self.__self_class__ = a:obj.__class__
   let self.__thisclass__ = a:type

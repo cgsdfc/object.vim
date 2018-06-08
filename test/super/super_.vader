@@ -1,0 +1,61 @@
+" vim:ft=vim
+" Test super_()
+"
+
+Before;
+let object = object#object_()
+let X = object#class('X')
+let Y = object#class('Y')
+let Z = object#class('Z')
+
+let Base = object#class('Base')
+let Sibling = object#class('Sibling')
+let Derived = object#class('Derived', [Base, Sibling])
+
+
+Execute (Forward call to direct parents and sibling);
+
+function! Base.__init__()
+  call object#super_(g:Base, self, '__init__')()
+  let self.base = 1
+endfunction
+
+function! Sibling.__init__()
+  call object#super_(g:Sibling, self, '__init__')()
+  let self.sibling = 1
+endfunction
+
+function! Derived.__init__()
+  call object#super_(g:Derived, self, '__init__')()
+  let self.derived = 1
+endfunction
+
+let x = object#new(Derived)
+AssertEqual [x.base, x.derived, x.sibling], [1, 1, 1]
+let y = object#new(Base)
+AssertEqual y.base, 1
+let z = object#new(Sibling)
+AssertEqual z.sibling, 1
+
+
+Execute (Throws WrongType or ValueError if name is not a String or an identifier);
+let y = object#new(Y)
+let input = [1, range(2), '$x']
+
+for x in input
+  AssertThrows call object#super_(g:Y, g:y, g:x)
+  Assert g:vader_exception =~# '\v\CWrongType|ValueError'
+  Log g:vader_exception
+endfor
+
+
+Execute (Throws AttributeError if name cannot be found);
+let X = object#class('X', Y)
+
+function! X.__init__()
+  call object#super_(g:X, self, 'non_existing')
+endfunction
+
+AssertThrows call object#new(g:X)
+Assert g:vader_exception =~# 'AttributeError'
+Log g:vader_exception

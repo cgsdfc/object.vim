@@ -1,0 +1,7 @@
+" vim: ft=vim
+" The file test the super() and super_() functions.
+" Please refer to the document in super.vim for their differences.
+
+Include(Common Behaviors): super/common.vader
+Include(super()): super/super.vader
+Include(super_()): super/super_.vader
