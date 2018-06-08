@@ -22,15 +22,15 @@ before_script:
   - git clone https://github.com/google/vim-maktaba.git
 
 script: |
-  - covimerage run vim -Nu <(cat << VIMRC
-    filetype off
-    set rtp+=vader.vim
-    set rtp+=vim-maktaba
-    set rtp+=.
-    set rtp+=after
-    filetype plugin indent on
-    syntax enable
-    VIMRC) -c 'Vader! test/object.vader' > /dev/null
+  covimerage run vim -Nu <(cat << VIMRC
+  filetype off
+  set rtp+=vader.vim
+  set rtp+=vim-maktaba
+  set rtp+=.
+  set rtp+=after
+  filetype plugin indent on
+  syntax enable
+  VIMRC) -c 'Vader! test/object.vader' > /dev/null
 
 after_success:
   - covimerage -vv xml
