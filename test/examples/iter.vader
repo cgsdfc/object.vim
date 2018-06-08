@@ -1,4 +1,4 @@
-
+" vim: ft=vim
 " All examples in iter.vim works
 
 Execute (Example-1);
@@ -8,19 +8,13 @@ Execute (Example-2);
 AssertEqual object#list(object#enumerate('abc')), [[0, 'a'], [1, 'b'], [2,'c']]
 
 Execute (Example-3);
-AssertEqual object#dict('abc', '[toupper(v:val), v:val]'), {'A': 'a', 'B': 'b', 'C': 'c'}
-
-Execute (Example-4);
-AssertEqual object#dict(object#enumerate('abc'), '[v:val[1], v:val[0]]'), {'a': 0, 'b': 1, 'c': 2}
-
-Execute (Example-5);
 AssertEqual object#dict(object#zip('abc', range(3))), {'a': 0, 'b': 1, 'c': 2}
 
-Execute (Example-6);
+Execute (Example-4);
 AssertEqual object#sum(range(1, 100)), 5050
 
-Execute (Example-7);
+Execute (Example-5);
 AssertEqual object#filter(['1', '2', ''], 'v:val'), ['1', '2']
 
-Execute (Example-8);
+Execute (Example-6);
 AssertEqual object#list('abc'), ['a', 'b', 'c']

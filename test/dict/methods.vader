@@ -2,6 +2,7 @@
 " Test the methods of the dict object.
 " TODO:
 "   - __contains__()
+"   - has_key()
 
 
 Execute(Different arguments to __init__());
@@ -85,6 +86,7 @@ let e = object#_dict()
 AssertEqual 1, e.setdefault('foo', 1)
 AssertEqual 1, object#getitem(e, 'foo')
 AssertEqual 1, e.setdefault('foo', 2), 'if has_key, not setdefault'
+
 
 Execute(clear());
 let d = object#_dict({'foo': 1, 'bar': 2})

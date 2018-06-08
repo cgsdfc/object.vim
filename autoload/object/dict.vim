@@ -224,6 +224,7 @@ function! s:dict.pop(Key, ...)
   return val
 endfunction
 
+" Representation of plain Dict.
 function! object#dict#repr(dict)
   return printf('{%s}', join(map(items(a:dict),
         \ 'printf("''%s'': %s", v:val[0], object#repr(v:val[1]))'), ', '))
