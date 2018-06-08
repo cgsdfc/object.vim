@@ -1,4 +1,6 @@
 filetype off
-let &runtimepath .= ','.expand('<sfile>:p:h:h')
+set runtimepath += '../../vim-maktaba'
+set runtimepath += '../../vader.vim'
+set runtimepath += '../'
 filetype plugin indent on
 syntax enable
