@@ -4,6 +4,7 @@
 
 let s:dict = object#type('dict', [], {
       \ '__init__': function('object#dict#__init__'),
+      \ '__len__': function('object#dict#__len__'),
       \ '__repr__': function('object#dict#__repr__'),
       \ '__bool__': function('object#dict#__bool__'),
       \ '__getitem__': function('object#dict#__getitem__'),
@@ -28,8 +29,12 @@ endfunction
 
 ""
 " @dict dict
-" Initialize a dict
-function! object#dict#__init__(...)
+" Initialize a dict with [args], which can be:
+"   * a plain |Dict| -> copy args.
+"   * a @dict(dict) object -> copy underlying |Dict|.
+"   * an iterable -> fill with 2-lists item.
+"   * an iterable and a |String| -> fill with map(iterable, string).
+function! object#dict#__init__(...) dict
   let self._dict = call('object#dict', a:000)
 endfunction
 

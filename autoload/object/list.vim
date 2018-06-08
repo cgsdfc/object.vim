@@ -4,6 +4,7 @@
 
 let s:list = object#type('list', [], {
       \ '__init__': function('object#list#__init__'),
+      \ '__len__': function('object#list#__len__'),
       \ '__repr__': function('object#list#__repr__'),
       \ '__bool__': function('object#list#__bool__'),
       \ '__getitem__': function('object#list#__getitem__'),

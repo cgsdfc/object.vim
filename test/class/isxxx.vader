@@ -15,13 +15,11 @@ let C = object#class('C', [A, B])
 "
 " isinstance()
 "
-Execute(Throws TypeError if obj is not an object);
-AssertThrows call object#isinstance(1, g:X)
-Assert g:vader_exception =~# 'TypeError'
+Execute(Return false if obj is not an object);
+AssertEqual 0, object#isinstance(1, g:X)
 
-Execute(Throws TypeError if obj is not an object);
-AssertThrows call object#isinstance(1, g:X)
-Assert g:vader_exception =~# 'TypeError'
+Execute(Return false if cls is not a class);
+AssertEqual 0, object#isinstance(object#new(X), 1)
 
 Execute(Return true for every class in the MRO);
 let c = object#new(C)
@@ -38,6 +36,10 @@ AssertEqual 0, object#isinstance(a, B)
 "
 " issubclass()
 "
+
+Execute(Return false for non-class args);
+AssertEqual 0, object#issubclass(1, X)
+AssertEqual 0, object#issubclass(X, 1)
 
 Execute(X is a subclass of X);
 AssertEqual 1, object#issubclass(X, X)
