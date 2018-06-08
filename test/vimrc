@@ -1,6 +1,6 @@
 filetype off
-set runtimepath += ~/vim-maktaba
-set runtimepath += ~/vader.vim
-set runtimepath += ~/object.vim
+set rtp+=~/vim-maktaba
+set rtp+=~/vader.vim
+set rtp+=~/object.vim
 filetype plugin indent on
 syntax enable
