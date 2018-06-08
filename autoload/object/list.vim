@@ -22,6 +22,7 @@ endfunction
 "   list() -> an empty list.
 "   list(plain list) -> a shallow copy of it.
 "   list(iterable) -> initiazed with items of iterable.
+"   list(list object) -> a copy of the underlying list.
 " <
 function! object#list#list(...)
   call object#util#ensure_argc(1, a:0)
@@ -31,6 +32,9 @@ function! object#list#list(...)
 
   if maktaba#value#IsList(a:1)
     return copy(a:1)
+  endif
+  if object#isinstance(a:1, s:list)
+    return copy(a:1._list)
   endif
 
   let iter = object#iter(a:1)

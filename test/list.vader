@@ -1,0 +1,6 @@
+" vim: ft=vim
+" Test the list wrapper.
+
+Include(Test list()): list/list.vader
+Include(Methods of list class): list/methods.vader
+Include(Subclass): list/subclass.vader
