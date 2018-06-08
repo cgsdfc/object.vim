@@ -537,65 +537,6 @@ Examples:
 ==============================================================================
 DICTIONARIES                                                *object.vim-dicts*
 
-                                                             *object.vim.dict*
-A wrapper class of built-in |Dict|.
-
-dict.__init__()                                              *dict.__init__()*
-  Initialize a dict
-
-dict.__repr__()                                              *dict.__repr__()*
-  Representation of a dict.
-
-dict.__bool__()                                              *dict.__bool__()*
-  Test for emptiness of the dict.
-
-dict.__getitem__({key})                                   *dict.__getitem__()*
-  Get an item from the dict. If {key} is not present but the subclass of dict
-  defines a `__missing__` method, return or throw whatever it returns or
-  throws. `__missing__` must be a method.
-
-  Throws ERROR(KeyError) if {key} is not present.
-  Throws ERROR(WrongType) if `__missing__` is not a |Funcref|.
-
-dict.__setitem__({idx}, {val})                            *dict.__setitem__()*
-  Set value for a dict item.
-
-dict.__len__()                                                *dict.__len__()*
-  Return the length of the dict.
-
-dict.clear()                                                    *dict.clear()*
-  Remove all items from the dict.
-
-dict.copy()                                                      *dict.copy()*
-  Return a shallow copy of the dict object.
-
-dict.get({key}, [default])                                        *dict.get()*
-  Get a value from the dict and fall back on [default].
-  Throws ERROR(KeyError) if the {key} is not present and no [default] is
-  given.
-
-dict.items()                                                    *dict.items()*
-  Return a list of 2-lists for the items of the dict.
-
-dict.values()                                                  *dict.values()*
-  Return a list from the values of the dict.
-
-dict.keys()                                                      *dict.keys()*
-  Return a list from the keys of the dict.
-
-dict.setdefault({key}, {default})                          *dict.setdefault()*
-  Get and set {default} for the {key}.
-
-dict.pop({key}, [default])                                        *dict.pop()*
-  Remove the specified {key} and return the corresponding value. If {key} is
-  not found, [default] is returned if given, otherwise KeyError if thrown.
-
-dict.extend({dict_like}, [dict_like], [flag])                  *dict.extend()*
-  Extend the dict with a [dict_like] object, which can be a |object.vim.dict|
-  object, a plain |Dict| or an iterable that yields 2-lists. If an optional
-  [flag] is given, it should be one of 'keep', 'force' and 'error', which will
-  be passed to built-in |extend()|.
-
                                                              *object.vim.file*
 A file object for line-oriented I/O.
 
@@ -682,58 +623,6 @@ lambda.__call__([args])                                    *lambda.__call__()*
                                                              *object.vim.list*
 A wrapper class of built-in |List|.
 
-list.__init__()                                              *list.__init__()*
-  Initialize a list.
-
-list.__repr__()                                              *list.__repr__()*
-  Representation of a list.
-
-list.__bool__()                                              *list.__bool__()*
-  Test for emptiness of the list.
-
-list.__getitem__({idx})                                   *list.__getitem__()*
-  Get an item from the list.
-
-list.__setitem__({idx}, {val})                            *list.__setitem__()*
-  Set value for a list item.
-
-list.__iter__()                                              *list.__iter__()*
-  Return an iterator over the list.
-
-list.__len__()                                                *list.__len__()*
-  Return the length of the list.
-
-list.append({item})                                            *list.append()*
-  Add an item to the end of the list.
-
-list.count({value})                                             *list.count()*
-  Count the occurrences of {value}.
-
-list.extend({iterable})                                        *list.extend()*
-  Extend the list by appending elements from the {iterable}.
-
-list.index({value}, [start])                                    *list.index()*
-  Return the first index of {value} starting from [start].
-  Throws ERROR(ValueError) if the {value} is not present.
-
-list.insert({index}, {item})                                   *list.insert()*
-  Insert an {item} before {index} .
-
-list.pop([index])                                                 *list.pop()*
-  Remove and return the item at [index] @default index=last.
-  Throws ERROR(IndexError) if the list is empty or [index] is out of range.
-
-list.remove({value})                                           *list.remove()*
-  Remove the first occurrence of {value}.
-  Throws ERROR(ValueError) if {value} is not present.
-
-list.reverse()                                                *list.reverse()*
-  Reverse the list in-place.
-
-list.sort([cmp])                                                 *list.sort()*
-  Sort the list in-place. A [cmp] |Funcref| can be used to customize ordering
-  of elements.
-
                                                             *object.vim.super*
 An object that forwards method calls to parents or siblings of a type.
 
@@ -781,6 +670,21 @@ object#class#isinstance({obj}, {cls})              *object#class#isinstance()*
 
 object#class#issubclass({cls}, {base})             *object#class#issubclass()*
   Return whether {cls} is a subclass of {base}.
+
+object#dict#dict()                                        *object#dict#dict()*
+  Create a plain |Dict|.
+>
+    dict() -> an empty dictionary.
+    dict(iterable) -> initiazed with 2-list items.
+    dict(plain dictionary) -> a copy of the argument.
+    dict(dict object) -> a copy of the underlying dictionary.
+<
+
+object#dict#_dict()                                      *object#dict#_dict()*
+  Create a dict object
+
+object#dict#dict_()                                      *object#dict#dict_()*
+  Return the dict type.
 
 object#except#BaseException({type}, {msg}, {args})
                                                *object#except#BaseException()*
@@ -869,8 +773,19 @@ object#lambda#for({iterable}, {names}, {cmd})            *object#lambda#for()*
     call object#for('key val', items({'a': 1}), 'echo key val')
 <
 
+object#list#_list()                                      *object#list#_list()*
+  Create a list object.
+
 object#list#list_()                                      *object#list#list_()*
   Return the list type.
+
+object#list#list()                                        *object#list#list()*
+  Create a plain |List|.
+>
+    list() -> an empty list.
+    list(plain list) -> a shallow copy of it.
+    list(iterable) -> initiazed with items of iterable.
+<
 
 object#mapping#getitem({obj}, {key})                *object#mapping#getitem()*
   Return the value at {key} in {obj} as if {obj} is a mapping. If {obj} is a
@@ -919,6 +834,9 @@ object#protocols#dir({obj})                           *object#protocols#dir()*
   __dir__(), it is called instead.
 
 
+object#protocols#contains({item}, {obj})         *object#protocols#contains()*
+  Test whether {item} is in {obj}.
+
 object#super#super({type}, {obj})                       *object#super#super()*
   Return a super object bound to {obj} that delegates method calls to the
   parents and siblings of {type}.
@@ -950,30 +868,6 @@ object#types#NoneType()                              *object#types#NoneType()*
 
 object#types#None()                                      *object#types#None()*
   Return the None object
-
-object#types#dict([iter])                                *object#types#dict()*
-
->
-    dict() -> an empty dictionary.
-    dict(iterable) -> initiazed with 2-list items.
-    dict(iterable, str) -> applies str to iterable, initiazed with the
-      resulting list.
-    dict(plain dictionary) -> a copy of the argument.
-<
-
-  Turn an iterator that returns 2-list into a |Dict|. If no [iter] is given,
-  an empty |Dict| is returned. If a |Dict| is given, it is effectively
-  |copy()|'ed.
-
-object#types#list([iter])                                *object#types#list()*
-
->
-    list() -> an empty list.
-    list(iterable) -> initiazed with items of iterable.
-<
-
-  Turn an iterator into a |List|. If no [iter] is given, an empty |List| is
-  returned. If a |List| is given, it is effectively |copy()|'ed.
 
 ==============================================================================
 EXCEPTIONS                                             *object.vim-exceptions*

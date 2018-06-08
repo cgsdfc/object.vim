@@ -1,7 +1,6 @@
 ""
-" @dict dict
+" @section Dict, dict
 " A wrapper class of built-in |Dict|.
-
 let s:dict = object#class('dict')
 
 ""
@@ -10,12 +9,8 @@ let s:dict = object#class('dict')
 "   dict() -> an empty dictionary.
 "   dict(iterable) -> initiazed with 2-list items.
 "   dict(plain dictionary) -> a copy of the argument.
-"   dict(@dict(dict) object) -> a copy of the underlying |Dict|.
+"   dict(dict object) -> a copy of the underlying dictionary.
 " <
-"
-" Turn an iterator that returns 2-list into a |Dict|.
-" If no [iter] is given, an empty |Dict| is returned.
-" If a |Dict| is given, it is effectively |copy()|'ed.
 function! object#dict#dict(...)
   call object#util#ensure_argc(1, a:0)
   if !a:0
@@ -33,7 +28,7 @@ function! object#dict#dict(...)
 endfunction
 
 ""
-" Create a @dict(dict) object
+" Create a dict object
 function! object#dict#_dict(...)
   return object#new_(s:dict, a:000)
 endfunction

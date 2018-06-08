@@ -1,18 +1,5 @@
 " vim: ft=vim
-" Test the dict wrapper
 
-Before;
-let dict = object#dict_()
-
-Execute(__init__());
-" No arguments
-let a = object#new(dict)
-Log object#repr(a)
-
-" Plain dict
-let b = object#new(dict, {'foo': 1, 'bar': 2})
-Log object#repr(b)
-
-" dict object
-let c = object#new(dict, b)
-debug call object#repr(c)
+Include(Methods of dict object): dict/methods.vader
+Include(Plain dict creator): dict/dict.vader
+Include(Subclassing dict): dict/subclass.vader

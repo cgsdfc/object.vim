@@ -23,7 +23,7 @@ endfunction
 "   list(plain list) -> a shallow copy of it.
 "   list(iterable) -> initiazed with items of iterable.
 " <
-function! object#types#list(...)
+function! object#list#list(...)
   call object#util#ensure_argc(1, a:0)
   if !a:0
     return []
@@ -187,7 +187,7 @@ endfunction
 " Sort the list in-place.
 " A [cmp] |Funcref| can be used to customize ordering
 " of elements.
-function! object#list#sort(...)
+function! s:list.sort(...)
   " TODO: use object#cmp()
   call object#util#ensure_argc(1, a:0)
   let Order = a:0 == 1? maktaba#ensure#IsFuncref(a:1):
