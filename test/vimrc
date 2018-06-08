@@ -1,7 +1,4 @@
 filetype off
-set rtp+=vader.vim
-set rtp+=vim-maktaba
-set rtp+=.
-set rtp+=after
+let &runtimepath .= ','.expand('<sfile>:p:h:h')
 filetype plugin indent on
 syntax enable
