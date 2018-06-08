@@ -324,6 +324,10 @@ function! object#lambda(...) abort
   return call('object#lambda#lambda', a:000)
 endfunction
 
+function! object#_lambda(...) abort
+  return call('object#lambda#_lambda', a:000)
+endfunction
+
 function! object#lambda_(...) abort
   return call('object#lambda#lambda_', a:000)
 endfunction

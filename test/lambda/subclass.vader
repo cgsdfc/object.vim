@@ -1,0 +1,13 @@
+" vim: ft=vim
+" Test subclassing lambda
+
+Before;
+let lambda = object#lambda_()
+
+Execute(Info about lambda class);
+Log object#repr(lambda)
+
+Execute(Simple subclassing);
+let MyLambda = object#class('MyLambda', lambda)
+let x = object#new(MyLambda, 'x', 'toupper(x)')
+AssertEqual x.__call__('a'), 'A'

@@ -3,4 +3,5 @@
 "
 
 Include(lambda() itself): lambda/lambda.vader
+Include(Subclass): lambda/subclass.vader
 Include(for() loop): lambda/for.vader

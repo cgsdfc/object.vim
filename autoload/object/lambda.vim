@@ -8,7 +8,7 @@
 "     directly in situation such as |sort()|.
 "   * The created lambda uses named arguments rather than numbered
 "     arguments like `a:1`, improving readability.
-"   * Provide interface to the underlying lambda object via `lambda_()`.
+"   * Provide interface to the underlying lambda object via `_lambda()`.
 "   * lambda can create closure if one want to.
 "   * `for()` function let you execute nearly arbitrary code while iterating.
 "
@@ -39,23 +39,14 @@
 "   0 1
 "   1 2
 "
-"   :let f = object#lambda_('x y', 'x + y')
+"   :let f = object#_lambda('x y', 'x + y')
 "   :echo object#repr(f)
 "   <'lambda' object>
 "   :echo f.__call__(1, 2)
 "   3
 " <
 
-""
-" @dict lambda
-" An object that backups the one-line function.
-
-
-let s:lambda = object#type('lambda', [], {
-      \ '__init__': function('object#lambda#__init__'),
-      \ '__call__': function('object#lambda#__call__'),
-      \})
-
+let s:lambda = object#class('lambda')
 
 ""
 " @dict lambda
@@ -74,11 +65,11 @@ let s:lambda = object#type('lambda', [], {
 " @throws ValueError if {names} is not a |name-specification|.
 " @throws WrongType if {code} or {names} is not a |String| or
 " [closure] is not a |Dict|.
-function! object#lambda#__init__(names, code, ...) dict
+function! s:lambda.__init__(names, code, ...)
   call object#util#ensure_argc(1, a:0)
-  let self.__code__ = maktaba#ensure#IsString(a:code)
   let self.__argv__ = object#lambda#make_names(a:names)
   let self.__argc__ = len(self.__argv__)
+  let self.__code__ = maktaba#ensure#IsString(a:code)
   if a:0 == 1
     let self.__closure__ = maktaba#ensure#IsDict(a:1)
   endif
@@ -90,25 +81,8 @@ endfunction
 "
 " @throws TypeError if the actual arguments do not match the
 " formal arguments declared via names.
-function! object#lambda#__call__(...) dict
+function! s:lambda.__call__(...)
   return object#lambda#eval(self, a:0, a:000)
-endfunction
-
-function! s:ensure_unique(names)
-  let seen = {}
-  for x in a:names
-    if !has_key(seen, x)
-      let seen[x] = 1
-      continue
-    endif
-    throw object#ValueError('duplicate name %s', string(x))
-  endfor
-  return a:names
-endfunction
-
-function! object#lambda#make_names(names)
-  let names = maktaba#ensure#IsString(a:names)
-  return s:ensure_unique(map(split(names), 'object#util#ensure_identifier(v:val)'))
 endfunction
 
 " Evaluate the {__lambda} object.
@@ -139,15 +113,21 @@ endfunction
 " the lambda expression.
 "
 function! object#lambda#lambda(...)
-  return call('object#lambda_', a:000).__call__
+  return call('object#_lambda', a:000).__call__
 endfunction
 
 ""
 " Create a lambda object that cannot be directly called
 " but has a `__call__` method, which does the same thing
 " as what is returned by `object#lambda()`.
-function! object#lambda#lambda_(...)
+function! object#lambda#_lambda(...)
   return object#new_(s:lambda, a:000)
+endfunction
+
+""
+" Return the lambda class.
+function! object#lambda#lambda_()
+  return s:lambda
 endfunction
 
 "
@@ -230,3 +210,21 @@ function! object#lambda#for(names, iterable, cmds)
     return
   endtry
 endfunction
+
+function! object#lambda#ensure_unique(names)
+  let seen = {}
+  for x in a:names
+    if !has_key(seen, x)
+      let seen[x] = 1
+      continue
+    endif
+    throw object#ValueError('duplicate name %s', string(x))
+  endfor
+  return a:names
+endfunction
+
+function! object#lambda#make_names(names)
+  let names = maktaba#ensure#IsString(a:names)
+  return object#lambda#ensure_unique(map(split(names), 'object#util#ensure_identifier(v:val)'))
+endfunction
+

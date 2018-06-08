@@ -37,9 +37,9 @@ for i in range(N)
 endfor
 
 
-Execute (The object returned by lambda_() has correct attributes);
+Execute (The object returned by _lambda() has correct attributes);
 for x in range(N)
-  let f = call('object#lambda_', args[x])
+  let f = call('object#_lambda', args[x])
   AssertEqual f.__code__, args[x][1]
   AssertEqual f.__argv__, object#lambda#make_names(args[x][0])
   AssertEqual call(f.__call__, eval_answers[x][0]), eval_answers[x][1]
@@ -47,14 +47,14 @@ endfor
 
 
 Execute (Examine the repr of lambda object);
-let f = object#lambda_('x', 'x + 1', g:)
+let f = object#_lambda('x', 'x + 1', g:)
 Log object#repr(object#type(f))
 Log object#repr(f)
 Log object#dir(f)
 
 
 Execute (Corner case: taking no argument);
-let L = object#lambda_('', '1')
+let L = object#_lambda('', '1')
 AssertEqual L.__argv__, []
 AssertEqual L.__call__(), 1
 
@@ -65,7 +65,7 @@ AssertEqual L.__call__(), 1
 Execute (Closure works for l:);
 function! TestLocal()
   let l:foo = 1
-  let f = object#lambda_('', 'c.foo', l:)
+  let f = object#_lambda('', 'c.foo', l:)
   Assert has_key(f, '__closure__')
   AssertEqual f.__closure__, l:
   AssertEqual f.__call__(), l:foo
@@ -76,7 +76,7 @@ call TestLocal()
 
 Execute (Closure works for a:);
 function! TestArgs(list)
-  let f = object#lambda_('', 'add(c.list, 1)', a:)
+  let f = object#_lambda('', 'add(c.list, 1)', a:)
   AssertEqual a:, f.__closure__
   call f.__call__()
 endfunction
@@ -88,7 +88,7 @@ AssertEqual list, [1]
 
 Execute (Closure works for s:);
 let s:script_var = 1
-let f = object#lambda_('', 'c.script_var', s:)
+let f = object#_lambda('', 'c.script_var', s:)
 " The s: in AssertEqual will be the one of the vader code.
 " AssertEqual f.__closure__, s:
 
@@ -100,7 +100,7 @@ endfor
 
 Execute (Closure works for g:);
 let g:this_is_an_intended_long_name = 10
-let f = object#lambda_('', '1 + c.this_is_an_intended_long_name', g:)
+let f = object#_lambda('', '1 + c.this_is_an_intended_long_name', g:)
 AssertEqual f.__call__(), g:this_is_an_intended_long_name + 1
 
 "
@@ -136,7 +136,7 @@ Log g:vader_exception
 
 Execute (Impl variable ``a:__lambda`` can be accessed from lambda);
 " Create a lambda that simply returns the lambda itself
-let f = object#lambda_('', 'a:__lambda')
+let f = object#_lambda('', 'a:__lambda')
 AssertEqual f.__call__(), f
 
 
