@@ -2,6 +2,7 @@
 "
 " iter() and next()
 "
+
 Execute(iter() returns an iterator for String and List);
 let input = [
       \ [],
@@ -17,18 +18,22 @@ for i in input
   unlet i
 endfor
 
+
 Execute(iter() throws TypeError for non-iterable);
 let non_iterable = [ 1, {}, function('tr'), ]
 if object#util#has_special_variables()
   call extend(non_iterable, [v:none, v:false])
 endif
+
 if has('float')
   call add(non_iterable, 1.1)
 endif
+
 for X in non_iterable
   AssertThrows call object#iter(g:X)
   Assert g:vader_exception =~# 'TypeError'
 endfor
+
 
 Execute(iter() throws TypeError returns non-iter);
 let cls = {}
@@ -37,44 +42,29 @@ function! cls.__iter__()
 endfunction
 
 AssertThrows call object#iter(g:cls)
+Log g:vader_exception
 Assert g:vader_exception =~# 'TypeError'
+
+
+Execute (Argument to iter() will be returned as it if it is already an iterator);
+let x = object#iter('')
+Assert x is# object#iter(x)
+
 
 Execute(iter() throws WrongType if __iter__ is not a Funcref);
 let cls = {
       \ '__iter__' : 1,
       \ }
+
 AssertThrows call object#iter(g:cls)
 Assert g:vader_exception =~# 'WrongType'
 
 
 Execute(next() calls the __next__ method of an obj);
 let cls = {}
+
 function! cls.__next__()
   return 'called'
 endfunction
 
 AssertEqual object#next(cls), 'called'
-
-Execute(next() throws TypeError if __next__ is not available);
-let input = [
-      \ 'str',
-      \ 0,
-      \ range(10),
-      \ function('tr'),
-      \ ]
-
-for X in input
-  AssertThrows call object#next(g:X)
-  Assert g:vader_exception =~# 'TypeError'
-endfor
-
-Execute(next() throws TypeError if __next__ is not a Funcref);
-let cls = {
-      \ '__next__' : 'not a Funcref',
-      \}
-AssertThrows call object#next(g:X)
-Assert g:vader_exception =~# 'TypeError'
-
-Execute (Argument to iter() will be returned as it if it is already an iterator);
-let x = object#iter('')
-Assert x is# object#iter(x)

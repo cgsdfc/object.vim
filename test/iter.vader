@@ -1,15 +1,19 @@
 " vim:ft=vim
 "
-" Test Iterator Protocols
+" Test Iterator
 "
 
+" Creator and manipulator:
 Include(Test iter() and next()): iter/next-iter.vader
-Include(Test all() and any()): iter/all-any.vader
-Include(Test list_iter): iter/list-iter.vader
 
+" Built-in iters:
+Include(Test list_iter): iter/list-iter.vader
 Include(Test str_iter): iter/str-iter.vader
 Include(Test enumerate()): iter/enumerate.vader
 Include(Test zip()): iter/zip.vader
+
+" Helpers:
+Include(Test all() and any()): iter/all-any.vader
 Include(Test map()): iter/map.vader
 Include(Test filter()): iter/filter.vader
 Include(Test sum()): iter/sum.vader

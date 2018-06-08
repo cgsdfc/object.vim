@@ -4,8 +4,6 @@
 "
 " Features:
 "   * Vim-compatible map() and filter() that works with iterators.
-"   * dict() creates |Dict| from an iterator and a lambda,
-"     which is similar to dict comprehension.
 "   * filter() evaluates lambda using |object#types#bool()|.
 "   * Provide iterators for |String| and |List| that works transparently.
 "   * Helpers like sum(), all(), any(), zip() and enumerate() all work as expected.
@@ -17,12 +15,6 @@
 "
 "   :echo object#list(object#enumerate('abc'))
 "   [[0, 'a'], [1, 'b'], [2,'c']]
-"
-"   :echo object#dict('abc', '[toupper(v:val), v:val]')
-"   {'A': 'a', 'B': 'b', 'C': 'c'}
-"
-"   :echo object#dict(object#enumerate('abc'), '[v:val[1], v:val[0]]')
-"   {'a': 0, 'b': 1, 'c': 2}
 "
 "   :echo object#dict(object#zip('abc', range(3)))
 "   {'a': 0, 'b': 1, 'c': 2}
@@ -42,8 +34,8 @@
 
 let s:list_iter = object#class('list_iter')
 let s:str_iter = object#class('str_iter')
-let s:enum_iter = object#class('enumerate')
-let s:zip_iter = object#class('zip_iter')
+let s:enumerate = object#class('enumerate')
+let s:zip = object#class('zip')
 
 function! s:list_iter.__init__(list)
   let self.idx = 0
@@ -77,30 +69,23 @@ function! s:str_iter.__next__()
   throw object#StopIteration()
 endfunction
 
-function! s:enum_iter.__init__(iter, start)
+function! s:enumerate.__init__(iter, start)
   let self.iter = a:iter
   let self.idx = a:start
 endfunction
 
-function! s:enum_iter.__next__()
+function! s:enumerate.__next__()
   let Item = [self.idx, object#next(self.iter)]
   let self.idx += 1
   return Item
 endfunction
 
-function! s:zip_iter.__init__(iters)
+function! s:zip.__init__(iters)
   let self.iters = a:iters
 endfunction
 
-function! s:zip_iter.__next__()
+function! s:zip.__next__()
   return map(copy(self.iters), 'object#next(v:val)')
-endfunction
-
-function! s:ensure_iter(x)
-  if object#hasattr(a:x, '__iter__') && maktaba#value#IsFuncref(a:x.__iter__)
-    return a:x
-  endif
-  throw object#TypeError('object is not an iterator')
 endfunction
 
 ""
@@ -111,21 +96,21 @@ endfunction
 " @throws WrongType if {obj} has an unusable __next__.
 " @throws TypeError if the __iter__ of {obj} does not return an iterator.
 function! object#iter#iter(obj)
+  " If obj already an iter.
   if object#hasattr(a:obj, '__next__')
-    call maktaba#ensure#IsFuncref(a:obj.__next__)
     return a:obj
   endif
 
+  " Handle built-in iters.
   if maktaba#value#IsList(a:obj)
     return object#new(s:list_iter, a:obj)
   endif
-
   if maktaba#value#IsString(a:obj)
     return object#new(s:str_iter, a:obj)
   endif
 
   if object#hasattr(a:obj, '__iter__')
-    return s:ensure_iter(object#protocols#call(a:obj.__iter__))
+    return object#iter#extract(a:obj)
   endif
 
   call object#except#not_avail('iter', a:obj)
@@ -134,10 +119,11 @@ endfunction
 ""
 " Retrieve the next item from the iterator {obj}.
 function! object#iter#next(obj)
-  if object#hasattr(a:obj, '__next__')
-    return object#protocols#call(a:obj.__next__)
-  endif
-  call object#except#not_avail('next', a:obj)
+  " Note: We check **nothing** here. Rationales:
+  "   - next() is performance critical.
+  "   - next() is usually used in couple with iter(),
+  "     which does all necessary checkings already.
+  return a:obj.__next__()
 endfunction
 
 ""
@@ -148,7 +134,9 @@ function! object#iter#any(iter)
   try
     while 1
       let Item = object#iter#next(iter)
-      if object#bool(Item) | return 1 | endif
+      if object#bool(Item)
+        return 1
+      endif
     endwhile
   catch /StopIteration/
     return 0
@@ -163,7 +151,9 @@ function! object#iter#all(iter)
   try
     while 1
       let Item = object#iter#next(iter)
-      if !object#bool(Item) | return 0 | endif
+      if !object#bool(Item)
+        return 0
+      endif
     endwhile
   catch /StopIteration/
     return 1
@@ -174,10 +164,10 @@ endfunction
 " Return an iterator for index, value of {iter}
 " Take an optional [start].
 function! object#iter#enumerate(iter, ...)
-  let argc = object#util#ensure_argc(1, a:0)
+  call object#util#ensure_argc(1, a:0)
   let iter = object#iter(a:iter)
-  let start =  argc ? maktaba#ensure#IsNumber(a:1) : 0
-  return object#new(s:enum_iter, iter, start)
+  let start =  a:0 ? maktaba#ensure#IsNumber(a:1) : 0
+  return object#new(s:enumerate, iter, start)
 endfunction
 
 ""
@@ -189,18 +179,15 @@ function! object#iter#zip(iter, ...)
   if !a:0
     return iter
   endif
-
   let iters = insert(map(copy(a:000), 'object#iter(v:val)'), iter)
-  return object#new(s:zip_iter, iters)
+  return object#new(s:zip, iters)
 endfunction
 
 ""
 " Create a new list by applying {lambda} to each item of an {iter}.
 " {lambda} should be a |String| that is acceptable by built-in |map()|.
 function! object#iter#map(iter, lambda)
-  let iter = object#iter(a:iter)
-  let lambda = maktaba#ensure#IsString(a:lambda)
-  return map(object#list(iter), lambda)
+  return map(object#list(a:iter), maktaba#ensure#IsString(a:lambda))
 endfunction
 
 ""
@@ -208,9 +195,8 @@ endfunction
 " return false. Truthness is evaluated by object#bool().
 " {lambda} should be a |String| that is acceptable by built-in |filter()|.
 function! object#iter#filter(iter, lambda)
-  let iter = object#iter(a:iter)
   let lambda = maktaba#ensure#IsString(a:lambda)
-  return filter(object#list(iter), 'object#bool('.lambda.')')
+  return filter(object#list(a:iter), 'object#bool('.lambda.')')
 endfunction
 
 ""
@@ -231,4 +217,14 @@ function! object#iter#sum(iter, ...)
   catch /StopIteration/
     return start
   endtry
+endfunction
+
+" Extract an iterator from {obj} and make sure it is a valid
+" iter, i.e., has __next__ method.
+function! object#iter#extract(obj)
+  let X = object#protocols#call(a:obj.__iter__)
+  if object#hasattr(X, '__next__') && maktaba#value#IsFuncref(X.__next__)
+    return X
+  endif
+  throw object#TypeError('__iter__ returns non-iter')
 endfunction
