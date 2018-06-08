@@ -17,14 +17,18 @@ Execute (Throws TypeError as any of the arguments is non-iterable);
 AssertThrows call object#zip([], 1)
 Assert g:vader_exception =~# 'TypeError'
 
-Execute (Corner cases(zipping empty sequences));
-let iter = object#zip([], range(3))
-AssertEqual [], object#list(iter)
-let iter = object#zip('', range(3))
-AssertEqual [], object#list(iter)
-
 Execute (Basic Attributes);
 let x = object#zip([], [])
 Log object#repr(x)
 Log object#repr(object#type(x))
 Log object#dir(x)
+
+Execute (Corner cases: zipping empty sequences);
+let iter = object#zip([], range(3))
+AssertEqual [], object#list(iter)
+let iter = object#zip('', range(3))
+AssertEqual [], object#list(iter)
+
+Execute (Corner cases: single arg);
+let iter = object#zip(range(3))
+AssertEqual object#list(iter), range(3)
