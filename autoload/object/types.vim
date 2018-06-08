@@ -12,6 +12,7 @@
 "   * NoneType(type): The class of the None object, the place holder for
 "   absence of sensible values, such as the base class of object.
 
+" Note: We cannot use in global scope any of the functions from class.vim.
 
 " Get the typename of {obj}. If {obj} is a type,
 " 'type' will be returned always.
@@ -57,20 +58,17 @@ endfunction
 " NoneType
 "
 
-function! s:NoneType.__init__()
-  throw object#TypeError('cannot create NoneType instance')
-endfunction
-
-function! s:NoneType.__repr__()
-  return ''
-endfunction
-
-function! s:NoneType.__bool__()
-  return 0
-endfunction
-
-" Since we cannot object#new().
-call extend(s:None, object#class#methods(s:NoneType))
+for s:obj in [s:NoneType, s:None]
+  function! s:obj.__init__()
+    throw object#TypeError('cannot create NoneType instance')
+  endfunction
+  function! s:obj.__repr__()
+    return ''
+  endfunction
+  function! s:obj.__bool__()
+    return 0
+  endfunction
+endfor
 
 "
 " type() creates new class when called with 3 arguments.
