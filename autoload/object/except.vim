@@ -85,13 +85,6 @@ function! object#except#throw_noattr(obj, name)
         \ object#types#name(a:obj), string(a:name))
 endfunction
 
-" Helper to throw 'attribute is readonly'
-"
-function! object#except#throw_readonly_attr(obj, name)
-  throw object#AttributeError('%s object attribute %s is readonly',
-        \ object#types#name(a:obj), string(a:name))
-endfunction
-
 "
 " Indicate the the {func} is not available for {obj} because of
 " lack of hooks or invcompatible type. {func} is the name of the
