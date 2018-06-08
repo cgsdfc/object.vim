@@ -1,0 +1,10 @@
+" vim: ft=vim
+
+Before;
+let MyList = object#class('MyList', object#list_())
+
+Execute(Minimal subclass);
+let x = object#new(MyList)
+Log object#repr(x)
+call x.append(1)
+AssertEqual object#len(x), 1

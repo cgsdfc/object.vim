@@ -3,6 +3,7 @@
 
 [![Build Status](https://travis-ci.org/cgsdfc/object.vim.svg?branch=master)](https://travis-ci.org/cgsdfc/object.vim)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
+[![codecov](https://codecov.io/gh/cgsdfc/object.vim/branch/master/graph/badge.svg)](https://codecov.io/gh/cgsdfc/object.vim)
 
 ```
                __      _           __

@@ -129,7 +129,7 @@ function! s:list.extend(Iterable)
       call add(self._list, object#next(iter))
     endwhile
   catch /StopIteration/
-    break
+    return
   endtry
 endfunction
 
@@ -148,8 +148,7 @@ endfunction
 " @dict list
 " Insert an {item} before {index} .
 function! s:list.insert(Index, Item)
-  call insert(self._list, a:Item,
-        \ maktaba#ensure#IsNumber(a:Index))
+  call insert(self._list, a:Item, maktaba#ensure#IsNumber(a:Index))
 endfunction
 
 ""
