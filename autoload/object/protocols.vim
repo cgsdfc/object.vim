@@ -113,7 +113,7 @@ endfunction
 
 ""
 " Test whether {item} is in {obj}.
-function! object#protocols#contains(item, obj)
+function! object#protocols#contains(obj, item)
   if maktaba#value#IsList(a:obj)
     return index(a:obj, a:item) >= 0
   endif

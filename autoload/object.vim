@@ -176,6 +176,10 @@ function! object#len(...) abort
   return call('object#protocols#len', a:000)
 endfunction
 
+function! object#contains(...) abort
+  return call('object#protocols#contains', a:000)
+endfunction
+
 "
 " mapping.vim
 "

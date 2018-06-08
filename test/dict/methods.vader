@@ -1,18 +1,112 @@
 " vim: ft=vim
-" Test the dict wrapper
+" Test the methods of the dict object.
+" TODO:
+"   - __contains__()
 
-Before;
-let dict = object#dict_()
 
-Execute(__init__());
+Execute(Different arguments to __init__());
 " No arguments
-let a = object#new(dict)
+let a = object#_dict()
 Log object#repr(a)
 
 " Plain dict
-let b = object#new(dict, {'foo': 1, 'bar': 2})
+let b = object#_dict({'foo': 1, 'bar': 2})
 Log object#repr(b)
 
 " dict object
-let c = object#new(dict, b)
-debug call object#repr(c)
+let c = object#_dict(b)
+Log object#repr(c)
+
+" iterable
+let d = object#_dict([[1,2]])
+Log object#repr(d)
+
+" Bad argument
+AssertThrows call object#_dict(1)
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+
+Execute(__len__);
+let d = object#_dict()
+AssertEqual 0, object#len(d)
+call object#setitem(d, 'a', 2)
+AssertEqual 1, object#len(d)
+
+
+Execute(keys(), values(), items());
+let plain = {'a': 1, 'b': 2, 'c': 3}
+let d = object#_dict(plain)
+
+AssertEqual keys(plain), d.keys()
+AssertEqual values(plain), d.values()
+AssertEqual items(plain), d.items()
+
+
+Execute(pop());
+let d = object#_dict({'foo': 1, 'bar': 2})
+
+AssertEqual d.pop('foo'), 1, 'popping a existing key'
+Assert !d.has_key('foo'), 'key is removed'
+
+AssertThrows call g:d.pop('foo')
+Log g:vader_exception
+Assert g:vader_exception =~# 'KeyError'
+
+AssertEqual d.pop('foo', 'default'), 'default'
+
+
+Execute(copy());
+let d = object#_dict({'foo': 1, 'bar': 2})
+let empty = object#_dict()
+AssertEqual d, d.copy()
+AssertEqual empty, empty.copy()
+
+
+Execute (getitem);
+let d = object#_dict()
+call object#setitem(d, 'foo', 1)
+AssertEqual object#getitem(d, 'foo'), 1
+
+AssertThrows call object#getitem(g:d, 'bar')
+Assert g:vader_exception =~# 'KeyError'
+
+call object#setitem(d, 'bar', [])
+call add(object#getitem(d, 'bar'), 1)
+AssertEqual d.get('bar'), [1]
+
+
+Execute(__bool__);
+AssertEqual 0, object#bool(object#_dict())
+AssertEqual 1, object#bool(object#_dict({'1':1}))
+
+Execute(setdefault());
+let e = object#_dict()
+AssertEqual 1, e.setdefault('foo', 1)
+AssertEqual 1, object#getitem(e, 'foo')
+AssertEqual 1, e.setdefault('foo', 2), 'if has_key, not setdefault'
+
+Execute(clear());
+let d = object#_dict({'foo': 1, 'bar': 2})
+Assert object#bool(d)
+
+call d.clear()
+Assert !object#bool(d)
+
+
+Execute(extend());
+let d = object#_dict()
+" Throws TypeError if dict_like cannot be turned into a dict
+AssertThrows call g:d.extend(1)
+Assert g:vader_exception =~# 'TypeError'
+
+" Throws ValueError if flag is out of choice
+AssertThrows call g:d.extend({}, 'ops')
+Log g:vader_exception
+Assert g:vader_exception =~# 'ValueError'
+
+" Throws KeyError if flag is 'error' and key exists
+call object#setitem(d, 'foo', 1)
+AssertThrows call g:d.extend({'foo': 2}, 'error')
+Log g:vader_exception
+Assert g:vader_exception =~# 'KeyError'

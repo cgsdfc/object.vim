@@ -12,8 +12,10 @@
 
 
 " Any better way to guess the bitwidth of Number?
-"TODO: Add performance test for the strhash().
-"
+" TODO: Add performance test for the strhash().
+" TODO: delitem()
+
+
 let s:INT32_MAX = 2147483647
 let s:INT64_MAX = 9223372036854775807
 

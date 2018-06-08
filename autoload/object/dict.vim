@@ -109,6 +109,9 @@ endfunction
 " @dict dict
 " Remove all items from the dict.
 function! s:dict.clear()
+  if empty(self._dict)
+    return
+  endif
   let self._dict = {}
 endfunction
 
@@ -172,30 +175,34 @@ endfunction
 
 ""
 " @dict dict
-" Extend the dict with a [dict_like] object, which can be
-" a @dict(dict) object, a plain |Dict| or an iterable
-" that yields 2-lists.
+" Extend the dict with a [dict_like] object.
+"
 " If an optional [flag] is given, it should be one of
 " 'keep', 'force' and 'error', which will be passed to built-in
 " |extend()|.
 function! s:dict.extend(Dict_like, ...)
   call object#util#ensure_argc(1, a:0)
-
-  " It must be at least a |Dict|.
-  let dict_like = maktaba#ensure#IsDict(a:Dict_like)
-  if object#isinstance(dict_like, s:dict)
-    let d = dict_like._dict
-  elseif object#hasattr(dict_like, '__iter__')
-    let d = object#dict(dict_like)
-  else
-    let d = dict_like
-  endif
-
-  if a:0 == 1
-    call extend(self._dict, d, maktaba#ensure#IsString(a:1))
-  else
+  let d = object#dict(a:Dict_like)
+  if a:0 == 0
     call extend(self._dict, d)
+    return
   endif
+
+  try
+    call extend(self._dict, d, maktaba#ensure#IsString(a:1))
+  catch /E475/
+    throw object#ValueError('bad flag %s', string(a:1))
+  catch /E737/
+    throw object#KeyError("key already exists '%s'",
+          \ substitute(v:exception, '\v\C^.*: (.*)$', '\1', 'g'))
+  endtry
+endfunction
+
+""
+" @dict dict
+" Test whether self has {Key}.
+function! s:dict.has_key(Key)
+  return self.__contains__(a:Key)
 endfunction
 
 ""
