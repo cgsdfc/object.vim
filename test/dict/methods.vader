@@ -63,14 +63,17 @@ let empty = object#_dict()
 AssertEqual d, d.copy()
 AssertEqual empty, empty.copy()
 
+Execute(getitem() throws KeyError);
+let d = object#_dict()
+AssertThrows call object#getitem(g:d, 'bar')
+Log g:vader_exception
+Assert g:vader_exception =~# 'KeyError'
+
 
 Execute (getitem);
 let d = object#_dict()
 call object#setitem(d, 'foo', 1)
 AssertEqual object#getitem(d, 'foo'), 1
-
-AssertThrows call object#getitem(g:d, 'bar')
-Assert g:vader_exception =~# 'KeyError'
 
 call object#setitem(d, 'bar', [])
 call add(object#getitem(d, 'bar'), 1)
@@ -126,3 +129,15 @@ AssertEqual object#getitem(d, 'bar'), 2
 " flag=force
 call d.extend({'foo': 3}, 'force')
 AssertEqual object#getitem(d, 'foo'), 3
+
+Execute(get());
+let d = object#_dict({'foo': 1, 'bar': 2})
+" get() what you have
+AssertEqual d.get('foo'), 1
+
+" get() throws
+AssertThrows call g:d.get('fooo')
+Assert g:vader_exception =~# 'KeyError'
+
+" default comes to aid
+AssertEqual d.get('fooo', 2), 2
