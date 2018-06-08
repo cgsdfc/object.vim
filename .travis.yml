@@ -21,7 +21,7 @@ before_script:
   - git clone https://github.com/junegunn/vader.vim.git
   - git clone https://github.com/google/vim-maktaba.git
 
-script:
+script: |
   - covimerage run vim -Nu <(cat << VIMRC
     filetype off
     set rtp+=vader.vim
