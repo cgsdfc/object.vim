@@ -4,3 +4,4 @@ data_file = .coverage.covimerage
 
 [report]
 show_missing = true
+exclude = shell.vim,compare.vim
