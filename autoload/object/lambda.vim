@@ -13,7 +13,6 @@
 "   * `for()` function let you execute nearly arbitrary code while iterating.
 "
 " Limitations:
-"   * No closure for the code segments executed in the for() function.
 "   * Only one dictionary can be captured as closure at most, which means you
 "   cannot access both `s:` and `l:` from the lambda at once. But there is
 "   a simple workaround for this:
@@ -91,6 +90,7 @@ function! object#lambda#eval(__lambda, __nargs, __args)
     if has_key(a:__lambda, '__closure__')
       let c = a:__lambda.__closure__
     endif
+
     let __i = 0
     while __i < a:__lambda.__argc__
       let {a:__lambda.__argv__[__i]} = a:__args[__i]
@@ -98,6 +98,7 @@ function! object#lambda#eval(__lambda, __nargs, __args)
     endwhile
     return eval(a:__lambda.__code__)
   endif
+
   throw object#TypeError(
         \'lambda takes exactly %d arguments (%d given)',
         \ a:__lambda.__argc__, a:__nargs)
@@ -130,55 +131,11 @@ function! object#lambda#lambda_()
   return s:lambda
 endfunction
 
-"
-" The for() loop
-"
-
-"
-" Execute {__excmds} with {__items} set as items
-" from the iterator.
-function! s:execute_cmds(__excmds, __items)
-  for __i in a:__items
-    let {__i[0]} = __i[1]
-  endfor
-  execute a:__excmds
-endfunction
-
-"
-" Unpack the {Vals} into {names} and return a 2-lists
-" list for each name-value pair.
-" If there is only one name, it will take the entire of {Vals}.
-" Otherwise, {Vals} must be a |List| and its len should match
-" that of the {names}.
-"
-" @throws WrongType if Vals is not a List but len(names) > 1.
-" @throws TypeError if the len of names does not match that of
-" Vals.
-function! s:make_items(names, Vals)
-  let names_nr = len(a:names)
-  if names_nr ==# 1
-    return [ [a:names[0], a:Vals] ]
-  endif
-  let Vals = maktaba#ensure#IsList(a:Vals)
-  let Vals_nr = len(Vals)
-  if names_nr ==# Vals_nr
-    let i = 0
-    let result = []
-    while i < names_nr
-      call add(result, [a:names[i], Vals[i]])
-      let i += 1
-    endwhile
-    return result
-  endif
-  throw object#TypeError(names_nr > Vals_nr ?
-        \ 'more targets than list items':
-        \ 'less targets than list items')
-endfunction
-
 ""
 " Execute a |List| of commands while iterating over {iterable}.
 " {names} is a space-separated |String|s that contains the variable
-" names used as the items in the {iterable}.
+" names used as the items in the {iterable}. If a [closure] is given,
+" it is available as `c.var` inside the code.
 "
 " {cmd} is a |String| of Ex command or a |List| of such strings.
 " During each iteration, the commands are executed
@@ -187,24 +144,26 @@ endfunction
 " >
 "   call object#for('x', range(10), ['if x > 0', 'echo x', 'endif'])
 "   call object#for('f', files, 'call f.close()')
-"   call object#for('key val', items({'a': 1}), 'echo key val')
+"   call object#for('key val', items(dict), 'echo key val')
 " <
-function! object#lambda#for(names, iterable, cmds)
+function! object#lambda#for(names, iterable, cmds, ...)
+  " TODO: use for object
+  call object#util#ensure_argc(1, a:0)
   let names = object#lambda#make_names(a:names)
   let iter = object#iter(a:iterable)
-  " let capture = maktaba#ensure#IsDict(a:capture)
+  let closure = a:0 ? maktaba#ensure#IsDict(a:1) : {}
+
   if maktaba#value#IsString(a:cmds)
     let excmds = a:cmds
   else
-    let cmds =  map(maktaba#ensure#IsList(a:cmds),
-          \ 'maktaba#ensure#IsString(v:val)')
-    let excmds = join(cmds, "\n")
+    let excmds = join(map(
+          \ maktaba#ensure#IsList(a:cmds), 'maktaba#ensure#IsString(v:val)'), "\n")
   endif
 
   try
     while 1
-      let Items = s:make_items(names, object#next(iter))
-      call s:execute_cmds(excmds, Items)
+      let Items = object#lambda#make_items(names, object#next(iter))
+      call object#lambda#execute_cmds(excmds, Items, closure)
     endwhile
   catch /StopIteration/
     return
@@ -223,8 +182,53 @@ function! object#lambda#ensure_unique(names)
   return a:names
 endfunction
 
-function! object#lambda#make_names(names)
-  let names = maktaba#ensure#IsString(a:names)
-  return object#lambda#ensure_unique(map(split(names), 'object#util#ensure_identifier(v:val)'))
+"
+" Unpack the {Vals} into {names} and return a 2-lists
+" list for each name-value pair.
+" If there is only one name, it will take the entire of {Vals}.
+" Otherwise, {Vals} must be a |List| and its len should match
+" that of the {names}.
+"
+" @throws WrongType if Vals is not a List but len(names) > 1.
+" @throws TypeError if the len of names does not match that of
+" Vals.
+function! object#lambda#make_items(names, Vals)
+  let names_nr = len(a:names)
+  if names_nr ==# 1
+    return [ [a:names[0], a:Vals] ]
+  endif
+
+  let Vals = maktaba#ensure#IsList(a:Vals)
+  let Vals_nr = len(Vals)
+
+  if names_nr ==# Vals_nr
+    let i = 0
+    let result = []
+    while i < names_nr
+      call add(result, [a:names[i], Vals[i]])
+      let i += 1
+    endwhile
+    return result
+  endif
+
+  throw object#TypeError(names_nr > Vals_nr ?
+        \ 'more targets than list items':
+        \ 'less targets than list items')
 endfunction
 
+function! object#lambda#make_names(names)
+  let names = maktaba#ensure#IsString(a:names)
+  return object#lambda#ensure_unique(map(
+        \ split(names), 'object#util#ensure_identifier(v:val)'))
+endfunction
+
+"
+" Execute {__excmds} with {__items} set as items
+" from the iterator.
+function! object#lambda#execute_cmds(__excmds, __items, __closure)
+  let c = a:__closure
+  for __i in a:__items
+    let {__i[0]} = __i[1]
+  endfor
+  execute a:__excmds
+endfunction

@@ -11,57 +11,67 @@ Execute (Throws WrongType if names is non-String);
 AssertThrows call object#for(1, range(10), 'let x = 1')
 Assert g:vader_exception =~# 'WrongType'
 
+
 Execute (Throws ValueError if any of the names is not an identifier);
 let bad_names = [
-      \ '$var', '#1 #2 #3',
+      \ '$var',
+      \ '#1 #2 #3',
       \ '$var @var %var',
       \]
+
 for x in bad_names
   AssertThrows call object#for(g:x, range(10), 'let x = 1')
   Assert g:vader_exception =~# 'ValueError'
 endfor
 
-Execute (Throws TypeError if iterable is not iterable);
+
+Execute (Throws TypeError if iter is not iterable);
 AssertThrows call object#for('x', 1, 'let x = 1')
 Assert g:vader_exception =~# 'TypeError'
+
 
 Execute (Throws WrongType if any of the commands is not String or List or Strings);
 let bad_cmds = [
       \ 1,
       \ function('tr'),
-      \ v:false,
       \ range(10),
       \]
+
 for X in bad_cmds
   AssertThrows call object#for('var', range(10), g:X)
   Log g:vader_exception
   Assert g:vader_exception =~# 'WrongType'
 endfor
 
+
 Execute (Basic case);
-call object#for('x', range(10), 'Log x')
+call object#for('x', range(10), 'let x += 1')
 
 "
 " Errors in unpacking names to items
 "
 
 Execute (Throws WrongType: requires a List to unpack);
-AssertThrows call object#for('key val', range(10), 'let key = val')
+AssertThrows call object#for('key val', range(10), '')
 Log g:vader_exception
 Assert g:vader_exception =~# 'WrongType'
 
+
 Execute (OK: single name, multiple items);
-call object#for('key', items({'a':1}), 'Log key')
+call object#for('item', items({'a':1}), '')
 
-Execute (Throws TypeError: multiple names > multiple items);
-AssertThrows call object#for('key val bad', items({'a':1}), 'let key = val')
+
+Execute (Throws TypeError: #names > #items);
+AssertThrows call object#for('key val bad', items({'a':1}), '')
 Log g:vader_exception
 Assert g:vader_exception =~# 'TypeError'
 
-Execute (Throws TypeError: multiple names < multiple items);
-AssertThrows call object#for('i0 i1 i2', [range(10)], 'let key = val')
+
+Execute (Throws TypeError: #names < #items);
+AssertThrows call object#for('i0 i1 i2', [range(10)], '')
 Log g:vader_exception
 Assert g:vader_exception =~# 'TypeError'
+
 
 Execute (Throws ValueError if duplicate names are given);
 AssertThrows call object#for('x x', range(10),  'let x += 1')
@@ -79,6 +89,7 @@ Log g:vader_exception
 Assert g:vader_exception =~# 'Undefined'
 call object#for('x', 'aaa', 'Log g:globl')
 
+
 Execute (Variable names in implementation won't crash in);
 " Since the unqualified names in the execute command belong to
 " local scope, it can happen to crash implementation names.
@@ -90,6 +101,7 @@ let impl_names = [
       \ 'names', 'cmd', 'cmds', 'excmds', 'Items',
       \ 'iterable',
       \]
+
 for x in impl_names
   " These names should be undefined.
   AssertThrows call object#for('_', range(10), 'echo ' . g:x)
@@ -107,6 +119,7 @@ for x in visiable_impl_names
   call object#for('_', range(1), 'Log ' . g:x)
 endfor
 
+
 Execute (Seeing different scopes);
 call object#for('var', range(1), 'Log printf("l: %s", string(l:))')
 call object#for('var', range(1), 'Log printf("a: %s", string(a:))')
@@ -116,6 +129,7 @@ call object#for('var', range(1), 'Log printf("s: %s", string(s:))')
 " before the commands get executed. Thus, capture is not possible.
 " But you won't run into name-crashes casually. ;-)
 
+
 Execute (New variables can be defined in cmds);
 call object#for('var', range(4), 'let x = var')
 
@@ -124,31 +138,32 @@ call object#for('var', range(4), 'let x = var')
 "
 
 Execute (Multiple commands);
-call object#for('var', range(1), [
-      \ 'let x = var',
+call object#for('var', range(1),
+      \['let x = var',
       \ 'let y = x',
       \ 'let z = y',
       \'Log z'])
 
+
 Execute (Defining functions);
-call object#for('var', range(1),[
+call object#for('var', range(1), [
       \ 'function! Happy(x)',
       \   'return toupper(a:x)',
       \ 'endfunction',
       \])
 
-Execute (Doing for loop);
 
+Execute (Doing for loop);
 call object#for('var', range(10), [
-          \   'let z = 0'
-          \,  'for x in range(10)'
-          \,    'let z += var * x'
-          \,  'endfor'
-          \,  'unlet z'
-          \])
+      \   'let z = 0'
+      \,  'for x in range(10)'
+      \,    'let z += var * x'
+      \,  'endfor'
+      \,  'unlet z'
+      \])
+
 
 Execute (While loop);
-
 call object#for('var', repeat('a', 3)
       \,[   'let i = 0'
       \,    'while i < 4'
@@ -157,6 +172,7 @@ call object#for('var', repeat('a', 3)
       \,    'endwhile'
       \,    'unlet var'
       \])
+
 
 Execute (Try-catch);
 AssertThrows call object#for('_', range(1)
@@ -169,6 +185,26 @@ AssertThrows call object#for('_', range(1)
       \])
 AssertEqual g:vader_exception, 'bad'
 
+
 Execute (Common pattern: enumerate());
-call object#for('i val', object#enumerate(range(10)),
-      \ 'Log printf("%d %d", i, val)')
+call object#for('i val',
+      \ object#enumerate(range(10)), 'Log printf("%d %d", i, val)')
+
+"
+" Closure
+"
+
+Execute(c.var works when c = l:);
+function! TestLocal()
+  let list = []
+  let data = range(10)
+
+  call object#for('x', data, 'call add(c.list, x)', l:)
+  AssertEqual list, data
+endfunction
+
+call TestLocal()
+
+Execute(WrongType if closure not dict);
+AssertThrows call object#for('x', [], '', 1)
+Assert g:vader_exception =~# 'WrongType'
