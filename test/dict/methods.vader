@@ -97,6 +97,7 @@ Assert !object#bool(d)
 
 
 Execute(extend());
+
 let d = object#_dict()
 " Throws TypeError if dict_like cannot be turned into a dict
 AssertThrows call g:d.extend(1)
@@ -112,3 +113,16 @@ call object#setitem(d, 'foo', 1)
 AssertThrows call g:d.extend({'foo': 2}, 'error')
 Log g:vader_exception
 Assert g:vader_exception =~# 'KeyError'
+
+" Default flag: force
+let d = object#_dict({'foo': 1, 'bar': 2})
+call d.extend({'foo': 2})
+AssertEqual object#getitem(d, 'foo'), 2
+
+" flag=keep
+call d.extend({'bar': 1}, 'keep')
+AssertEqual object#getitem(d, 'bar'), 2
+
+" flag=force
+call d.extend({'foo': 3}, 'force')
+AssertEqual object#getitem(d, 'foo'), 3
