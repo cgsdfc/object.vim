@@ -4,3 +4,4 @@ Include (New): class/new.vader
 Include (MRO): class/mro.vader
 Include (Super): class/super.vader
 Include (IsXXX): class/isxxx.vader
+Include (Type): class/type.vader
