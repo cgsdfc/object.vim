@@ -16,6 +16,8 @@
 An object-oriented framework for Vimscript that looks and feels like Python and
 strives for maximum convenience and compatibility with built-in functions.
 
+**Read:** Vim and Python are friends, let's do both of them more!
+
 # Examples
 - Defining classes and creating instances.
 ```vim
