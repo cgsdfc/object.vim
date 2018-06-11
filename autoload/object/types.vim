@@ -82,38 +82,46 @@ function! object#types#object()
 endfunction
 
 ""
+" @function object_()
 " Return the object class
 function! object#types#object_()
   return s:object
 endfunction
 
 ""
+" @function type_()
 " Return the type class
 function! object#types#type_()
   return s:type
 endfunction
 
 ""
+" @function NoneType()
 " Return the NoneType class
 function! object#types#NoneType()
   return s:NoneType
 endfunction
 
 ""
+" @function None()
 " Return the None object
 function! object#types#None()
   return s:None
 endfunction
 
 ""
-" Test whether {obj} is true. For collections like
-" |List| and |Dict|, non empty is true. For special
-" variables, v:none, v:false, v:null is false and v:true
-" is true. For numbers, 0 is false and non-zero is true.
-" For floats, 0.0 is false and everything else if true.
-" For |Funcref|,
-"
-" Hook into __bool__.
+" @function bool(...)
+" Convert [args] to a Bool, i.e., 0 or 1.
+" >
+"   bool() -> False
+"   bool(Funcref) -> True
+"   bool(List, String or plain Dict) -> not empty
+"   bool(Number) -> non-zero
+"   bool(Float) -> non-zero
+"   bool(v:false, v:null, v:none) -> False
+"   bool(v:true) -> True
+"   bool(obj) -> obj.__bool__()
+" <
 function! object#types#bool(...)
   call object#util#ensure_argc(1, a:0)
   if !a:0

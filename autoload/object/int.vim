@@ -9,12 +9,14 @@ endif
 let s:int.INT_MIN = -s:int.INT_MAX - 1
 
 let s:valid_literals = {
-      \ '2':  '\C\v^(0[bB])?[01]+$',
-      \ '8':  '\C\v^0?[0-7]+$',
-      \ '10': '\C\v^\d+$',
-      \ '16': '\C\v^(0[xX])?[0-9a-fA-F]+$',
+      \ '2':  '\C\v^[+-]?(0[bB])?[01]+$',
+      \ '8':  '\C\v^[+-]?0?[0-7]+$',
+      \ '10': '\C\v^[+-]?\d+$',
+      \ '16': '\C\v^[+-]?(0[xX])?[0-9a-fA-F]+$',
       \}
 
+" TODO: use printf()
+" These are just stupid.
 let s:digits = {
       \ '2': '01',
       \ '8': '01234567',
@@ -29,6 +31,7 @@ let s:prefix = {
       \ '16': '0x',
       \}
 
+" Ensure that the given base and literal under that base are valid.
 function! object#int#ensure_literal(nargs, args)
   let lit = maktaba#ensure#IsString(a:args[0])
   let base = a:nargs == 2 ? maktaba#ensure#IsNumber(a:args[1]): 10
@@ -36,14 +39,24 @@ function! object#int#ensure_literal(nargs, args)
   if !has_key(s:valid_literals, base)
     throw object#ValueError('int() base must be one of 2, 8, 10, 16, not %d', base)
   endif
-  if lit =~# s:valid_literals[a:base]
+  if lit =~# s:valid_literals[base]
     return [lit, base]
   endif
 
   throw object#ValueError('invalid literal for int() with base %d: %s',
-        \ a:base, string(a:lit))
+        \ base, string(lit))
 endfunction
 
+""
+" @function int(...)
+" Convert [args] to a |Number|, i.e., an int.
+" >
+"   int() -> 0
+"   int(Number) -> returned as it
+"   int(Float) -> truncated towards zero as float2nr() does
+"   int(String, base=10) -> convert to Number as str2nr() does
+" <
+" Valid bases are 2, 8, 10, 16 as accepted by |str2nr()|.
 function! object#int#int(...)
   call object#util#ensure_argc(2, a:0)
   if !a:0

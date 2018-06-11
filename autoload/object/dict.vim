@@ -4,6 +4,7 @@
 let s:dict = object#class('dict')
 
 ""
+" @function dict(...)
 " Create a plain |Dict|.
 " >
 "   dict() -> an empty dictionary.
@@ -31,12 +32,14 @@ function! object#dict#dict(...)
 endfunction
 
 ""
-" Create a dict object
+" @function _dict(...)
+" Create a dict object. See @function(dict).
 function! object#dict#_dict(...)
   return object#new_(s:dict, a:000)
 endfunction
 
 ""
+" @function dict_()
 " Return the dict type.
 function! object#dict#dict_()
   return s:dict

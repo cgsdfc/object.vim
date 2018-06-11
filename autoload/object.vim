@@ -296,8 +296,16 @@ function! object#sum(...) abort
   return call('object#iter#sum', a:000)
 endfunction
 
+function! object#imap(...) abort
+  return call('object#iter#imap', a:000)
+endfunction
+
 function! object#map(...) abort
   return call('object#iter#map', a:000)
+endfunction
+
+function! object#ifilter(...) abort
+  return call('object#iter#ifilter', a:000)
 endfunction
 
 function! object#filter(...) abort

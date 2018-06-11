@@ -601,44 +601,48 @@ Special attributes:
 ==============================================================================
 FUNCTIONS                                               *object.vim-functions*
 
-object#class#class({name}, [bases])                     *object#class#class()*
-  Define a class that has a {name} and optional [bases].
-
+class(...)                                              *object#class#class()*
+  Define a class that has a {name} and [bases].
+>
+    class(name) -> inherited from object
+    class(name, bases) -> inherited from bases
+<
   {name} should be a |String| of valid identifier. [bases] should be a class
   or a |List| of classes. If no [bases] are given or [bases] is an empty
   |List|, the new class will subclass `object`.
 
-  Return the newly created class with inherited attributes.
-
-object#class#new({cls}, [args])                           *object#class#new()*
-  Create a new instance of {cls} applying [args].
-
-  The `__init__` method will be called with [args].
-
-object#class#new_({cls}, {args})                         *object#class#new_()*
-  Create a new instance of {cls} applying {args}.
-
-  You can wrap it to write a constructor-like function:
+new(...)                                                  *object#class#new()*
+  Create a new instance of {cls}.
 >
-    function! MyClass(...)
-      return object#new_(s:MyClass, a:000)
-    endfunction
+    new(cls[, args]) -> a new instance of cls
 <
 
-object#class#type([args])                                *object#class#type()*
-  Return the type of an object or create a new type dynamically.
+new_(...)                                                *object#class#new_()*
+  Create a new instance of {cls}.
+>
+    new_(cls, args) -> a new instance of cls
+<
 
-  type(obj) -> obj.__class__
+type(...)                                                *object#class#type()*
+  Return the type of an object or create a new type.
+>
+    type(obj) -> the type of obj
+    type(name, bases, dict) -> a new type.
+<
 
-  type(name, bases, dict) -> a new type.
-
-object#class#isinstance({obj}, {cls})              *object#class#isinstance()*
+isinstance(...)                                    *object#class#isinstance()*
   Return whether {obj} is an instance of {cls}.
+>
+    isinstance(obj, cls) -> if obj is an instance of cls
+<
 
-object#class#issubclass({cls}, {base})             *object#class#issubclass()*
+issubclass(...)                                    *object#class#issubclass()*
   Return whether {cls} is a subclass of {base}.
+>
+    issubclass(cls, base) -> if cls is a subclass of base
+<
 
-object#dict#dict()                                        *object#dict#dict()*
+dict(...)                                                 *object#dict#dict()*
   Create a plain |Dict|.
 >
     dict() -> an empty dictionary.
@@ -647,10 +651,10 @@ object#dict#dict()                                        *object#dict#dict()*
     dict(dict object) -> a copy of the underlying dictionary.
 <
 
-object#dict#_dict()                                      *object#dict#_dict()*
-  Create a dict object
+_dict(...)                                               *object#dict#_dict()*
+  Create a dict object. See |dict()|.
 
-object#dict#dict_()                                      *object#dict#dict_()*
+dict_()                                                  *object#dict#dict_()*
   Return the dict type.
 
 object#except#BaseException({type}, {msg}, {args})
@@ -670,49 +674,91 @@ object#file#open({name}, [mode])                          *object#file#open()*
   writing. Add a 'b' to the [mode] for binary files. Add a '+' to the [mode]
   to allow simultaneous reading and writing.
 
-object#iter#iter({obj})                                   *object#iter#iter()*
-  Return an iterator from {obj}. If {obj} is already an iterator, it is
-  returned as it. Built-in |List| and |String| have iterators. An __iter__
-  method of {obj} that returns an iterator will be used if possible.
+int(...)                                                    *object#int#int()*
+  Convert [args] to a |Number|, i.e., an int.
+>
+    int() -> 0
+    int(Number) -> returned as it
+    int(Float) -> truncated towards zero as float2nr() does
+    int(String, base=10) -> convert to Number as str2nr() does
+<
+  Valid bases are 2, 8, 10, 16 as accepted by |str2nr()|.
 
-  Throws ERROR(WrongType) if {obj} has an unusable __next__.
-  Throws ERROR(TypeError) if the __iter__ of {obj} does not return an
-  iterator.
+iter(...)                                                 *object#iter#iter()*
+  Return an iterator from {obj}.
+>
+    iter(List) -> list_iter
+    iter(String) -> str_iter
+    iter(iterator) -> returned as it
+    iter(obj) -> obj.__iter__()
+<
 
-object#iter#next({obj})                                   *object#iter#next()*
-  Retrieve the next item from the iterator {obj}.
+next(...)                                                 *object#iter#next()*
+  Retrieve the next item from an iterator.
+>
+    next(iter) -> next item from iter
+<
 
-object#iter#any({iter})                                    *object#iter#any()*
-  Return true iff any item from {iter} is true. Truthness is evaluated using
-  object#bool(). {iter} can be anything iterable.
+any(...)                                                   *object#iter#any()*
+  If any of the items is True.
+>
+    any(iterable) -> if any of the items is True
+<
 
-object#iter#all({iter})                                    *object#iter#all()*
-  Return true iff all item from {iter} is true. Truthness is evaluated using
-  object#bool(). {iter} can be anything iterable.
+all(...)                                                   *object#iter#all()*
+  If all of the items is True.
+>
+    all(iterable) -> if all of the items is True
+<
 
-object#iter#enumerate({iter}, [start])               *object#iter#enumerate()*
-  Return an iterator for index, value of {iter} Take an optional [start].
+enumerate(...)                                       *object#iter#enumerate()*
+  Return an iterator for index, value of {iter}.
+>
+    enumerate(iterable, start=0) -> [start, item_0], ..., [N, item_N]
+<
 
-object#iter#zip({iter}, [iters])                           *object#iter#zip()*
-  Return an iterator that returns [seq1[i], seq[i], ...] for the ith call of
-  object#next(). The iterator stops when the first StopIteration is raised by
-  one of the [iters].
+zip(...)                                                   *object#iter#zip()*
+  Return an iterator that zips a list of sequences.
+>
+    zip(iter[,*iters]) -> [[seq1[0], seq2[0], ...], ...]
+<
+  The iterator stops at the shortest sequence.
 
-object#iter#map({iter}, {lambda})                          *object#iter#map()*
-  Create a new list by applying {lambda} to each item of an {iter}. {lambda}
-  should be a |String| that is acceptable by built-in |map()|.
+map(...)                                                   *object#iter#map()*
+  Map a callable to an iterable.
+>
+    map(iter, lambda) -> a new list mapped from iter
+<
+  {lambda} can be a String or Funcref.
 
-object#iter#filter({iter}, {lambda})                    *object#iter#filter()*
+imap(...)                                                 *object#iter#imap()*
+  Return an `imap` iterator.
+>
+    imap(iterable, Funcref) -> imap object
+<
+
+ifilter(...)                                           *object#iter#ifilter()*
+  Return an `ifilter` iterator.
+>
+    ifilter(iterable, Funcref) -> ifilter object
+    ifilter(iterable) -> as if Funcref is identity
+<
+
+filter(...)                                             *object#iter#filter()*
   Create a new list by removing the item from {iter} when {lambda} return
-  false. Truthness is evaluated by object#bool(). {lambda} should be a
-  |String| that is acceptable by built-in |filter()|.
+  false.
+>
+    filter(iter) -> a new list without falsy items.
+    filter(iter, lambda) -> a new list filtered from iter.
+<
+  Truthness is tested by `bool()`.
 
-object#iter#sum({iter}, [start])                           *object#iter#sum()*
-  Return the sum of items from {iter} plus the value of parameter [start],
-  which defaults to 0. Items must be either |Number|s or |Float|s, i.e.,
-  numeric. If {iter} is empty, [start] is returned.
-
-  Throws ERROR(WrongType) if any item is not numeric.
+sum(...)                                                   *object#iter#sum()*
+  Return the sum of items from {iter} plus [start], which defaults to 0.
+>
+    sum(iter, start=0) -> start + the sum of items.
+<
+  Items must be numeric.
 
 object#lambda#lambda()                                *object#lambda#lambda()*
   Create a one-line |Funcref| that takes names as arguments and returns the
@@ -756,6 +802,7 @@ object#list#list()                                        *object#list#list()*
     list() -> an empty list.
     list(plain list) -> a shallow copy of it.
     list(iterable) -> initiazed with items of iterable.
+    list(list object) -> a copy of the underlying list.
 <
 
 object#mapping#getitem({obj}, {key})                *object#mapping#getitem()*
@@ -805,7 +852,7 @@ object#protocols#dir({obj})                           *object#protocols#dir()*
   __dir__(), it is called instead.
 
 
-object#protocols#contains({obj}, {item})         *object#protocols#contains()*
+object#protocols#contains({item}, {obj})         *object#protocols#contains()*
   Test whether {item} is in {obj}.
 
 object#super#super({type}, {obj})                       *object#super#super()*
@@ -828,17 +875,30 @@ object#super#super_({type}, {obj}, {name})             *object#super#super_()*
 object#types#object()                                  *object#types#object()*
   Create a plain object.
 
-object#types#object_()                                *object#types#object_()*
+object_()                                             *object#types#object_()*
   Return the object class
 
-object#types#type_()                                    *object#types#type_()*
+type_()                                                 *object#types#type_()*
   Return the type class
 
-object#types#NoneType()                              *object#types#NoneType()*
+NoneType()                                           *object#types#NoneType()*
   Return the NoneType class
 
-object#types#None()                                      *object#types#None()*
+None()                                                   *object#types#None()*
   Return the None object
+
+bool(...)                                                *object#types#bool()*
+  Convert [args] to a Bool, i.e., 0 or 1.
+>
+    bool() -> False
+    bool(Funcref) -> True
+    bool(List, String or plain Dict) -> not empty
+    bool(Number) -> non-zero
+    bool(Float) -> non-zero
+    bool(v:false, v:null, v:none) -> False
+    bool(v:true) -> True
+    bool(obj) -> obj.__bool__()
+<
 
 ==============================================================================
 EXCEPTIONS                                             *object.vim-exceptions*

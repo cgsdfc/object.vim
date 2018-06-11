@@ -178,14 +178,16 @@ let s:None = object#None()
 let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__', '__mro__']
 
 ""
-" Define a class that has a {name} and optional [bases].
-"
+" @function class(...)
+" Define a class that has a {name} and [bases].
+" >
+"   class(name) -> inherited from object
+"   class(name, bases) -> inherited from bases
+" <
 " {name} should be a |String| of valid identifier.
 " [bases] should be a class or a |List| of classes.
 " If no [bases] are given or [bases] is an empty |List|,
 " the new class will subclass `object`.
-"
-" Return the newly created class with inherited attributes.
 function! object#class#class(name, ...)
   let argc = object#util#ensure_argc(1, a:0)
 
@@ -206,21 +208,20 @@ function! object#class#class(name, ...)
 endfunction
 
 ""
-" Create a new instance of {cls} applying [args].
-"
-" The `__init__` method will be called with [args].
+" @function new(...)
+" Create a new instance of {cls}.
+" >
+"   new(cls[, args]) -> a new instance of cls
+" <
 function! object#class#new(cls, ...)
   return object#class#new_(a:cls, a:000)
 endfunction
 
 ""
-" Create a new instance of {cls} applying {args}.
-"
-" You can wrap it to write a constructor-like function:
+" @function new_(...)
+" Create a new instance of {cls}.
 " >
-"   function! MyClass(...)
-"     return object#new_(s:MyClass, a:000)
-"   endfunction
+"   new_(cls, args) -> a new instance of cls
 " <
 function! object#class#new_(cls, args)
   let args = maktaba#ensure#IsList(a:args)
@@ -234,12 +235,12 @@ function! object#class#new_(cls, args)
 endfunction
 
 ""
-" @usage [args]
-" Return the type of an object or create a new type dynamically.
-"
-" type(obj) -> obj.__class__
-"
-" type(name, bases, dict) -> a new type.
+" @function type(...)
+" Return the type of an object or create a new type.
+" >
+"   type(obj) -> the type of obj
+"   type(name, bases, dict) -> a new type.
+" <
 function! object#class#type(...)
   if a:0 == 1
     return object#class#ensure_object(a:1).__class__
@@ -251,7 +252,11 @@ function! object#class#type(...)
 endfunction
 
 ""
+" @function isinstance(...)
 " Return whether {obj} is an instance of {cls}.
+" >
+"   isinstance(obj, cls) -> if obj is an instance of cls
+" <
 function! object#class#isinstance(obj, cls)
   return object#class#is_valid_object(a:obj) &&
         \ object#class#is_valid_class(a:cls) &&
@@ -259,12 +264,17 @@ function! object#class#isinstance(obj, cls)
 endfunction
 
 ""
+" @function issubclass(...)
 " Return whether {cls} is a subclass of {base}.
+" >
+"   issubclass(cls, base) -> if cls is a subclass of base
+" <
 function! object#class#issubclass(cls, base)
   return object#class#is_valid_class(a:cls) &&
         \ object#class#is_valid_class(a:base) &&
         \ object#class#find_class(a:base, a:cls) >= 0
 endfunction
+
 
 "
 " A valid class is a valid object that has __mro__

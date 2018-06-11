@@ -36,6 +36,8 @@ let s:list_iter = object#class('list_iter')
 let s:str_iter = object#class('str_iter')
 let s:enumerate = object#class('enumerate')
 let s:zip = object#class('zip')
+let s:imap = object#class('imap')
+let s:ifilter = object#class('ifilter')
 
 function! s:list_iter.__init__(list)
   let self.idx = 0
@@ -88,13 +90,38 @@ function! s:zip.__next__()
   return map(copy(self.iters), 'object#next(v:val)')
 endfunction
 
+function! s:imap.__init__(iter, mapper)
+  let self.iter = object#iter(a:iter)
+  let self.mapper = maktaba#ensure#IsFuncref(a:mapper)
+endfunction
+
+function! s:imap.__next__()
+  return self.mapper(object#next(self.iter))
+endfunction
+
+function! s:ifilter.__init__(iter, filter)
+  let self.iter = object#iter(a:iter)
+  let self.filter = a:filter
+endfunction
+
+function! s:ifilter.__next__()
+  while 1
+    let Next = object#next(self.iter)
+    if object#bool(self.filter(Next))
+      return Next
+    endif
+  endwhile
+endfunction
+
 ""
-" Return an iterator from {obj}. If {obj} is already an iterator, it is
-" returned as it. Built-in |List| and |String| have iterators. An __iter__
-" method of {obj} that returns an iterator will be used if possible.
-"
-" @throws WrongType if {obj} has an unusable __next__.
-" @throws TypeError if the __iter__ of {obj} does not return an iterator.
+" @function iter(...)
+" Return an iterator from {obj}.
+" >
+"   iter(List) -> list_iter
+"   iter(String) -> str_iter
+"   iter(iterator) -> returned as it
+"   iter(obj) -> obj.__iter__()
+" <
 function! object#iter#iter(obj)
   " If obj already an iter.
   if object#hasattr(a:obj, '__next__')
@@ -117,7 +144,11 @@ function! object#iter#iter(obj)
 endfunction
 
 ""
-" Retrieve the next item from the iterator {obj}.
+" @function next(...)
+" Retrieve the next item from an iterator.
+" >
+"   next(iter) -> next item from iter
+" <
 function! object#iter#next(obj)
   " Note: We check **nothing** here. Rationales:
   "   - next() is performance critical.
@@ -127,8 +158,11 @@ function! object#iter#next(obj)
 endfunction
 
 ""
-" Return true iff any item from {iter} is true. Truthness is evaluated using
-" object#bool(). {iter} can be anything iterable.
+" @function any(...)
+" If any of the items is True.
+" >
+"   any(iterable) -> if any of the items is True
+" <
 function! object#iter#any(iter)
   let iter = object#iter(a:iter)
   try
@@ -144,8 +178,11 @@ function! object#iter#any(iter)
 endfunction
 
 ""
-" Return true iff all item from {iter} is true. Truthness is evaluated using
-" object#bool(). {iter} can be anything iterable.
+" @function all(...)
+" If all of the items is True.
+" >
+"   all(iterable) -> if all of the items is True
+" <
 function! object#iter#all(iter)
   let iter = object#iter(a:iter)
   try
@@ -161,8 +198,11 @@ function! object#iter#all(iter)
 endfunction
 
 ""
-" Return an iterator for index, value of {iter}
-" Take an optional [start].
+" @function enumerate(...)
+" Return an iterator for index, value of {iter}.
+" >
+"   enumerate(iterable, start=0) -> [start, item_0], ..., [N, item_N]
+" <
 function! object#iter#enumerate(iter, ...)
   call object#util#ensure_argc(1, a:0)
   let iter = object#iter(a:iter)
@@ -171,9 +211,12 @@ function! object#iter#enumerate(iter, ...)
 endfunction
 
 ""
-" Return an iterator that returns [seq1[i], seq[i], ...]
-" for the ith call of object#next(). The iterator stops when
-" the first StopIteration is raised by one of the [iters].
+" @function zip(...)
+" Return an iterator that zips a list of sequences.
+" >
+"   zip(iter[,*iters]) -> [[seq1[0], seq2[0], ...], ...]
+" <
+" The iterator stops at the shortest sequence.
 function! object#iter#zip(iter, ...)
   let iter = object#iter(a:iter)
   if !a:0
@@ -184,28 +227,71 @@ function! object#iter#zip(iter, ...)
 endfunction
 
 ""
-" Create a new list by applying {lambda} to each item of an {iter}.
-" {lambda} should be a |String| that is acceptable by built-in |map()|.
+" @function map(...)
+" Map a callable to an iterable.
+" >
+"   map(iter, lambda) -> a new list mapped from iter
+" <
+" {lambda} can be a String or Funcref.
 function! object#iter#map(iter, lambda)
-  return map(object#list(a:iter), maktaba#ensure#IsString(a:lambda))
+  if maktaba#value#IsString(a:lambda)
+    return map(object#list(a:iter), a:lambda)
+  endif
+  if maktaba#value#IsFuncref(a:lambda)
+    return object#list(object#imap(a:iter, a:lambda))
+  endif
+  throw object#TypeError('invalid type %s for map()', object#types#name(a:lambda))
 endfunction
 
 ""
+" @function imap(...)
+" Return an `imap` iterator.
+" >
+"   imap(iterable, Funcref) -> imap object
+" <
+function! object#iter#imap(iter, mapper)
+  return object#new(s:imap, a:iter, a:mapper)
+endfunction
+
+""
+" @function ifilter(...)
+" Return an `ifilter` iterator.
+" >
+"   ifilter(iterable, Funcref) -> ifilter object
+"   ifilter(iterable) -> as if Funcref is identity
+" <
+function! object#iter#ifilter(iter, ...)
+  call object#util#ensure_argc(1, a:0)
+  let filter = a:0 ? maktaba#ensure#IsFuncref(a:1):function('object#util#identity')
+  return object#new(s:ifilter, a:iter, filter)
+endfunction
+
+""
+" @function filter(...)
 " Create a new list by removing the item from {iter} when {lambda}
-" return false. Truthness is evaluated by object#bool().
-" {lambda} should be a |String| that is acceptable by built-in |filter()|.
+" return false.
+" >
+"   filter(iter) -> a new list without falsy items.
+"   filter(iter, lambda) -> a new list filtered from iter.
+" <
+" Truthness is tested by `bool()`.
 function! object#iter#filter(iter, lambda)
-  let lambda = maktaba#ensure#IsString(a:lambda)
-  return filter(object#list(a:iter), 'object#bool('.lambda.')')
+  if maktaba#value#IsString(a:lambda)
+    return filter(object#list(a:iter), 'object#bool('.lambda.')')
+  endif
+  if maktaba#value#IsFuncref(a:lambda)
+    return object#list(object#ifilter(a:iter, a:lambda))
+  endif
+  throw object#TypeError('invalid type %s for filter()', object#types#name(a:lambda))
 endfunction
 
 ""
-" Return the sum of items from {iter} plus the value of
-" parameter [start], which defaults to 0. Items must be either |Number|s
-" or |Float|s, i.e., numeric.
-" If {iter} is empty, [start] is returned.
-"
-" @throws WrongType if any item is not numeric.
+" @function sum(...)
+" Return the sum of items from {iter} plus [start], which defaults to 0.
+" >
+"   sum(iter, start=0) -> start + the sum of items.
+" <
+" Items must be numeric.
 function! object#iter#sum(iter, ...)
   call object#util#ensure_argc(1, a:0)
   let start = a:0 ? maktaba#ensure#IsNumeric(a:1) : 0
@@ -218,6 +304,8 @@ function! object#iter#sum(iter, ...)
     return start
   endtry
 endfunction
+
+" TODO: add reduce()
 
 " Extract an iterator from {obj} and make sure it is a valid
 " iter, i.e., has __next__ method.

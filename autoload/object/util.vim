@@ -19,3 +19,8 @@ function! object#util#has_special_variables()
   return exists('v:none') && exists('v:false') &&
         \ exists('v:true') && exists('v:null')
 endfunction
+
+function object#util#identity(X)
+  return a:X
+endfunction
+
