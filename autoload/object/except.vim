@@ -1,10 +1,11 @@
-
+" Format an exception string.
 function! object#except#format(type, msg, args)
   return printf('%s: %s', a:type, empty(a:args) ?
         \ a:msg : call('printf', [a:msg] + a:args))
 endfunction
 
 ""
+" @function BaseException(...)
 " Generate exception for a specific {type}. User can call BaseException
 " to define their own exception functions.
 " Examples:
@@ -21,21 +22,21 @@ function! object#except#BaseException(type, msg, args)
 endfunction
 
 ""
-" @exception
+" @function Exception(...)
 " Generic exception.
 function! object#except#Exception(msg, ...)
   return object#except#BaseException('Exception', a:msg, a:000)
 endfunction
 
 ""
-" @exception
+" @function ValueError(...)
 " The value of function arguments went wrong.
 function! object#except#ValueError(msg, ...)
   return object#except#BaseException('ValueError', a:msg, a:000)
 endfunction
 
 ""
-" @exception
+" @function TypeError(...)
 " Unsupported operation for a type or wrong number of arguments passed
 " to a function.
 function! object#except#TypeError(msg, ...)
@@ -43,35 +44,35 @@ function! object#except#TypeError(msg, ...)
 endfunction
 
 ""
-" @exception
+" @function AttributeError(...)
 " The object has no such attribute or the attribute is readonly.
 function! object#except#AttributeError(msg, ...)
   return object#except#BaseException('AttributeError', a:msg, a:000)
 endfunction
 
 ""
-" @exception
+" @function StopIteration(...)
 " The end of iteration. Thrown by __iter__ usually.
 function! object#except#StopIteration()
   return 'StopIteration:'
 endfunction
 
 ""
-" @exception
+" @function IndexError(...)
 " Index out of range for sequences.
 function! object#except#IndexError(msg, ...)
   return object#except#BaseException('IndexError', a:msg, a:000)
 endfunction
 
 ""
-" @exception
+" @function KeyError(...)
 " Key out of range for sequences.
 function! object#except#KeyError(msg, ...)
   return object#except#BaseException('KeyError', a:msg, a:000)
 endfunction
 
 ""
-" @exception
+" @function IOError(...)
 " File not writable or readable. Operation on a closed file. Thrown by
 " file objects usually.
 function! object#except#IOError(msg, ...)

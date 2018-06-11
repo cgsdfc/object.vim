@@ -14,8 +14,7 @@ CONTENTS                                                 *object.vim-contents*
   9. Lambda................................................|object.vim-lambda|
   10. Dictionaries..........................................|object.vim-dicts|
   11. Functions.........................................|object.vim-functions|
-  12. Exceptions.......................................|object.vim-exceptions|
-  13. Motivation.......................................|object.vim-motivation|
+  12. Motivation.......................................|object.vim-motivation|
 
 ==============================================================================
 INTRODUCTION                                                *object.vim-intro*
@@ -657,8 +656,7 @@ _dict(...)                                               *object#dict#_dict()*
 dict_()                                                  *object#dict#dict_()*
   Return the dict type.
 
-object#except#BaseException({type}, {msg}, {args})
-                                               *object#except#BaseException()*
+BaseException(...)                             *object#except#BaseException()*
   Generate exception for a specific {type}. User can call BaseException to
   define their own exception functions. Examples:
 >
@@ -666,6 +664,32 @@ object#except#BaseException({type}, {msg}, {args})
       return object#BaseException('MyException', a:msg, a:000)
     endfunction
 <
+
+Exception(...)                                     *object#except#Exception()*
+  Generic exception.
+
+ValueError(...)                                   *object#except#ValueError()*
+  The value of function arguments went wrong.
+
+TypeError(...)                                     *object#except#TypeError()*
+  Unsupported operation for a type or wrong number of arguments passed to a
+  function.
+
+AttributeError(...)                           *object#except#AttributeError()*
+  The object has no such attribute or the attribute is readonly.
+
+StopIteration(...)                             *object#except#StopIteration()*
+  The end of iteration. Thrown by __iter__ usually.
+
+IndexError(...)                                   *object#except#IndexError()*
+  Index out of range for sequences.
+
+KeyError(...)                                       *object#except#KeyError()*
+  Key out of range for sequences.
+
+IOError(...)                                         *object#except#IOError()*
+  File not writable or readable. Operation on a closed file. Thrown by file
+  objects usually.
 
 object#file#open({name}, [mode])                          *object#file#open()*
   Open a file. The [mode] can be 'r', 'w' or 'a' for reading (default),
@@ -760,19 +784,22 @@ sum(...)                                                   *object#iter#sum()*
 <
   Items must be numeric.
 
-object#lambda#lambda()                                *object#lambda#lambda()*
-  Create a one-line |Funcref| that takes names as arguments and returns the
-  result of evaluation of code.
-
-  If a closure argument is given, the variables `var` living inside the
+lambda(...)                                           *object#lambda#lambda()*
+  Create a one-line |Funcref| that takes [vars] as arguments and returns the
+  result of evaluation of [expr].
+>
+    lambda(vars, expr[,closure]) -> Funcref
+<
+  If a [closure] argument is given, the variables `var` living inside the
   closure are available as `c.var` from the lambda expression.
 
+_lambda(...)                                         *object#lambda#_lambda()*
+  Create a `lambda` object. See |lambda()|.
+>
+    _lambda(vars, expr[,closure]).__call__
+<
 
-object#lambda#_lambda()                              *object#lambda#_lambda()*
-  Create a lambda object that cannot be directly called but has a `__call__`
-  method, which does the same thing as what is returned by `object#lambda()`.
-
-object#lambda#lambda_()                              *object#lambda#lambda_()*
+lambda_()                                            *object#lambda#lambda_()*
   Return the lambda class.
 
 object#lambda#for({iterable}, {names}, {cmd}, [closure]) *object#lambda#for()*
@@ -855,16 +882,20 @@ object#protocols#dir({obj})                           *object#protocols#dir()*
 object#protocols#contains({item}, {obj})         *object#protocols#contains()*
   Test whether {item} is in {obj}.
 
-object#super#super({type}, {obj})                       *object#super#super()*
+super(...)                                              *object#super#super()*
   Return a super object bound to {obj} that delegates method calls to the
   parents and siblings of {type}.
-
+>
+    super(type, obj) -> bound super object
+<
   Throws ERROR(TypeError) if object#isinstance({obj}, {type}) is false.
   Throws ERROR(TypeError) if {type} is at the end of the MRO of {obj}.
 
-object#super#super_({type}, {obj}, {name})             *object#super#super_()*
+super_(...)                                            *object#super#super_()*
   Retrieve method {name} bound to {obj} from the parent or sibling of {type}.
-
+>
+    super_(type, obj, name) -> Funcref
+<
   The MRO of {obj} is visited started from {type} and the first attribute with
   {name} that is a |Funcref|, i.e., the first method, is returned.
 
@@ -899,35 +930,6 @@ bool(...)                                                *object#types#bool()*
     bool(v:true) -> True
     bool(obj) -> obj.__bool__()
 <
-
-==============================================================================
-EXCEPTIONS                                             *object.vim-exceptions*
-
-                                                            *ERROR(Exception)*
-Generic exception.
-
-                                                           *ERROR(ValueError)*
-The value of function arguments went wrong.
-
-                                                            *ERROR(TypeError)*
-Unsupported operation for a type or wrong number of arguments passed to a
-function.
-
-                                                       *ERROR(AttributeError)*
-The object has no such attribute or the attribute is readonly.
-
-                                                        *ERROR(StopIteration)*
-The end of iteration. Thrown by __iter__ usually.
-
-                                                           *ERROR(IndexError)*
-Index out of range for sequences.
-
-                                                             *ERROR(KeyError)*
-Key out of range for sequences.
-
-                                                              *ERROR(IOError)*
-File not writable or readable. Operation on a closed file. Thrown by file
-objects usually.
 
 ==============================================================================
 MOTIVATION                                             *object.vim-motivation*

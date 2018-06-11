@@ -76,6 +76,7 @@ function! s:type.__init__(name, bases, dict)
 endfunction
 
 ""
+" @function object()
 " Create a plain object.
 function! object#types#object()
   return object#new(s:object)

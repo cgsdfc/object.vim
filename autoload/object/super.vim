@@ -96,9 +96,12 @@
 let s:super = object#class('super')
 
 ""
+" @function super(...)
 " Return a super object bound to {obj} that delegates method calls to the parents and
 " siblings of {type}.
-"
+" >
+"   super(type, obj) -> bound super object
+" <
 " @throws TypeError if object#isinstance({obj}, {type}) is false.
 " @throws TypeError if {type} is at the end of the MRO of {obj}.
 function! object#super#super(type, obj)
@@ -169,8 +172,11 @@ function! object#super#call(X, ...) dict
 endfunction
 
 ""
+" @function super_(...)
 " Retrieve method {name} bound to {obj} from the parent or sibling of {type}.
-"
+" >
+"   super_(type, obj, name) -> Funcref
+" <
 " The MRO of {obj} is visited started from {type} and the first attribute with
 " {name} that is a |Funcref|, i.e., the first method, is returned.
 "

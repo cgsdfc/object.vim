@@ -105,27 +105,31 @@ function! object#lambda#eval(__lambda, __nargs, __args)
 endfunction
 
 ""
-" Create a one-line |Funcref| that takes names as
-" arguments and returns the result of evaluation of
-" code.
-"
-" If a closure argument is given, the variables `var`
+" @function lambda(...)
+" Create a one-line |Funcref| that takes [vars] as
+" arguments and returns the result of evaluation of [expr].
+" >
+"   lambda(vars, expr[,closure]) -> Funcref
+" <
+" If a [closure] argument is given, the variables `var`
 " living inside the closure are available as `c.var` from
 " the lambda expression.
-"
 function! object#lambda#lambda(...)
   return call('object#_lambda', a:000).__call__
 endfunction
 
 ""
-" Create a lambda object that cannot be directly called
-" but has a `__call__` method, which does the same thing
-" as what is returned by `object#lambda()`.
+" @function _lambda(...)
+" Create a `lambda` object. See @function(lambda).
+" >
+"   _lambda(vars, expr[,closure]).__call__
+" <
 function! object#lambda#_lambda(...)
   return object#new_(s:lambda, a:000)
 endfunction
 
 ""
+" @function lambda_()
 " Return the lambda class.
 function! object#lambda#lambda_()
   return s:lambda

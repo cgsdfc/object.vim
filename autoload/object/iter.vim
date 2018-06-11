@@ -314,5 +314,5 @@ function! object#iter#extract(obj)
   if object#hasattr(X, '__next__') && maktaba#value#IsFuncref(X.__next__)
     return X
   endif
-  throw object#TypeError('__iter__ returns non-iter')
+  throw object#TypeError('__iter__() returns non-iter')
 endfunction
