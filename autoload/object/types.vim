@@ -114,39 +114,35 @@ endfunction
 " For |Funcref|,
 "
 " Hook into __bool__.
-if has('float')
-  function! object#types#bool(obj)
-    if maktaba#value#IsFloat(a:obj)
-      return a:obj !=# 0
-    endif
-    if maktaba#value#IsFuncref(a:obj)
-      return 1
-    endif
-    if maktaba#value#IsString(a:obj) || maktaba#value#IsList(a:obj)
-      return !empty(a:obj)
-    endif
-    return object#types#bool_nofloat(a:obj)
-  endfunction
-else
-  function! object#types#bool(obj)
-    return object#types#bool_nofloat(a:obj)
-  endfunction
-endif
-
-function! object#types#bool_nofloat(obj)
+function! object#types#bool(...)
+  call object#util#ensure_argc(1, a:0)
+  if !a:0
+    " bool() <==> false
+    return 0
+  endif
+  let obj = a:1
+  if has('float') && maktaba#value#IsFloat(obj)
+    return obj !=# 0.0
+  endif
+  if maktaba#value#IsFuncref(obj)
+    return 1
+  endif
+  if maktaba#value#IsString(obj) || maktaba#value#IsList(obj)
+    return !empty(obj)
+  endif
   try
-    " If we directly return !!a:obj, the exception cannot
+    " If we directly return !!obj, the exception cannot
     " be caught.
-    let x = !!a:obj
+    let x = !!obj
     return x
   catch/E728/ " Using a Dictionary as a Number
-    if object#hasattr(a:obj, '__bool__')
+    if object#hasattr(obj, '__bool__')
       " Thing returned from bool() should be canonical, so as __bool__.
       " Prevent user from mistakenly return something like 1.0
-      return maktaba#ensure#IsBool(object#protocols#call(a:obj.__bool__))
+      return maktaba#ensure#IsBool(object#protocols#call(obj.__bool__))
     endif
-    return !empty(a:obj)
+    return !empty(obj)
   catch
-    call object#except#not_avail('bool', a:obj)
+    call object#except#not_avail('bool', obj)
   endtry
 endfunction

@@ -351,8 +351,8 @@ endfunction
 "
 " list.vim
 "
-function! object#list_() abort
-  return object#list#list_()
+function! object#list_(...) abort
+  return call('object#list#list_', a:000)
 endfunction
 
 function! object#list(...) abort
@@ -366,8 +366,8 @@ endfunction
 "
 " dict.vim
 "
-function! object#dict_() abort
-  return object#dict#dict_()
+function! object#dict_(...) abort
+  return call('object#dict#dict_', a:000)
 endfunction
 
 function! object#dict(...) abort
@@ -376,4 +376,54 @@ endfunction
 
 function! object#_dict(...) abort
   return call('object#dict#_dict', a:000)
+endfunction
+
+"
+" str.vim
+"
+function! object#str(...) abort
+  return call('object#str#str', a:000)
+endfunction
+
+function! object#_str(...) abort
+  return call('object#str#_str', a:000)
+endfunction
+
+function! object#str_(...) abort
+  return call('object#str#str_', a:000)
+endfunction
+
+function! object#chr(...) abort
+  return call('object#str#chr', a:000)
+endfunction
+
+function! object#ord(...) abort
+  return call('object#str#ord', a:000)
+endfunction
+
+"
+" int.vim
+"
+function! object#int(...) abort
+  return call('object#int#int', a:000)
+endfunction
+
+function! object#_int(...) abort
+  return call('object#int#_int', a:000)
+endfunction
+
+function! object#int_(...) abort
+  return call('object#int#int_', a:000)
+endfunction
+
+function! object#bin(...) abort
+  return call('object#int#bin', a:000)
+endfunction
+
+function! object#hex(...) abort
+  return call('object#int#hex', a:000)
+endfunction
+
+function! object#oct(...) abort
+  return call('object#int#oct', a:000)
 endfunction
