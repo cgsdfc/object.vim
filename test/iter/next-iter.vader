@@ -60,10 +60,10 @@ AssertThrows call object#iter(g:cls)
 Assert g:vader_exception =~# 'WrongType'
 
 
-Execute(next() calls the __next__ method of an obj);
+Execute(next() calls the next() method of an obj);
 let cls = {}
 
-function! cls.__next__()
+function! cls.next()
   return 'called'
 endfunction
 

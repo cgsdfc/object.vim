@@ -45,7 +45,7 @@ function! s:list_iter.__init__(list)
 endfunction
 
 " When the list index goes out of range, Vim throws E684.
-function! s:list_iter.__next__()
+function! s:list_iter.next()
   try
     let Item = self.list[self.idx]
   catch /E684/
@@ -62,7 +62,7 @@ endfunction
 
 " When the index to a string goes out of range, Vim
 " returns an empty string, which is an indicator of StopIteration.
-function! s:str_iter.__next__()
+function! s:str_iter.next()
   let Item = self.str[self.idx]
   if Item isnot# ''
     let self.idx += 1
@@ -76,7 +76,7 @@ function! s:enumerate.__init__(iter, start)
   let self.idx = a:start
 endfunction
 
-function! s:enumerate.__next__()
+function! s:enumerate.next()
   let Item = [self.idx, object#next(self.iter)]
   let self.idx += 1
   return Item
@@ -86,7 +86,7 @@ function! s:zip.__init__(iters)
   let self.iters = a:iters
 endfunction
 
-function! s:zip.__next__()
+function! s:zip.next()
   return map(copy(self.iters), 'object#next(v:val)')
 endfunction
 
@@ -95,7 +95,7 @@ function! s:imap.__init__(iter, mapper)
   let self.mapper = maktaba#ensure#IsFuncref(a:mapper)
 endfunction
 
-function! s:imap.__next__()
+function! s:imap.next()
   return self.mapper(object#next(self.iter))
 endfunction
 
@@ -104,7 +104,7 @@ function! s:ifilter.__init__(iter, filter)
   let self.filter = a:filter
 endfunction
 
-function! s:ifilter.__next__()
+function! s:ifilter.next()
   while 1
     let Next = object#next(self.iter)
     if object#bool(self.filter(Next))
@@ -124,7 +124,7 @@ endfunction
 " <
 function! object#iter#iter(obj)
   " If obj already an iter.
-  if object#hasattr(a:obj, '__next__')
+  if object#hasattr(a:obj, 'next')
     return a:obj
   endif
 
@@ -154,7 +154,7 @@ function! object#iter#next(obj)
   "   - next() is performance critical.
   "   - next() is usually used in couple with iter(),
   "     which does all necessary checkings already.
-  return a:obj.__next__()
+  return a:obj.next()
 endfunction
 
 ""
@@ -308,10 +308,10 @@ endfunction
 " TODO: add reduce()
 
 " Extract an iterator from {obj} and make sure it is a valid
-" iter, i.e., has __next__ method.
+" iter, i.e., has next() method.
 function! object#iter#extract(obj)
   let X = object#protocols#call(a:obj.__iter__)
-  if object#hasattr(X, '__next__') && maktaba#value#IsFuncref(X.__next__)
+  if object#hasattr(X, 'next') && maktaba#value#IsFuncref(X.next)
     return X
   endif
   throw object#TypeError('__iter__() returns non-iter')
