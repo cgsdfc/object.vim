@@ -277,7 +277,7 @@ endfunction
 " Truthness is tested by `bool()`.
 function! object#iter#filter(iter, lambda)
   if maktaba#value#IsString(a:lambda)
-    return filter(object#list(a:iter), 'object#bool('.lambda.')')
+    return filter(object#list(a:iter), 'object#bool('.a:lambda.')')
   endif
   if maktaba#value#IsFuncref(a:lambda)
     return object#list(object#ifilter(a:iter, a:lambda))

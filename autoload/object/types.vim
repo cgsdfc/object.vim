@@ -129,29 +129,29 @@ function! object#types#bool(...)
     " bool() <==> false
     return 0
   endif
-  let obj = a:1
-  if has('float') && maktaba#value#IsFloat(obj)
-    return obj !=# 0.0
+  let Obj = a:1
+  if has('float') && maktaba#value#IsFloat(Obj)
+    return Obj !=# 0.0
   endif
-  if maktaba#value#IsFuncref(obj)
+  if maktaba#value#IsFuncref(Obj)
     return 1
   endif
-  if maktaba#value#IsString(obj) || maktaba#value#IsList(obj)
-    return !empty(obj)
+  if maktaba#value#IsString(Obj) || maktaba#value#IsList(Obj)
+    return !empty(Obj)
   endif
   try
-    " If we directly return !!obj, the exception cannot
+    " If we directly return !!Obj, the exception cannot
     " be caught.
-    let x = !!obj
+    let x = !!Obj
     return x
   catch/E728/ " Using a Dictionary as a Number
-    if object#hasattr(obj, '__bool__')
+    if object#hasattr(Obj, '__bool__')
       " Thing returned from bool() should be canonical, so as __bool__.
       " Prevent user from mistakenly return something like 1.0
-      return maktaba#ensure#IsBool(object#protocols#call(obj.__bool__))
+      return maktaba#ensure#IsBool(object#protocols#call(Obj.__bool__))
     endif
-    return !empty(obj)
+    return !empty(Obj)
   catch
-    call object#except#not_avail('bool', obj)
+    call object#except#not_avail('bool', Obj)
   endtry
 endfunction
