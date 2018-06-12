@@ -1,86 +1,88 @@
-" Format an exception string.
-function! object#except#format(type, msg, args)
-  return printf('%s: %s', a:type, empty(a:args) ?
-        \ a:msg : call('printf', [a:msg] + a:args))
-endfunction
-
 ""
 " @function BaseException(...)
-" Generate exception for a specific {type}. User can call BaseException
-" to define their own exception functions.
+" User can use `BaseException()` to define their own exception functions.
+" >
+"   BaseException(type) -> type:
+"   BaseException(type, [msg]) -> type: msg
+"   BaseException(type, [msg, *args] -> type: printf(msg, *args)
+" <
 " Examples:
 " >
-"   function! MyException(msg, ...)
-"     return object#BaseException('MyException', a:msg, a:000)
+"   function! MyException(...)
+"     return object#BaseException('MyException', a:000)
 "   endfunction
 " <
-function! object#except#BaseException(type, msg, args)
+function! object#except#BaseException(type, ...)
+  call object#util#ensure_argc(1, a:0)
   let type = object#util#ensure_identifier(a:type)
-  let msg = maktaba#ensure#IsString(a:msg)
-  let args = maktaba#ensure#IsList(a:args)
-  return object#except#format(a:type, a:msg, a:args)
+  let args = a:0 ? maktaba#ensure#IsList(a:1): []
+  let len = len(args)
+  if len == 0
+    return printf('%s:', type)
+  endif
+  call maktaba#ensure#IsString(args[0])
+  if len == 1
+    return printf('%s: %s', type, args[0])
+  endif
+  return printf('%s: %s', type, call('printf', args))
 endfunction
 
 ""
 " @function Exception(...)
 " Generic exception.
-" >
-"   Exception(msg[,*args]) -> as if printf(msg, *args) but *args can be
-"   omitted.
-" <
-function! object#except#Exception(msg, ...)
-  return object#except#BaseException('Exception', a:msg, a:000)
+function! object#except#Exception(...)
+  return object#BaseException('Exception', a:000)
 endfunction
 
 ""
 " @function ValueError(...)
 " The value of function arguments went wrong.
-function! object#except#ValueError(msg, ...)
-  return object#except#BaseException('ValueError', a:msg, a:000)
+function! object#except#ValueError(...)
+  return object#BaseException('ValueError', a:000)
 endfunction
 
 ""
 " @function TypeError(...)
 " Unsupported operation for a type or wrong number of arguments passed
 " to a function.
-function! object#except#TypeError(msg, ...)
-  return object#except#BaseException('TypeError', a:msg, a:000)
+function! object#except#TypeError(...)
+  return object#BaseException('TypeError', a:000)
 endfunction
 
 ""
 " @function AttributeError(...)
 " The object has no such attribute or the attribute is readonly.
-function! object#except#AttributeError(msg, ...)
-  return object#except#BaseException('AttributeError', a:msg, a:000)
+function! object#except#AttributeError(...)
+  return object#BaseException('AttributeError', a:000)
 endfunction
 
 ""
 " @function StopIteration(...)
-" The end of iteration. Thrown by __iter__ usually.
+" Iteration stops.
 function! object#except#StopIteration()
-  return 'StopIteration:'
+  return object#BaseException('StopIteration')
 endfunction
 
 ""
 " @function IndexError(...)
 " Index out of range for sequences.
-function! object#except#IndexError(msg, ...)
-  return object#except#BaseException('IndexError', a:msg, a:000)
+function! object#except#IndexError(...)
+  return object#BaseException('IndexError', a:000)
 endfunction
 
 ""
 " @function KeyError(...)
 " Key out of range for sequences.
-function! object#except#KeyError(msg, ...)
-  return object#except#BaseException('KeyError', a:msg, a:000)
+function! object#except#KeyError(...)
+  return object#BaseException('KeyError', a:000)
 endfunction
 
 ""
 " @function IOError(...)
 " File not writable or readable. Operation on a closed file. Thrown by
 " file objects usually.
-function! object#except#IOError(msg, ...)
-  return object#except#BaseException('IOError', a:msg, a:000)
+function! object#except#IOError(...)
+  return object#BaseException('IOError', a:000)
 endfunction
 
 " Helper to throw 'no such attribute'

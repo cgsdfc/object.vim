@@ -1,36 +1,51 @@
-"
+" vim: ft=vim
 " Test getattr()
 "
+Before;
+let X = object#class('X')
 
-Execute(getattr() gets an attribute that exists);
+" Dealing with plain dict. No hooks.
+Execute(Gets an attribute from a plain dict);
 let foo = { 'name': 'foo' }
 AssertEqual object#getattr(foo, 'name'), 'foo'
 
-"XXX: Since the Undefined Sam problem, when testing the throw, we use _literals_ instead
-Execute(getattr() throws AttributeError when the attribute does not exist);
-AssertThrows call object#getattr({ 'age': 11 }, 'name')
+
+Execute(Throws AttributeError from a plain dict);
+let foo = { 'age': 11 }
+AssertThrows call object#getattr(g:foo, 'name')
 Assert g:vader_exception =~# 'AttributeError'
 
-Execute(getattr() returns default when no attribute found and default is given);
+
+Execute(Returns default from a plain dict);
 let bar = { 'name' : 'bar' }
 AssertEqual object#getattr(bar, 'age', 11), 11
 AssertEqual object#getattr(bar, 'friends', []), []
 
-Execute(getattr() throws WrongType when some of its required arguments are not of correct type);
+
+" WrongType sanity checks.
+Execute(throws WrongType when some of its required arguments are not of correct type);
 AssertThrows call object#getattr(1, 'name')
-Assert g:vader_exception =~# 'ERROR(WrongType)'
+Assert g:vader_exception =~# 'WrongType'
 
 AssertThrows call object#getattr({}, [])
-Assert g:vader_exception =~# 'ERROR(WrongType)'
+Assert g:vader_exception =~# 'WrongType'
 
 AssertThrows call object#getattr(1, [])
-Assert g:vader_exception =~# 'ERROR(WrongType)'
+Assert g:vader_exception =~# 'WrongType'
 
-Execute(getattr() can hook into __getattr__());
-let cls = {}
-function! cls.__getattr__(name)
-  return '__getattr__() says ' . a:name
+" Combination of __getattr__, __getattribute__ and default.
+
+" single __getattribute__.
+Execute(__getattribute__ returns);
+function! X.__getattribute__(key)
+  return 1
 endfunction
 
-let attr = object#getattr(cls, 'boy')
-AssertEqual '__getattr__() says boy', attr
+let x = object#new(X)
+AssertEqual getattr(x, 'foo'), 1
+
+Execute(__getattribute__ throws);
+function! X.__getattribute__(key)
+  throw object#AttributeError()
+endfunction
+

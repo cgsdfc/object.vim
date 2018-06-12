@@ -22,26 +22,40 @@ endfunction
 "   getattr(obj, name[,default]) -> attribute name of obj, fall back on
 "   default.
 " <
-" Note: The __getattr__() hook overrides the dictionary lookup
-" completely. That means it is not consulted after dictionary lookup
-" failed but used directly if there is a usable one.
 function! object#protocols#getattr(obj, name, ...)
+  call object#util#ensure_argc(1, a:0)
   let obj = maktaba#ensure#IsDict(a:obj)
   let name = maktaba#ensure#IsString(a:name)
-  let argc = object#util#ensure_argc(1, a:0)
+  let getter = has_key(obj, '__getattribute__') ?
+        \ 'object#protocols#call(obj.__getattribute__, name)'
+        \ : 'object#protocols#dict_lookup(obj, name)'
+  try
+    let val = eval(getter)
+  catch /AttributeError/
+    if has_key(obj, '__getattr__')
+      try
+        let val = object#protocols#call(obj.__getattr__, name)
+      catch /AttributeError/
+        if a:0 == 1
+          let val = a:1
+        else
+          throw v:exception
+        endif
+      endtry
+    elseif a:0 == 1
+      let val = a:1
+    else
+      throw v:exception
+    endif
+  endtry
+  return val
+endfunction
 
-  if object#protocols#hasattr(a:obj, '__getattr__')
-    return object#protocols#call(a:obj.__getattr__, name)
+function! object#protocols#dict_lookup(d, key)
+  if has_key(a:d, a:key)
+    return a:d[a:key]
   endif
-
-  if has_key(obj, name)
-    return obj[name]
-  endif
-
-  if argc == 1
-    return a:1
-  endif
-  call object#except#throw_noattr(obj, name)
+  throw object#AttributeError('object has no attribute %s', string(a:key))
 endfunction
 
 ""

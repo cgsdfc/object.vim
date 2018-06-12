@@ -1,43 +1,52 @@
 " vim:ft=vim
-
-Execute(BaseException() should allow to create new exceptions);
-function! UserDefinedError(msg, ...)
-  return object#BaseException('UserDefinedError', a:msg, a:000)
+" Test Exceptions
+Before;
+function! UserDefinedError(...)
+  return object#BaseException('UserDefinedError', a:000)
 endfunction
+let builtin_exceptions = [
+      \ 'Exception',
+      \ 'ValueError',
+      \ 'TypeError',
+      \ 'AttributeError',
+      \ 'IOError',
+      \ 'IndexError',
+      \ 'KeyError',
+      \ ]
 
-let err = UserDefinedError('some errors (%d)', 4)
-Assert err =~# '^UserDefinedError: some errors (4)$'
 
-Assert UserDefinedError('message') =~# '^UserDefinedError: message$'
-try
-  throw UserDefinedError('ops')
-catch/UserDefinedError/
-  Assert v:exception =~# 'ops'
-endtry
+" Signature of the created exceptions.
+Execute(No args);
+Assert UserDefinedError() =~# 'UserDefinedError:'
 
+Execute(One single msg);
+Assert UserDefinedError('message') =~# 'UserDefinedError: message'
+
+Execute(printf-style args);
+let err = UserDefinedError('number %d, string %s, char %c', 4, 'a', 44)
+Assert err =~# '^UserDefinedError:.*4.*a.*,'
+
+Execute(Create exceptions that takes no arguments);
+function! TakeNoArgs()
+  return object#BaseException('TakeNoArgs')
+endfunction
+Assert TakeNoArgs() =~# 'TakeNoArgs:'
+
+
+" Built-in exceptions
 Execute(Built-in exceptions works fine);
-let exceptions = [ 'Exception', 'ValueError', 'TypeError', 'AttributeError',
-      \ 'IOError'
-      \ ]
-for x in exceptions
-  AssertThrows throw object#{g:x}('error (%d)', 1)
-  Assert g:vader_exception =~# printf('%s: error (1)', x)
+for x in builtin_exceptions
+  let code = printf('object#%s()', x)
+  Assert eval(code) =~# printf('%s:', x)
 endfor
 
-Execute(BaseException() should throw WrongType if any of its arguments have wrong type);
-let input = [
-      \ [ 1, '', []],
-      \ [ 'foo', 1, []],
-      \ [ 'foo', '', 1],
-      \ [ 1, 1, 1],
-      \ ]
+" Sanity checks.
+Execute(Throws WrongType if args[0] is not String);
+AssertThrows call object#BaseException('Error', [1])
+Assert g:vader_exception =~# 'WrongType'
 
-for [type, msg, args] in input
-    AssertThrows call object#BaseException(g:type, g:msg, g:args)
-    Assert g:vader_exception =~# 'ERROR(WrongType)'
-endfor
 
-Execute(BaseException() should throw ValueError if the type argument failed to match a pattern);
+Execute(Throw ValueError if type is not an identifier);
 let input = [
       \ '999',
       \ ' ValueError',
@@ -48,11 +57,8 @@ let input = [
       \ ]
 
 for x in input
-  try
-    call object#BaseException(x, '', [])
-  catch/ValueError/
-    Assert v:exception =~# 'identifier'
-  endtry
+  AssertThrows call object#BaseException(g:x)
+  Assert g:vader_exception =~# 'ValueError'
 endfor
 
 Execute(StopIteration() is simply itself);
