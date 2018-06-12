@@ -1,7 +1,7 @@
-"
+" vim: ft=vim
 " Test len()
-"
-Execute(should use __len__() if available);
+
+Execute(Use __len__() if available);
 let cls = {}
 function! cls.__len__()
   return 12
@@ -9,7 +9,8 @@ endfunction
 
 AssertEqual 12, object#len(cls)
 
-Execute(should use len() of Vim if obj is a Collection or String);
+
+Execute(Use len() of Vim if obj is a Collection or String);
 let input = [
       \ range(10),
       \ '123',
@@ -20,14 +21,17 @@ for x in input
   AssertEqual len(x), object#len(x)
 endfor
 
-Execute(should throw WrongType if the len of obj  cannot be determined);
+
+Execute(Throw WrongType if the len of obj cannot be determined);
 let input = [
       \ 1,
       \ function('empty'),
       \ ]
+
 if object#util#has_special_variables()
   call extend(input, [v:false, v:true, v:none, v:null,])
 endif
+
 if has('float')
   call add(input, 1.0)
 endif
@@ -37,7 +41,8 @@ for X in input
   Assert g:vader_exception =~# 'WrongType'
 endfor
 
-Execute(should throw WrongType if __len__() returns non-number);
+
+Execute(Throw WrongType if __len__() returns non-number);
 let cls = {}
 function! cls.__len__()
   return 'bad'

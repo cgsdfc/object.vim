@@ -33,25 +33,25 @@ function! object#protocols#getattr(obj, name, ...)
         \ 'object#protocols#call(obj.__getattribute__, name)'
         \ : 'object#protocols#dict_lookup(obj, name)'
   try
-    let val = eval(getter)
+    let Val = eval(getter)
   catch /AttributeError/
     if has_key(obj, '__getattr__')
       try
-        let val = object#protocols#call(obj.__getattr__, name)
+        let Val = object#protocols#call(obj.__getattr__, name)
       catch /AttributeError/
         if a:0 == 1
-          let val = a:1
+          let Val = a:1
         else
           throw v:exception
         endif
       endtry
     elseif a:0 == 1
-      let val = a:1
+      let Val = a:1
     else
       throw v:exception
     endif
   endtry
-  return val
+  return Val
 endfunction
 
 function! object#protocols#dict_lookup(d, key)

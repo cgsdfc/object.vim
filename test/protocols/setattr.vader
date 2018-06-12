@@ -1,22 +1,24 @@
-"
+" vim: ft=vim
 " Test setattr()
-"
-Execute(setattr() should set attribute with a Dict);
+
+Execute(Set attribute with a Dict);
 let bar = {}
 call object#setattr(bar, 'weight', 10)
 AssertEqual bar.weight, 10
 call object#setattr(bar, 'weight', 'heavy')
 AssertEqual bar.weight, 'heavy'
 
-Execute(setattr() should throw WrongType when {object} is not a Dict or {name} is not a String);
+
+Execute(Throw WrongType when obj is not a Dict or name is not a String);
 let wrong_types = [[ 'str', 'attr'], [ {}, 1 ], [ 'str', 1 ]]
 
 for [obj, name] in wrong_types
   AssertThrows call object#setattr(g:obj, g:name, 1)
-  Assert g:vader_exception =~# 'ERROR(WrongType)'
+  Assert g:vader_exception =~# 'WrongType'
 endfor
 
-Execute(setattr() should be able to hook into __setattr__());
+
+Execute(Hook into __setattr__());
 let cls = { 'speed' : 100, 'duration' : 10 }
 function! cls.__setattr__(name, val)
   if a:name is# 'speed'

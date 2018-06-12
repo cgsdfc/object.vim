@@ -1,4 +1,4 @@
-
+" vim: ft=vim
 Include(Test getattr()): protocols/getattr.vader
 Include(Test setattr()): protocols/setattr.vader
 Include(Test hasattr()): protocols/hasattr.vader

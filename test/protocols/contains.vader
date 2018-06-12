@@ -51,6 +51,7 @@ for i in range(10)
   Assert object#contains(i, x)
 endfor
 
+
 Execute(When the haystack does not provide membership tesing, false is returned);
 let input = [ function('tr'), 1 ]
 for X in input

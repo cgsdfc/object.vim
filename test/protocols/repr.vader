@@ -1,7 +1,7 @@
 " vim: ft=vim
 " repr()
 "
-Execute(repr() can hook into __repr__());
+Execute(Can hook into __repr__());
 let cls = {}
 function! cls.__repr__()
   return '<repr>'
@@ -9,7 +9,8 @@ endfunction
 
 AssertEqual object#repr(cls), '<repr>'
 
-Execute(repr() should fail back on string() when object has no __repr__());
+
+Execute(Fail back on string() when object has no __repr__());
 let input = [
       \ ['1', 1],
       \ ["''", ''],
@@ -22,17 +23,20 @@ let input = [
 if object#util#has_special_variables()
   call add(input, ['v:none', v:none])
 endif
+
 for [should, x] in input
   AssertEqual should, object#repr(x)
 endfor
 
-Execute(repr() should throw WrongType when __repr__ is not a Funcref);
+
+Execute(Throw WrongType when __repr__ is not a Funcref);
 let cls = { '__repr__': [] }
 
 AssertThrows call object#repr(g:cls)
 Assert g:vader_exception=~#'ERROR(WrongType)'
 
-Execute(repr() should throw WrongType when __repr__() returns something not String);
+
+Execute(Throw WrongType when __repr__() returns something not String);
 let cls = {}
 function! cls.__repr__()
   return []
@@ -41,7 +45,8 @@ endfunction
 AssertThrows call object#repr(g:cls)
 Assert g:vader_exception=~#'ERROR(WrongType)'
 
-Execute(repr() should expand list);
+
+Execute(Expand list);
 let input = [
       \ range(10),
       \ split(repeat('a ', 10)),
@@ -51,7 +56,8 @@ for x in input
   AssertEqual string(x), object#repr(x)
 endfor
 
-Execute(repr() should expand dict);
+
+Execute(Expand dict);
 let input = [
       \ {'foo': 'foo'},
       \ {'foo': 1},

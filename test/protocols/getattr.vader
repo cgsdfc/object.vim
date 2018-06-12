@@ -92,7 +92,7 @@ function! X.__getattr__(key)
   return 1
 endfunction
 
-AssertEqual object#getattr(object#new(g:X), 'foo', 0), 1
+AssertEqual object#getattr(object#new(X), 'foo', 0), 1
 
 
 Execute(__getattr__ loses to default);
@@ -100,7 +100,7 @@ function! X.__getattr__(key)
   throw object#AttributeError()
 endfunction
 
-AssertEqual object#getattr(object#new(g:X), 'foo', 0), 0
+AssertEqual object#getattr(object#new(X), 'foo', 0), 0
 
 
 Execute(Fall all the way to default);
@@ -110,4 +110,4 @@ endfunction
 function! X.__getattr__(key)
   throw object#AttributeError()
 endfunction
-AssertEqual object#getattr(object#new(g:X), 'foo', 0), 0
+AssertEqual object#getattr(object#new(X), 'foo', 0), 0

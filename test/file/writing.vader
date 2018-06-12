@@ -56,7 +56,7 @@ AssertEqual results[0], results[1]
 Execute(write()/writeline() throws WrongType for non-String);
 let f = object#open(files[0], 'w')
 for x in write_family[:1]
-  AssertThrows call object#getattr(g:f, g:x)(1)
+  AssertThrows call call(g:f[g:x], [1])
   Log g:vader_exception
   Assert g:vader_exception =~# 'WrongType'
 endfor

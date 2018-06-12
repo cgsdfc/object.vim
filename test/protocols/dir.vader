@@ -1,7 +1,7 @@
-"
+" vim: ft=vim
 " Test dir()
 "
-Execute(dir() should only accept Dict);
+Execute(Only accept Dict);
 let input = [
       \ 1,
       \ 'str',
@@ -13,7 +13,7 @@ for x in input
   Assert g:vader_exception =~# 'WrongType'
 endfor
 
-Execute(dir() return keys() for ordinary Dict but hooks into __dir__());
+Execute(Return keys() for ordinary Dict);
 let x = {
       \ 'root': '/path/to/somewhere/',
       \ 'has_permisson': 'true',
@@ -23,11 +23,13 @@ let x = {
 
 AssertEqual keys(x), object#dir(x), 'if the Dict has no __dir__(), use key()'
 
+
+Execute(hooks into __dir__());
 let cls = {
-      \ 'x': x
+      \ 'x': []
       \ }
 function! cls.__dir__()
-  return object#dir(self.x)
+  return self.x
 endfunction
 
-AssertEqual keys(x), object#dir(cls)
+AssertEqual [], object#dir(cls)
