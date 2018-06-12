@@ -1,4 +1,8 @@
 " vim: ft=vim
 " Test integer representation functions of various bases.
+Before;
+let positive = range(1, 100)
+let negative = range(-1, -100, -1)
 
-
+Execute(Positive cases);
+AssertEqual object#bin(1), '0b1'

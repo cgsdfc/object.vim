@@ -2,5 +2,5 @@
 " Test int.vim
 
 Include(int() conversion): int/int.vader
-Include(Various base): int/basex.vader
+" Include(Various base): int/basex.vader
 Include(int object): int/object.vader
