@@ -1,9 +1,11 @@
 " vim: ft=vim
+" Test the int() converter.
 
 Execute(single int);
 for i in range(-10, 10)
   AssertEqual object#int(i), i
 endfor
+
 
 Execute(single float);
 let input = [
@@ -17,6 +19,7 @@ let input = [
 for [in, out] in input
   AssertEqual object#int(in), out
 endfor
+
 
 Execute(single string);
 for i in range(-10, 10)
@@ -52,18 +55,32 @@ for x in input
   AssertEqual object#int(x, 2), str2nr(x, 2)
 endfor
 
-Execute(String with base 2);
+Execute(String with base 8);
 let input = [
-      \ '0b101',
-      \ '0B101',
-      \ '101',
-      \ '-101',
-      \ '-0b101',
-      \ '-0B101',
-      \ '+101',
-      \ '+0b101',
-      \ '+0B101',
+      \ '071',
+      \ '+071',
+      \ '-071',
+      \ '71',
+      \ '-71',
+      \ '+71',
       \]
 for x in input
-  AssertEqual object#int(x, 2), str2nr(x, 2)
+  AssertEqual object#int(x, 8), str2nr(x, 8)
+endfor
+
+
+Execute(String with base 16);
+let input = [
+      \ '0X123ABC',
+      \ '+0X123ABC',
+      \ '-0X123ABC',
+      \ '0x123abc',
+      \ '+0x123abc',
+      \ '-0x123abc',
+      \ '+123abc',
+      \ '-123abc',
+      \ '123abc',
+      \]
+for x in input
+  AssertEqual object#int(x, 16), str2nr(x, 16)
 endfor

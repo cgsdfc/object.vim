@@ -2,7 +2,7 @@
 " @section Introduction, intro
 " @stylized object
 " @library
-" @order intro class super protocols mapping iter file types lambda dict dicts functions exceptions motivation
+" @order intro class super protocols mapping iter file types lambda dict int dicts functions exceptions motivation
 " >
 "                              __      _           __
 "                       ____  / /_    (_)__  _____/ /_

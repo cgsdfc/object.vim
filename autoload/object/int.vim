@@ -1,14 +1,79 @@
-" TODO: use has('num64') or 1/0 0/0 tricks.
+""
+" @section Int, int
+" The `int()` converter and the wrapper type `int`.
+"
+" @subsection checked-conversion-to-int
+" The built-in `str2nr()` does no checking to the string to be
+" converted while with simple regex it can be achieved.
+" `int()` ensures that the base and the string literal are valid
+" and it can handle |Float| much like |float2nr()| does. When called
+" with no argument, it returns the constant `0`, which can be useful
+" to supply default value. It also hooks into `__int__()`. Very nice.
+" See some examples:
+" >
+"   >>> object#int()
+"   0
+"   >>> object#int(1.2)
+"   1
+"   >>> object#int('0b101', 2)
+"   5
+"   >>> object#int('1234')
+"   1234
+"   >>> object#int('0xg', 16)
+"   ValueError: invalid literal for int() with base 16: '0xg'
+" <
+"
+" @subsection handy-formatter-of-various-bases
+" You can use `bin()`, `oct()` and `hex()` to get a |String| representations
+" of various bases from an integer.
+" What was return can be parsed back to
+" an `int` with `int()`. Different from `printf()` with specifiers, these
+" do not pull out the 2-complementary digits when the argument is negative.
+" Rather, they prefix it with a negative sign:
+" >
+"   >>> object#bin(-1)
+"   -0b1
+"   >>> printf('%b', -1)
+"   11111111111111111111111111111111
+"   >>> object#hex(-1)
+"   -0x1
+"   >>> printf('%x', -1)
+"   ffffffff
+" <
+"
+" @subsection wrapper-type-int
+" A wrapper type `int` is defined for the cases when object-oriented
+" interface is handy. `int` can be extended just as any other built-in
+" type can. Just rememebr keeping it at the very end of your base list since
+" for efficiency, `__init__()` of it does not call `super()`.
+"
+" Data descriptor for `int`:
+" - `INT_MAX`: maximum value of |Number|.
+" - `INT_MIN`: minimum value of |Number|.
+" - `INT_WIDTH`: bit-width of |Number|.
+" Here are some examples:
+" >
+"   >>> let i = object#_int(1)
+"   >>> i
+"   1
+"   >>> i.numerator
+"   1
+"   >>> i.real
+"   1
+"   >>> i.imag
+"   0
+"   >>> object#hash(i)
+"   1
+"   >>> object#abs(i)
+"   1
+"   >>> object#int_()
+"   <type 'int'>
+" <
 
 let s:int = object#class('int')
-if str2nr('9223372036854775807') > 0
-  let s:int.INT_MAX = 9223372036854775807
-  let s:int.INT_WIDTH = 64
-else
-  let s:int.INT_MAX = 2147483647
-  let s:int.INT_WIDTH = 32
-endif
-let s:int.INT_MIN = -s:int.INT_MAX - 1
+let s:int.INT_MAX = 1/0
+let s:int.INT_MIN = 0/0
+let s:int.INT_WIDTH = 4 * len(printf('%x', s:int.INT_MAX))
 
 let s:valid_literals = {
       \ '2':  '\C\v^[+-]?(0[bB])?[01]+$',
@@ -70,7 +135,7 @@ function! object#int#int(...)
     return 0
   endif
   if maktaba#value#IsString(a:1)
-    return call('str2nr',object#int#ensure_literal(a:0, a:000))
+    return call('str2nr', object#int#ensure_literal(a:0, a:000))
   endif
   if a:0 != 1
     throw object#TypeError('int() cannot convert %s with explicit base %d',
@@ -86,9 +151,6 @@ function! object#int#int(...)
         \ object#types(a:1))
 endfunction
 
-" TODO: use %b for higher version, fail back on home-brew one.
-" That means the convert_homebrew can be specific to bin, which may be
-" faster.
 function! object#int#convert_homebrew(int, base)
   let int = maktaba#ensure#IsNumber(a:int)
   let sign = int < 0 ? '-' : ''
@@ -118,7 +180,8 @@ endfunction
 " <
 function! object#int#bin(int)
   return object#util#has_bin_specifier() ?
-        \ object#int#convert_homebrew(a:int, 2):object#int#convert_printf(a:int, 2)
+        \ object#int#convert_printf(a:int, 2):
+        \ object#int#convert_homebrew(a:int, 2)
 endfunction
 
 ""
@@ -201,4 +264,6 @@ function! s:int.__hash__()
   return object#hash(self.real)
 endfunction
 
-
+function! s:int.__bool__()
+  return object#bool(self.real)
+endfunction
