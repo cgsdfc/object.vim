@@ -5,13 +5,11 @@
 Execute(getattr() gets an attribute that exists);
 let foo = { 'name': 'foo' }
 AssertEqual object#getattr(foo, 'name'), 'foo'
-let foo = { '__special__': function('empty') }
-AssertEqual object#getattr(foo, '__special__'), function('empty')
 
 "XXX: Since the Undefined Sam problem, when testing the throw, we use _literals_ instead
 Execute(getattr() throws AttributeError when the attribute does not exist);
 AssertThrows call object#getattr({ 'age': 11 }, 'name')
-Assert g:vader_exception =~# '^AttributeError'
+Assert g:vader_exception =~# 'AttributeError'
 
 Execute(getattr() returns default when no attribute found and default is given);
 let bar = { 'name' : 'bar' }
@@ -36,12 +34,3 @@ endfunction
 
 let attr = object#getattr(cls, 'boy')
 AssertEqual '__getattr__() says boy', attr
-
-" We have no way to intersect E118 since it can be thrown by __getattr__() either.
-Execute(When __getattr__() has wrong signature, Vim error pops up);
-function! X() dict
-  return 'Wrong signature'
-endfunction
-
-AssertThrows call object#getattr({'__getattr__': function('X')}, 'man')
-Assert  g:vader_exception =~# 'E118'

@@ -1,5 +1,5 @@
 " vim:ft=vim
-" 
+"
 " Test the hashing for String.
 
 "
@@ -8,7 +8,7 @@
 Before;
 " Fetch the dummy text as test input
 
-let basename = maktaba#path#Basename(g:vader_file) 
+let basename = maktaba#path#Basename(g:vader_file)
 Log basename
 if basename is# 'strhash.vader'
   let test_dir = fnamemodify(g:vader_file, ':h:h')
@@ -20,18 +20,13 @@ let lipsum_path = maktaba#path#Join([test_dir, 'data', 'lipsum.txt'])
 Assert filereadable(lipsum_path)
 let input = map(readfile(lipsum_path), 'split(v:val)')
 
+"
+" strhash_sha256()
+"
 Execute(strhash_sha256() should always return non-negative nr);
 for line in input
   for word in line
     let hash = object#mapping#strhash_sha256(word)
-    Assert hash >= 0
-  endfor
-endfor
-
-Execute(strhash_djb2() should always return non-negative nr);
-for line in input
-  for word in line
-    let hash =object#mapping#strhash_djb2(word)
     Assert hash >= 0
   endfor
 endfor
@@ -42,6 +37,17 @@ for line in input
     let x = object#mapping#strhash_sha256(word)
     let y = object#mapping#strhash_sha256(word)
     AssertEqual x, y, 'strhash_sha256() should be a function!'
+  endfor
+endfor
+
+"
+" strhash_djb2()
+"
+Execute(strhash_djb2() should always return non-negative nr);
+for line in input
+  for word in line
+    let hash =object#mapping#strhash_djb2(word)
+    Assert hash >= 0
   endfor
 endfor
 

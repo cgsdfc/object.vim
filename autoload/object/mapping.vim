@@ -63,7 +63,7 @@ function! object#mapping#strhash_djb2(str)
 endfunction
 
 
-if has('cryptv')
+if exists('*sha256')
   "
   " The sha256 hash
   "
