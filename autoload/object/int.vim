@@ -166,11 +166,13 @@ endfunction
 " Homebrew version.
 function! object#int#convert_homebrew(int, base)
   let int = maktaba#ensure#IsNumber(a:int)
+  if int is# 0
+    return '0b0'
+  endif
   let sign = int < 0 ? '-' : ''
-  let int = abs(int)
   let digits = []
   while int != 0
-    call add(digits, s:digits[a:base][int % a:base])
+    call add(digits, s:digits[a:base][abs(int % a:base)])
     let int = int / a:base
   endwhile
   return printf('%s%s%s', sign, s:prefixes[a:base],

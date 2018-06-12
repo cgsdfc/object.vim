@@ -1,8 +1,29 @@
 " vim: ft=vim
 " Test integer representation functions of various bases.
 Before;
-let positive = range(1, 100)
-let negative = range(-1, -100, -1)
+let int = object#int_()
+
+Execute(Zero cases);
+AssertEqual object#bin(0), '0b0'
+AssertEqual object#oct(0), '00'
+AssertEqual object#hex(0), '0x0'
 
 Execute(Positive cases);
 AssertEqual object#bin(1), '0b1'
+AssertEqual object#oct(0), '00'
+AssertEqual object#hex(0), '0x0'
+
+Execute(Negative cases);
+AssertEqual object#bin(1), '0b1'
+AssertEqual object#oct(0), '00'
+AssertEqual object#hex(0), '0x0'
+
+Execute(INT_MAX cases);
+AssertEqual object#bin(int.INT_MAX), '0b1111111111111111111111111111111'
+AssertEqual object#oct(int.INT_MAX), '017777777777'
+AssertEqual object#hex(int.INT_MAX), '0x7fffffff'
+
+Execute(INT_MIN cases);
+AssertEqual object#bin(int.INT_MIN), '-0b10000000000000000000000000000000'
+AssertEqual object#oct(int.INT_MIN), '-020000000000'
+AssertEqual object#hex(int.INT_MIN), '-0x80000000'
