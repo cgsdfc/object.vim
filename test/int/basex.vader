@@ -18,12 +18,24 @@ AssertEqual object#bin(1), '0b1'
 AssertEqual object#oct(0), '00'
 AssertEqual object#hex(0), '0x0'
 
-Execute(INT_MAX cases);
-AssertEqual object#bin(int.INT_MAX), '0b1111111111111111111111111111111'
-AssertEqual object#oct(int.INT_MAX), '017777777777'
-AssertEqual object#hex(int.INT_MAX), '0x7fffffff'
+Execute(INT_MAX/INT_MIN cases);
+if int.INT_WIDTH == 32
+  AssertEqual object#bin(int.INT_MAX), '0b1111111111111111111111111111111'
+  AssertEqual object#oct(int.INT_MAX), '017777777777'
+  AssertEqual object#hex(int.INT_MAX), '0x7fffffff'
 
-Execute(INT_MIN cases);
-AssertEqual object#bin(int.INT_MIN), '-0b10000000000000000000000000000000'
-AssertEqual object#oct(int.INT_MIN), '-020000000000'
-AssertEqual object#hex(int.INT_MIN), '-0x80000000'
+  AssertEqual object#bin(int.INT_MIN), '-0b10000000000000000000000000000000'
+  AssertEqual object#oct(int.INT_MIN), '-020000000000'
+  AssertEqual object#hex(int.INT_MIN), '-0x80000000'
+
+elseif int.INT_WIDTH == 64
+  AssertEqual object#bin(int.INT_MAX), '0b111111111111111111111111111111111111111111111111111111111111111'
+  AssertEqual object#oct(int.INT_MAX), '0777777777777777777777'
+  AssertEqual object#hex(int.INT_MAX), '0x7fffffffffffffff'
+
+  AssertEqual object#bin(int.INT_MIN), '-0b1000000000000000000000000000000000000000000000000000000000000000'
+  AssertEqual object#oct(int.INT_MIN), '-01000000000000000000000'
+  AssertEqual object#hex(int.INT_MIN), '-0x8000000000000000'
+else
+  throw 'Unknown INT_WIDTH'
+endif
