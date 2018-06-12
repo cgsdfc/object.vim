@@ -3,6 +3,11 @@
 Before;
 let int = object#int_()
 
+Execute(Class data);
+Log int.INT_MAX
+Log int.INT_MIN
+Log int.INT_WIDTH
+
 
 Execute(The int type);
 Log object#repr(int)
