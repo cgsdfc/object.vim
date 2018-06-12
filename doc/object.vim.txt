@@ -657,20 +657,21 @@ dict_()                                                  *object#dict#dict_()*
   Return the dict type.
 
 BaseException(...)                             *object#except#BaseException()*
-  Generate exception for a specific {type}. User can call BaseException to
-  define their own exception functions. Examples:
+  User can use `BaseException()` to define their own exception functions.
 >
-    function! MyException(msg, ...)
-      return object#BaseException('MyException', a:msg, a:000)
+    BaseException(type) -> type:
+    BaseException(type, [msg]) -> type: msg
+    BaseException(type, [msg, *args] -> type: printf(msg, *args)
+<
+  Examples:
+>
+    function! MyException(...)
+      return object#BaseException('MyException', a:000)
     endfunction
 <
 
 Exception(...)                                     *object#except#Exception()*
   Generic exception.
->
-    Exception(msg[,*args]) -> as if printf(msg, *args) but *args can be
-    omitted.
-<
 
 ValueError(...)                                   *object#except#ValueError()*
   The value of function arguments went wrong.
@@ -683,7 +684,7 @@ AttributeError(...)                           *object#except#AttributeError()*
   The object has no such attribute or the attribute is readonly.
 
 StopIteration(...)                             *object#except#StopIteration()*
-  The end of iteration. Thrown by __iter__ usually.
+  Iteration stops.
 
 IndexError(...)                                   *object#except#IndexError()*
   Index out of range for sequences.
@@ -898,25 +899,28 @@ setitem(...)                                        *object#mapping#setitem()*
 getattr(...)                                      *object#protocols#getattr()*
   Get the attribute {name} from {obj}.
 >
-    getattr(obj, name[,default]) -> attribute name of obj, fall back on
-    default.
+    getattr(obj, name[,default]) -> attribute of obj
 <
-  Note: The __getattr__() hook overrides the dictionary lookup completely.
-  That means it is not consulted after dictionary lookup failed but used
-  directly if there is a usable one.
+  `getattr()` goes through three stages to lookup an attribute:
+    1. Dictionary lookup `obj[name]`. If `__getattribute__()` is defined for
+      {obj}, it will be called instead.
+    2. If 1 fails with `AttributeError` and if `__getattr__()` is defined for
+      {obj}, it will be tried. Otherwise, 2 fails.
+    3. If 2 fails, and if [default] is given, it will be returned. Otherwise,
+      the latest `AttributeError` is thrown.
 
 setattr(...)                                      *object#protocols#setattr()*
   Set the {name} attribute of {obj} to {val}.
 >
-    setattr(obj, name, val) -> set attribute name of obj to val
+    setattr(plain dict, name, val) -> let d[name] = val
+    setattr(obj, name, val) -> obj.__setattr__(name, val)
 <
 
 hasattr(...)                                      *object#protocols#hasattr()*
   Test whether {obj} has attribute {name}.
 >
-    hasattr(obj, name) -> if obj has attribute name.
+    hasattr(obj, name) -> obj is a dict and has_key(obj, name)
 <
-  Return false if {obj} is not a |Dict|.
 
 repr(...)                                            *object#protocols#repr()*
   Generate string representation for {obj}.

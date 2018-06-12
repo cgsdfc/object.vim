@@ -5,9 +5,6 @@
 " that has well defined behaviours for built-in types and can be overriden by
 " the corresponding methods with double underscores names.
 
-" TODO:
-"   * fix the __getattribute__ and __getattr__
-
 "
 " Call a __protocol__ function {X} (ensure {X} is a Funcref)
 "
@@ -19,9 +16,15 @@ endfunction
 " @function getattr(...)
 " Get the attribute {name} from {obj}.
 " >
-"   getattr(obj, name[,default]) -> attribute name of obj, fall back on
-"   default.
+"   getattr(obj, name[,default]) -> attribute of obj
 " <
+" `getattr()` goes through three stages to lookup an attribute:
+" 1. Dictionary lookup `obj[name]`. If `__getattribute__()` is defined for {obj},
+"   it will be called instead.
+" 2. If 1 fails with `AttributeError` and if `__getattr__()` is defined
+"   for {obj}, it will be tried. Otherwise, 2 fails.
+" 3. If 2 fails, and if [default] is given, it will be returned.
+"   Otherwise, the latest `AttributeError` is thrown.
 function! object#protocols#getattr(obj, name, ...)
   call object#util#ensure_argc(1, a:0)
   let obj = maktaba#ensure#IsDict(a:obj)
@@ -62,7 +65,8 @@ endfunction
 " @function setattr(...)
 " Set the {name} attribute of {obj} to {val}.
 " >
-"   setattr(obj, name, val) -> set attribute name of obj to val
+"   setattr(plain dict, name, val) -> let d[name] = val
+"   setattr(obj, name, val) -> obj.__setattr__(name, val)
 " <
 function! object#protocols#setattr(obj, name, val)
   let obj = maktaba#ensure#IsDict(a:obj)
@@ -80,9 +84,8 @@ endfunction
 " @function hasattr(...)
 " Test whether {obj} has attribute {name}.
 " >
-"   hasattr(obj, name) -> if obj has attribute name.
+"   hasattr(obj, name) -> obj is a dict and has_key(obj, name)
 " <
-" Return false if {obj} is not a |Dict|.
 function! object#protocols#hasattr(obj, name)
   let name = maktaba#ensure#IsString(a:name)
   return maktaba#value#IsDict(a:obj) && has_key(a:obj, name)

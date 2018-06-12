@@ -42,10 +42,72 @@ function! X.__getattribute__(key)
 endfunction
 
 let x = object#new(X)
-AssertEqual getattr(x, 'foo'), 1
+AssertEqual object#getattr(x, 'foo'), 1
+
 
 Execute(__getattribute__ throws);
 function! X.__getattribute__(key)
   throw object#AttributeError()
 endfunction
 
+AssertThrows call object#getattr(object#new(g:X), 'foo')
+Assert g:vader_exception =~# 'AttributeError'
+
+
+" __getattribute__ with __getattr__.
+Execute(__getattribute__ wins over __getattr__);
+function! X.__getattribute__(key)
+  return 1
+endfunction
+function! X.__getattr__(key)
+  return 0
+endfunction
+AssertEqual object#getattr(object#new(g:X), 'foo'), 1
+
+
+Execute(__getattribute__ loses to  __getattr__);
+function! X.__getattribute__(key)
+  throw object#AttributeError()
+endfunction
+function! X.__getattr__(key)
+  return 0
+endfunction
+AssertEqual object#getattr(object#new(g:X), 'foo'), 0
+
+
+Execute(Both lose);
+function! X.__getattribute__(key)
+  throw object#AttributeError()
+endfunction
+function! X.__getattr__(key)
+  throw object#AttributeError()
+endfunction
+AssertThrows call object#getattr(object#new(g:X), 'foo')
+Assert g:vader_exception =~# 'AttributeError'
+
+
+" Default and __getattr__.
+Execute(__getattr__ wins over default);
+function! X.__getattr__(key)
+  return 1
+endfunction
+
+AssertEqual object#getattr(object#new(g:X), 'foo', 0), 1
+
+
+Execute(__getattr__ loses to default);
+function! X.__getattr__(key)
+  throw object#AttributeError()
+endfunction
+
+AssertEqual object#getattr(object#new(g:X), 'foo', 0), 0
+
+
+Execute(Fall all the way to default);
+function! X.__getattribute__(key)
+  throw object#AttributeError()
+endfunction
+function! X.__getattr__(key)
+  throw object#AttributeError()
+endfunction
+AssertEqual object#getattr(object#new(g:X), 'foo', 0), 0
