@@ -36,8 +36,6 @@ let s:list_iter = object#class('list_iter')
 let s:str_iter = object#class('str_iter')
 let s:enumerate = object#class('enumerate')
 let s:zip = object#class('zip')
-let s:imap = object#class('imap')
-let s:ifilter = object#class('ifilter')
 
 function! s:list_iter.__init__(list)
   let self.idx = 0
@@ -88,29 +86,6 @@ endfunction
 
 function! s:zip.next()
   return map(copy(self.iters), 'object#next(v:val)')
-endfunction
-
-function! s:imap.__init__(iter, mapper)
-  let self.iter = object#iter(a:iter)
-  let self.mapper = maktaba#ensure#IsFuncref(a:mapper)
-endfunction
-
-function! s:imap.next()
-  return self.mapper(object#next(self.iter))
-endfunction
-
-function! s:ifilter.__init__(iter, filter)
-  let self.iter = object#iter(a:iter)
-  let self.filter = a:filter
-endfunction
-
-function! s:ifilter.next()
-  while 1
-    let Next = object#next(self.iter)
-    if object#bool(self.filter(Next))
-      return Next
-    endif
-  endwhile
 endfunction
 
 ""
@@ -234,36 +209,7 @@ endfunction
 " <
 " {lambda} can be a String or Funcref.
 function! object#iter#map(iter, lambda)
-  if maktaba#value#IsString(a:lambda)
-    return map(object#list(a:iter), a:lambda)
-  endif
-  if maktaba#value#IsFuncref(a:lambda)
-    return object#list(object#imap(a:iter, a:lambda))
-  endif
-  throw object#TypeError('invalid type %s for map()', object#types#name(a:lambda))
-endfunction
-
-""
-" @function imap(...)
-" Return an `imap` iterator.
-" >
-"   imap(iterable, Funcref) -> imap object
-" <
-function! object#iter#imap(iter, mapper)
-  return object#new(s:imap, a:iter, a:mapper)
-endfunction
-
-""
-" @function ifilter(...)
-" Return an `ifilter` iterator.
-" >
-"   ifilter(iterable, Funcref) -> ifilter object
-"   ifilter(iterable) -> as if Funcref is identity
-" <
-function! object#iter#ifilter(iter, ...)
-  call object#util#ensure_argc(1, a:0)
-  let filter = a:0 ? maktaba#ensure#IsFuncref(a:1):function('object#util#identity')
-  return object#new(s:ifilter, a:iter, filter)
+  return map(object#list(a:iter), maktaba#ensure#IsString(a:lambda))
 endfunction
 
 ""
@@ -275,14 +221,13 @@ endfunction
 "   filter(iter, lambda) -> a new list filtered from iter.
 " <
 " Truthness is tested by `bool()`.
-function! object#iter#filter(iter, lambda)
-  if maktaba#value#IsString(a:lambda)
-    return filter(object#list(a:iter), 'object#bool('.a:lambda.')')
+function! object#iter#filter(iter, ...)
+  call object#util#ensure_argc(1, a:0)
+  if !a:0
+    return filter(object#list(a:iter), 'object#bool(v:val)')
   endif
-  if maktaba#value#IsFuncref(a:lambda)
-    return object#list(object#ifilter(a:iter, a:lambda))
-  endif
-  throw object#TypeError('invalid type %s for filter()', object#types#name(a:lambda))
+  return filter(object#list(a:iter),
+        \ printf('object#bool(%s)', maktaba#ensure#IsString(a:1)))
 endfunction
 
 ""

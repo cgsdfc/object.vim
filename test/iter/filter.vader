@@ -3,23 +3,27 @@
 " Test object#filter()
 "
 
-Execute (Truthness is eval'ed by object#bool());
+Execute(Truthness is eval'ed by object#bool());
 let samples = [
       \ [ [ 1, 2, [] ], [1,2] ],
       \ [ [ '', 1, 2 ], [1,2] ],
       \ [ [ {}, 1, 2 ], [1,2] ],
       \]
+
 for [input, output] in samples
   AssertEqual object#filter(input, 'v:val'), output
+  AssertEqual object#filter(input), output
 endfor
 
-Execute (Can do what builtin-filter() can do);
+
+Execute(Can do what builtin-filter() can do);
 let input = range(10)
 let lambda = 'and(v:val, 1)'
 " Get the odd item from input
 AssertEqual object#filter(input, lambda), filter(input, lambda)
 
-Execute (Can filter string);
+
+Execute(Can filter string);
 " Create a string of 10 chars from [01]
 let str = join(map(range(10), 'and(1, v:val)?"0":"1"'),'')
 " Filter out the '0's.
