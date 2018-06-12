@@ -22,7 +22,7 @@
 "   :echo object#sum(range(1, 100))
 "   5050
 "
-"   :echo object#filter(['1', '2', ''], 'v:val')
+"   :echo object#filter(['1', '2', ''])
 "   ['1', '2']
 "
 "   :echo object#list('abc')
@@ -189,7 +189,7 @@ endfunction
 " @function zip(...)
 " Return an iterator that zips a list of sequences.
 " >
-"   zip(iter[,*iters]) -> [[seq1[0], seq2[0], ...], ...]
+"   zip(iter[,*iters]) -> [seq1[0], seq2[0], ...], ...
 " <
 " The iterator stops at the shortest sequence.
 function! object#iter#zip(iter, ...)
@@ -203,19 +203,17 @@ endfunction
 
 ""
 " @function map(...)
-" Map a callable to an iterable.
+" Tranform the iterable with lambda (String).
 " >
 "   map(iter, lambda) -> a new list mapped from iter
 " <
-" {lambda} can be a String or Funcref.
 function! object#iter#map(iter, lambda)
   return map(object#list(a:iter), maktaba#ensure#IsString(a:lambda))
 endfunction
 
 ""
 " @function filter(...)
-" Create a new list by removing the item from {iter} when {lambda}
-" return false.
+" Create a new list filtering {iter} using a lambda (String).
 " >
 "   filter(iter) -> a new list without falsy items.
 "   filter(iter, lambda) -> a new list filtered from iter.

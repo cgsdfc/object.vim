@@ -754,33 +754,18 @@ enumerate(...)                                       *object#iter#enumerate()*
 zip(...)                                                   *object#iter#zip()*
   Return an iterator that zips a list of sequences.
 >
-    zip(iter[,*iters]) -> [[seq1[0], seq2[0], ...], ...]
+    zip(iter[,*iters]) -> [seq1[0], seq2[0], ...], ...
 <
   The iterator stops at the shortest sequence.
 
 map(...)                                                   *object#iter#map()*
-  Map a callable to an iterable.
+  Tranform the iterable with lambda (String).
 >
     map(iter, lambda) -> a new list mapped from iter
 <
-  {lambda} can be a String or Funcref.
-
-imap(...)                                                 *object#iter#imap()*
-  Return an `imap` iterator.
->
-    imap(iterable, Funcref) -> imap object
-<
-
-ifilter(...)                                           *object#iter#ifilter()*
-  Return an `ifilter` iterator.
->
-    ifilter(iterable, Funcref) -> ifilter object
-    ifilter(iterable) -> as if Funcref is identity
-<
 
 filter(...)                                             *object#iter#filter()*
-  Create a new list by removing the item from {iter} when {lambda} return
-  false.
+  Create a new list filtering {iter} using a lambda (String).
 >
     filter(iter) -> a new list without falsy items.
     filter(iter, lambda) -> a new list filtered from iter.

@@ -14,7 +14,7 @@ Execute (Example-4);
 AssertEqual object#sum(range(1, 100)), 5050
 
 Execute (Example-5);
-AssertEqual object#filter(['1', '2', ''], 'v:val'), ['1', '2']
+AssertEqual object#filter(['1', '2', '']), ['1', '2']
 
 Execute (Example-6);
 AssertEqual object#list('abc'), ['a', 'b', 'c']
