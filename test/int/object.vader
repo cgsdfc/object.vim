@@ -1,3 +1,47 @@
 " vim: ft=vim
 " Test the int object
+Before;
+let int = object#int_()
 
+
+Execute(The int type);
+Log object#repr(int)
+let MyInt = object#class('MyInt', int)
+function! MyInt.__init__(...)
+  Log object#repr(object#type(self))
+  call call(object#super(g:MyInt, self).__init__, a:000)
+endfunction
+
+let var = object#new(MyInt, '0b11', 2)
+AssertEqual object#int(var), 3
+
+
+Execute(Create an int object);
+let i = object#_int('2')
+Assert object#isinstance(i, int)
+AssertEqual i.real, 2
+AssertEqual i.imag, 0
+AssertEqual i.denominator, 1
+AssertEqual i.numerator, 2
+
+" Protocols of int object
+Execute(__bool__);
+AssertEqual 0, object#bool(object#_int(0))
+AssertEqual 1, object#bool(object#_int(2))
+
+
+Execute(Compatible with Number);
+for i in range(-10, 10)
+  let obj = object#_int(i)
+  AssertEqual i, object#int(obj)
+  AssertEqual object#abs(i), object#abs(obj)
+  AssertEqual object#hash(i), object#hash(obj)
+endfor
+
+
+Execute(__str__ and __repr__);
+for i in range(-10, 10)
+  let obj = object#_int(i)
+  AssertEqual object#str(obj), string(i)
+  AssertEqual object#repr(obj), string(i)
+endfor
