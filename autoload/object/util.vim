@@ -20,7 +20,10 @@ function! object#util#has_special_variables()
         \ exists('v:true') && exists('v:null')
 endfunction
 
+function! object#util#has_bin_specifier()
+  return has('patch-7.4.2221')
+endfunction
+
 function object#util#identity(X)
   return a:X
 endfunction
-

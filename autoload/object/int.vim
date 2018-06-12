@@ -117,7 +117,8 @@ endfunction
 "   bin(-3) -> '-0b11'
 " <
 function! object#int#bin(int)
-  return object#int#convert_homebrew(a:int, 2)
+  return object#util#has_bin_specifier() ?
+        \ object#int#convert_homebrew(a:int, 2):object#int#convert_printf(a:int, 2)
 endfunction
 
 ""
