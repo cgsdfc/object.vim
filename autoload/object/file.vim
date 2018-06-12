@@ -73,10 +73,17 @@ let s:file = object#type('file', [], {
       \})
 
 ""
-" Open a file. The [mode] can be 'r', 'w' or 'a' for reading (default),
-" writing or appending. The file will be created if it doesn't exist
-" when opened for writing or appending; it will be truncated when
-" opened for writing. Add a 'b' to the [mode] for binary files.
+" @function open(...)
+" Open a file.
+" >
+"   open(filename) -> open for reading.
+"   open(filename, mode) -> open for mode.
+" <
+" The [mode] can be 'r', 'w' or 'a' for reading (default), writing or appending,
+" respectively.
+" The file will be created if it doesn't exist when opened for writing or appending.
+" It will be truncated when opened for writing.
+" Add a 'b' to the [mode] for binary files. See |readfile()| and |writefile()|.
 " Add a '+' to the [mode] to allow simultaneous reading and writing.
 function! object#file#open(name, ...)
   let argc = object#util#ensure_argc(1, a:0)

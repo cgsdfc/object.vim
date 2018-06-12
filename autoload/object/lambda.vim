@@ -129,7 +129,7 @@ function! object#lambda#_lambda(...)
 endfunction
 
 ""
-" @function lambda_()
+" @function lambda_(...)
 " Return the lambda class.
 function! object#lambda#lambda_()
   return s:lambda

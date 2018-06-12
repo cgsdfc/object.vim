@@ -16,11 +16,15 @@ function! object#protocols#call(X, ...)
 endfunction
 
 ""
+" @function getattr(...)
 " Get the attribute {name} from {obj}.
+" >
+"   getattr(obj, name[,default]) -> attribute name of obj, fall back on
+"   default.
+" <
 " Note: The __getattr__() hook overrides the dictionary lookup
 " completely. That means it is not consulted after dictionary lookup
 " failed but used directly if there is a usable one.
-"
 function! object#protocols#getattr(obj, name, ...)
   let obj = maktaba#ensure#IsDict(a:obj)
   let name = maktaba#ensure#IsString(a:name)
@@ -41,8 +45,11 @@ function! object#protocols#getattr(obj, name, ...)
 endfunction
 
 ""
+" @function setattr(...)
 " Set the {name} attribute of {obj} to {val}.
-"
+" >
+"   setattr(obj, name, val) -> set attribute name of obj to val
+" <
 function! object#protocols#setattr(obj, name, val)
   let obj = maktaba#ensure#IsDict(a:obj)
   let name = maktaba#ensure#IsString(a:name)
@@ -56,17 +63,24 @@ function! object#protocols#setattr(obj, name, val)
 endfunction
 
 ""
+" @function hasattr(...)
 " Test whether {obj} has attribute {name}.
+" >
+"   hasattr(obj, name) -> if obj has attribute name.
+" <
 " Return false if {obj} is not a |Dict|.
-"
 function! object#protocols#hasattr(obj, name)
   let name = maktaba#ensure#IsString(a:name)
   return maktaba#value#IsDict(a:obj) && has_key(a:obj, name)
 endfunction
 
 ""
-" Generate string representation for {obj}. Fail back on |string()|
-"
+" @function repr(...)
+" Generate string representation for {obj}.
+" >
+"   repr(obj) -> String
+" <
+" Fail back on |string()|.
 function! object#protocols#repr(obj)
   if object#class#is_valid_class(a:obj)
     return printf('<type %s>', string(a:obj.__name__))
@@ -84,10 +98,12 @@ function! object#protocols#repr(obj)
 endfunction
 
 ""
-" Return the length of {obj}. If {obj} is a |List|
-" or a |Dict|, |len()| will be called. Otherwise, the __len__()
-" of {obj} will be called.
-"
+" @function len(...)
+" Return the length of {obj}.
+" >
+"   len(String, List or Dict) -> len(obj)
+"   len(obj) -> obj.__len__()
+" <
 function! object#protocols#len(obj)
   if maktaba#value#IsString(a:obj)
     return len(a:obj)
@@ -99,9 +115,12 @@ function! object#protocols#len(obj)
 endfunction
 
 ""
+" @function dir(...)
 " Return a |List| of names of all attributes from {obj}. If
 " {obj} defines __dir__(), it is called instead.
-"
+" >
+"   dir(obj) -> a list of names of attributes of obj.
+" <
 function! object#protocols#dir(obj)
   let obj = maktaba#ensure#IsDict(a:obj)
   if !has_key(obj, '__dir__')
@@ -111,7 +130,11 @@ function! object#protocols#dir(obj)
 endfunction
 
 ""
+" @function contains(...)
 " Test whether {item} is in {obj}.
+" >
+"   contains(item, obj) -> item in obj.
+" <
 function! object#protocols#contains(item, obj)
   if maktaba#value#IsList(a:obj)
     return index(a:obj, a:item) >= 0

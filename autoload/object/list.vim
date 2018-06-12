@@ -5,18 +5,21 @@
 let s:list = object#class('list')
 
 ""
+" @function _list(...)
 " Create a list object.
 function! object#list#_list(...)
   return object#new_(s:list, a:000)
 endfunction
 
 ""
+" @function list_(...)
 " Return the list type.
 function! object#list#list_()
   return s:list
 endfunction
 
 ""
+" @function list(...)
 " Create a plain |List|.
 " >
 "   list() -> an empty list.

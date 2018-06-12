@@ -667,6 +667,10 @@ BaseException(...)                             *object#except#BaseException()*
 
 Exception(...)                                     *object#except#Exception()*
   Generic exception.
+>
+    Exception(msg[,*args]) -> as if printf(msg, *args) but *args can be
+    omitted.
+<
 
 ValueError(...)                                   *object#except#ValueError()*
   The value of function arguments went wrong.
@@ -691,12 +695,18 @@ IOError(...)                                         *object#except#IOError()*
   File not writable or readable. Operation on a closed file. Thrown by file
   objects usually.
 
-object#file#open({name}, [mode])                          *object#file#open()*
-  Open a file. The [mode] can be 'r', 'w' or 'a' for reading (default),
-  writing or appending. The file will be created if it doesn't exist when
-  opened for writing or appending; it will be truncated when opened for
-  writing. Add a 'b' to the [mode] for binary files. Add a '+' to the [mode]
-  to allow simultaneous reading and writing.
+open(...)                                                 *object#file#open()*
+  Open a file.
+>
+    open(filename) -> open for reading.
+    open(filename, mode) -> open for mode.
+<
+  The [mode] can be 'r', 'w' or 'a' for reading (default), writing or
+  appending, respectively. The file will be created if it doesn't exist when
+  opened for writing or appending. It will be truncated when opened for
+  writing. Add a 'b' to the [mode] for binary files. See |readfile()| and
+  |writefile()|. Add a '+' to the [mode] to allow simultaneous reading and
+  writing.
 
 int(...)                                                    *object#int#int()*
   Convert [args] to a |Number|, i.e., an int.
@@ -799,7 +809,7 @@ _lambda(...)                                         *object#lambda#_lambda()*
     _lambda(vars, expr[,closure]).__call__
 <
 
-lambda_()                                            *object#lambda#lambda_()*
+lambda_(...)                                         *object#lambda#lambda_()*
   Return the lambda class.
 
 object#lambda#for({iterable}, {names}, {cmd}, [closure]) *object#lambda#for()*
@@ -817,13 +827,13 @@ object#lambda#for({iterable}, {names}, {cmd}, [closure]) *object#lambda#for()*
     call object#for('key val', items(dict), 'echo key val')
 <
 
-object#list#_list()                                      *object#list#_list()*
+_list(...)                                               *object#list#_list()*
   Create a list object.
 
-object#list#list_()                                      *object#list#list_()*
+list_(...)                                               *object#list#list_()*
   Return the list type.
 
-object#list#list()                                        *object#list#list()*
+list(...)                                                 *object#list#list()*
   Create a plain |List|.
 >
     list() -> an empty list.
@@ -832,10 +842,23 @@ object#list#list()                                        *object#list#list()*
     list(list object) -> a copy of the underlying list.
 <
 
-object#mapping#getitem({obj}, {key})                *object#mapping#getitem()*
-  Return the value at {key} in {obj} as if {obj} is a mapping. If {obj} is a
-  |List|, |String| or plain |Dict|, checked-version of built-in subscription
-  will be called. Vim error about |List| index will translate to
+hash(...)                                              *object#mapping#hash()*
+  Return the hash value of {obj}.
+
+  {obj} can be a |Number|, a |String| a |Funcref| or special variables like
+  |v:none| and |v:false| (if present), or an object with __hash__() defined.
+
+  Throws ERROR(TypeError) if hash() is not possible for {obj}.
+  Throws ERROR(WrongType) if __hash__ is not a |Funcref| or returns
+  something NAN (Not A Number).
+
+getitem(...)                                        *object#mapping#getitem()*
+  Return the value at {key} in {obj} as if {obj} is a mapping.
+>
+    getitem(obj, key) -> obj[key]
+<
+  If {obj} is a |List|, |String| or plain |Dict|, checked-version of built-in
+  subscription will be called. Vim error about |List| index will translate to
   @exception(IndexError). Vim's ignorance about the index to |String| will be
   augmented by checking the emptiness of the value.
 
@@ -845,42 +868,63 @@ object#mapping#getitem({obj}, {key})                *object#mapping#getitem()*
   Throws ERROR(IndexError) if {key} is out of range for |String| or |List|.
   Throws ERROR(KeyError) if {key} is not present in the |Dict|.
 
-object#mapping#setitem({obj}, {key}, {val})         *object#mapping#setitem()*
-  Set the value at {key} of {obj} to {val}. If {obj} is a |List|, |String| or
-  a |Dict|, subscription version of |let| will be uesd. Otherwise, __setitem__
-  of {obj} will be used.
+setitem(...)                                        *object#mapping#setitem()*
+  Set the value at {key} of {obj} to {val}.
+>
+    setitem(obj, key, val) -> let obj[key] = val
+<
+  If {obj} is a |List|, |String| or a |Dict|, subscription version of |let|
+  will be uesd. Otherwise, __setitem__ of {obj} will be used.
 
-object#protocols#getattr({obj}, {name})           *object#protocols#getattr()*
-  Get the attribute {name} from {obj}. Note: The __getattr__() hook overrides
-  the dictionary lookup completely. That means it is not consulted after
-  dictionary lookup failed but used directly if there is a usable one.
+getattr(...)                                      *object#protocols#getattr()*
+  Get the attribute {name} from {obj}.
+>
+    getattr(obj, name[,default]) -> attribute name of obj, fall back on
+    default.
+<
+  Note: The __getattr__() hook overrides the dictionary lookup completely.
+  That means it is not consulted after dictionary lookup failed but used
+  directly if there is a usable one.
 
-
-object#protocols#setattr({obj}, {name}, {val})    *object#protocols#setattr()*
+setattr(...)                                      *object#protocols#setattr()*
   Set the {name} attribute of {obj} to {val}.
+>
+    setattr(obj, name, val) -> set attribute name of obj to val
+<
 
+hasattr(...)                                      *object#protocols#hasattr()*
+  Test whether {obj} has attribute {name}.
+>
+    hasattr(obj, name) -> if obj has attribute name.
+<
+  Return false if {obj} is not a |Dict|.
 
-object#protocols#hasattr({obj}, {name})           *object#protocols#hasattr()*
-  Test whether {obj} has attribute {name}. Return false if {obj} is not a
-  |Dict|.
+repr(...)                                            *object#protocols#repr()*
+  Generate string representation for {obj}.
+>
+    repr(obj) -> String
+<
+  Fail back on |string()|.
 
+len(...)                                              *object#protocols#len()*
+  Return the length of {obj}.
+>
+    len(String, List or Dict) -> len(obj)
+    len(obj) -> obj.__len__()
+<
 
-object#protocols#repr({obj})                         *object#protocols#repr()*
-  Generate string representation for {obj}. Fail back on |string()|
-
-
-object#protocols#len({obj})                           *object#protocols#len()*
-  Return the length of {obj}. If {obj} is a |List| or a |Dict|, |len()| will
-  be called. Otherwise, the __len__() of {obj} will be called.
-
-
-object#protocols#dir({obj})                           *object#protocols#dir()*
+dir(...)                                              *object#protocols#dir()*
   Return a |List| of names of all attributes from {obj}. If {obj} defines
   __dir__(), it is called instead.
+>
+    dir(obj) -> a list of names of attributes of obj.
+<
 
-
-object#protocols#contains({item}, {obj})         *object#protocols#contains()*
+contains(...)                                    *object#protocols#contains()*
   Test whether {item} is in {obj}.
+>
+    contains(item, obj) -> item in obj.
+<
 
 super(...)                                              *object#super#super()*
   Return a super object bound to {obj} that delegates method calls to the
@@ -903,7 +947,7 @@ super_(...)                                            *object#super#super_()*
   Throws ERROR(TypeError) if {type} is at the end of the MRO of {obj}.
   Throws ERROR(AttributeError) if {name} cannot be resolved.
 
-object#types#object()                                  *object#types#object()*
+object()                                               *object#types#object()*
   Create a plain object.
 
 object_()                                             *object#types#object_()*

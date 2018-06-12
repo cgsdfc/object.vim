@@ -14,6 +14,7 @@
 " Any better way to guess the bitwidth of Number?
 " TODO: Add performance test for the strhash().
 " TODO: delitem()
+" TODO: Check for OverflowError for hash(int).
 
 
 let s:INT32_MAX = 2147483647
@@ -86,12 +87,23 @@ endif
 " type in Vim, the sign digit will be cut off when turning
 " a negative signed number to an unsigned one. Thus, -1 will
 " be turned into INT_MAX but not UINT_MAX (if present).
-"
+" TODO: watch out for OverflowError when {nr} is INT_MIN
+" This algorithm is clever enough so that INT_MIN -> 0.
+" Since there is one more negative number than positive ones,
+" it uses zero to fill the hole. However, I still wonder if abs()
+" is better than wrapping around.
+" >
+"   nr >= 0 ? nr : -(nr+1)
+" <
+" OverflowError appears when -0/0 is supposed to be positive, but
+" in fact is 0/0. (0/0 is INT_MIN).
 function! object#mapping#unsigned(nr)
   return a:nr >= 0 ? a:nr : s:INT_MAX + a:nr + 1
 endfunction
 
+if object#util#has_special_variables()
 ""
+" @function hash(...)
 " Return the hash value of {obj}.
 "
 " {obj} can be a |Number|, a |String| a |Funcref| or
@@ -101,7 +113,6 @@ endfunction
 " @throws TypeError if hash() is not possible for {obj}.
 " @throws WrongType if __hash__ is not a |Funcref| or returns
 " something NAN (Not A Number).
-if object#util#has_special_variables()
   function! object#mapping#hash(obj)
     if a:obj is# v:none || a:obj is# v:false || a:obj is# v:null
       return 0
@@ -134,7 +145,11 @@ function! object#mapping#hash_(obj)
 endfunction
 
 ""
+" @function getitem(...)
 " Return the value at {key} in {obj} as if {obj} is a mapping.
+" >
+"   getitem(obj, key) -> obj[key]
+" <
 " If {obj} is a |List|, |String| or plain |Dict|, checked-version
 " of built-in subscription will be called.
 " Vim error about |List| index will translate to @exception(IndexError).
@@ -180,7 +195,11 @@ function! object#mapping#getitem(obj, key)
 endfunction
 
 ""
+" @function setitem(...)
 " Set the value at {key} of {obj} to {val}.
+" >
+"   setitem(obj, key, val) -> let obj[key] = val
+" <
 " If {obj} is a |List|, |String| or a |Dict|,
 " subscription version of |let| will be uesd.
 " Otherwise, __setitem__ of {obj} will be used.

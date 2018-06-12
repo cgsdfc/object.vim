@@ -24,6 +24,10 @@ endfunction
 ""
 " @function Exception(...)
 " Generic exception.
+" >
+"   Exception(msg[,*args]) -> as if printf(msg, *args) but *args can be
+"   omitted.
+" <
 function! object#except#Exception(msg, ...)
   return object#except#BaseException('Exception', a:msg, a:000)
 endfunction
