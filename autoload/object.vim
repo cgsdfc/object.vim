@@ -427,3 +427,7 @@ endfunction
 function! object#oct(...) abort
   return call('object#int#oct', a:000)
 endfunction
+
+function! object#abs(...) abort
+  return call('object#int#abs', a:000)
+endfunction

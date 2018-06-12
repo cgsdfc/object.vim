@@ -412,7 +412,7 @@ Examples:
   :echo object#sum(range(1, 100))
   5050
 
-  :echo object#filter(['1', '2', ''], 'v:val')
+  :echo object#filter(['1', '2', ''])
   ['1', '2']
 
   :echo object#list('abc')
@@ -717,6 +717,40 @@ int(...)                                                    *object#int#int()*
     int(String, base=10) -> convert to Number as str2nr() does
 <
   Valid bases are 2, 8, 10, 16 as accepted by |str2nr()|.
+
+bin(...)                                                    *object#int#bin()*
+  Return |String| representation for |Number| in base 2.
+>
+    bin(3) -> '0b11'
+    bin(-3) -> '-0b11'
+<
+
+hex(...)                                                    *object#int#hex()*
+  Return |String| representation for |Number| in base 16.
+>
+    hex(11) -> '0xb'
+    hex(-11) -> '-0xb'
+<
+
+oct(...)                                                    *object#int#oct()*
+  Return |String| representation for |Number| in base 8.
+>
+    oct(8) -> '010'
+    oct(-8) -> '-010'
+<
+
+abs(...)                                                    *object#int#abs()*
+  Return the absolute value of an object.
+>
+    abs(Number or Float) -> abs(num)
+    abs(obj) -> obj.__abs__()
+<
+
+_int(...)                                                  *object#int#_int()*
+  Create an int object.
+
+int_(...)                                                  *object#int#int_()*
+  Return the int type.
 
 iter(...)                                                 *object#iter#iter()*
   Return an iterator from {obj}.
