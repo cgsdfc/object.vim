@@ -14,6 +14,7 @@
 
 " Note: We cannot use in global scope any of the functions from class.vim.
 
+" TODO mv to object#util#typename()
 " Get the typename of {obj}. If {obj} is a type,
 " 'type' will be returned always.
 function! object#types#name(obj)

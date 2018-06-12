@@ -71,17 +71,29 @@
 " <
 
 let s:int = object#class('int')
+" These silly zero-dividends work.
 let s:int.INT_MAX = 1/0
 let s:int.INT_MIN = 0/0
 let s:int.INT_WIDTH = 4 * len(printf('%x', s:int.INT_MAX))
 
+" Regex Explain:
+" Leading and trailing space are allowed.
+" There must be no space among the optional prefix, digits
+" and optional sign.
+" Empty string is not allowed. There must be at least one digit.
+" Python Difference:
+" Python allows space between sign and digits (possibly prefix).
+" However, |str2nr()| does not recognize such literals and turns
+" them to zero. Thus it is forbidden.
 let s:valid_literals = {
-      \ '2':  '\C\v^[+-]?(0[bB])?[01]+$',
-      \ '8':  '\C\v^[+-]?0?[0-7]+$',
-      \ '10': '\C\v^[+-]?\d+$',
-      \ '16': '\C\v^[+-]?(0[xX])?[0-9a-fA-F]+$',
+      \ '2':  '\C\v^\s*[+-]?(0[bB])?[01]+\s*$',
+      \ '8':  '\C\v^\s*[+-]?0?[0-7]+\s*$',
+      \ '10': '\C\v^\s*[+-]?\d+\s*$',
+      \ '16': '\C\v^\s*[+-]?(0[xX])?[0-9a-fA-F]+\s*$',
       \}
 
+" TODO: since %x %o is always available, these data is not needed.
+" delete them and optimize the convert_homebrew() for bin().
 let s:digits = {
       \ '2': '01',
       \ '8': '01234567',
@@ -139,7 +151,7 @@ function! object#int#int(...)
   endif
   if a:0 != 1
     throw object#TypeError('int() cannot convert %s with explicit base %d',
-          \ object#types#names(a:1), maktaba#ensure#IsNumber(a:2))
+          \ object#types#name(a:1), maktaba#ensure#IsNumber(a:2))
   endif
   if maktaba#value#IsNumeric(a:1)
     return float2nr(a:1)
@@ -147,10 +159,11 @@ function! object#int#int(...)
   if object#hasattr(a:1, '__int__')
     return maktaba#ensure#IsNumber(object#protocols#call(a:1.__int__))
   endif
-  throw object#TypeError('int() argument must be a string or a number, not %s',
-        \ object#types(a:1))
+  throw object#TypeError('int() argument must be a string or a numeric, not %s',
+        \ object#types#name(a:1))
 endfunction
 
+" Homebrew version.
 function! object#int#convert_homebrew(int, base)
   let int = maktaba#ensure#IsNumber(a:int)
   let sign = int < 0 ? '-' : ''

@@ -29,6 +29,9 @@ endfor
 
 Execute(String with base 10);
 let input = [
+      \ '  22',
+      \ '22  ',
+      \ '  22  ',
       \ '22',
       \ '+22',
       \ '-22',
@@ -41,6 +44,9 @@ endfor
 
 Execute(String with base 2);
 let input = [
+      \ ' 0b101',
+      \ '0b101 ',
+      \ '  0b101 ',
       \ '0b101',
       \ '0B101',
       \ '101',
@@ -71,6 +77,9 @@ endfor
 
 Execute(String with base 16);
 let input = [
+      \ '  0X123ABC',
+      \ '0X123ABC  ',
+      \ '  0X123ABC  ',
       \ '0X123ABC',
       \ '+0X123ABC',
       \ '-0X123ABC',
@@ -84,3 +93,49 @@ let input = [
 for x in input
   AssertEqual object#int(x, 16), str2nr(x, 16)
 endfor
+
+" Wrong base.
+Execute(Throws bad base);
+for bad_base in range(3, 5)
+  AssertThrows call object#int('1', g:bad_base)
+  Assert g:vader_exception =~# 'ValueError'
+endfor
+
+" Throws invalid literal
+" Regex Checks.
+Execute(letters in decimal);
+AssertThrows call object#int('12a')
+Assert g:vader_exception =~# 'ValueError'
+
+Execute(Bad placement of space);
+AssertThrows call object#int('- 12')
+Assert g:vader_exception =~# 'ValueError'
+
+AssertThrows call object#int(' - 0b10', 2)
+Assert g:vader_exception =~# 'ValueError'
+
+AssertThrows call object#int('- 0b 10', 2)
+Assert g:vader_exception =~# 'ValueError'
+
+Execute(A string without any digits fails);
+AssertThrows call object#int('')
+Assert g:vader_exception =~# 'ValueError'
+
+" Logical Error.
+Execute(Explicit base without String literal);
+AssertThrows call object#int(1.2, 2)
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+Execute(Find no way to convert);
+AssertThrows call object#int({})
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+Execute(Hook into __int__);
+let cls = {}
+function! cls.__int__()
+  return 1
+endfunction
+
+AssertEqual object#int(cls), 1
