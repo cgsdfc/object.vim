@@ -92,22 +92,6 @@ let s:valid_literals = {
       \ '16': '\C\v^\s*[+-]?(0[xX])?[0-9a-fA-F]+\s*$',
       \}
 
-" TODO: since %x %o is always available, these data is not needed.
-" delete them and optimize the convert_homebrew() for bin().
-let s:digits = {
-      \ '2': '01',
-      \ '8': '01234567',
-      \ '10': '0123456789',
-      \ '16': '0123456789abcdef',
-      \}
-
-let s:prefixes = {
-      \ '2': '0b',
-      \ '8': '0',
-      \ '10': '',
-      \ '16': '0x',
-      \}
-
 let s:specifiers = {
       \ '2': '%b',
       \ '8': '%o',
@@ -163,8 +147,8 @@ function! object#int#int(...)
         \ object#types#name(a:1))
 endfunction
 
-" Homebrew version.
-function! object#int#convert_homebrew(int, base)
+" Replacement when '%b' is missing.
+function! object#int#convert_binary(int)
   let int = maktaba#ensure#IsNumber(a:int)
   if int is# 0
     return '0b0'
@@ -172,11 +156,10 @@ function! object#int#convert_homebrew(int, base)
   let sign = int < 0 ? '-' : ''
   let digits = []
   while int != 0
-    call add(digits, s:digits[a:base][abs(int % a:base)])
-    let int = int / a:base
+    call add(digits, and(int, 1))
+    let int = int / 2
   endwhile
-  return printf('%s%s%s', sign, s:prefixes[a:base],
-        \ join(reverse(digits), ''))
+  return printf('%s0b%s', sign, join(reverse(digits), ''))
 endfunction
 
 function! object#int#convert_printf(int, base)
@@ -196,7 +179,7 @@ endfunction
 function! object#int#bin(int)
   return object#util#has_bin_specifier() ?
         \ object#int#convert_printf(a:int, 2):
-        \ object#int#convert_homebrew(a:int, 2)
+        \ object#int#convert_binary(a:int)
 endfunction
 
 ""
