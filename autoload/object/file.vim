@@ -230,7 +230,7 @@ endfunction
 " Note: If {str} becomes the first line of the file, a newline will be added
 " right after this line as if it is done with writeline().
 function! s:file.write(str)
-  call s:write_mode(self)
+  call object#file#write_mode(self)
   let str = maktaba#ensure#IsString(a:str)
   if !has_key(self, '_written')
     let self._written = [str]
@@ -243,7 +243,7 @@ endfunction
 " @dict file
 " Write a {line} to the file.
 function! s:file.writeline(line)
-  call s:write_mode(self)
+  call object#file#write_mode(self)
   let line = maktaba#ensure#IsString(a:line)
   if !has_key(self, '_written')
     let self._written = []
@@ -256,7 +256,7 @@ endfunction
 " Write a sequence of strings to the file.
 " @throws WrongType if {iter} returns non-string.
 function! s:file.writelines(iter)
-  call s:write_mode(self)
+  call object#file#write_mode(self)
   let iter = object#iter(a:iter)
   if !has_key(self, '_written')
     let self._written = []
@@ -284,8 +284,11 @@ function! s:file.flush()
   if self.mode !~# s:writable || !has_key(self, '_written')
     return
   endif
+  if !has_key(self, '_wflags')
+    let self._wflags = substitute(self.mode, '\C^.*(a)?.*(b)?.*$', '\1\2', '')
+  endif
   try
-    call writefile(self._written, self.name, s:write_flags(self))
+    call writefile(self._written, self.name, self._wflags)
   catch /E482/
     throw object#IOError('cannot create file %s', string(self.name))
   endtry
@@ -337,32 +340,24 @@ endfunction
 
 " a stands for append.
 " b stands for binary.
-function! s:write_flags(file)
-  if has_key(a:file, '_wflags')
-    return a:file._wflags
-  endif
-  let flags = join(map(['a', 'b'], 'stridx(a:file.mode, v:val)>0?v:val:""'), '')
-  let a:file._wflags = flags
-  return flags
+function! object#file#write_flags(mode)
+  " Note: substitute() works as if 'magic' is set.
+  return substitute(a:mode, '\C^.*(a)?.*(b)?.*$', '\1\2', '')
 endfunction
 
 " Extract flags to |readfile()| from mode string.
-function! s:read_flags(file)
-  if has_key(a:file, '_rflags')
-    return a:file._rflags
-  endif
-  let flags = stridx(a:file.mode, 'b')>0?'b':''
-  let a:file._rflags = flags
-  return flags
+function! object#file#read_flags(mode)
+  return substitute(a:mode, '\C^.*(b)?.*$', '\1', '')
 endfunction
 
 " Ensure that {file} is opened for reading and it is readable.
-function! s:read_mode(file)
+" TODO: test correct w/r flags
+function! object#file#read_mode(file)
   if a:file.closed
     throw object#IOError(s:closed_exception)
   endif
   if a:file.mode !~# s:readable
-    throw object#IOError('File not open for reading')
+    throw object#IOError('file not open for reading')
   endif
   if !filereadable(a:file.name)
     throw object#IOError('file not readable: %s', string(a:file.name))
@@ -370,12 +365,12 @@ function! s:read_mode(file)
 endfunction
 
 " Ensure that {file} is opened for writing and it is writable.
-function! s:write_mode(file)
+function! object#file#write_mode(file)
   if a:file.closed
     throw object#IOError(s:closed_exception)
   endif
   if a:file.mode !~# s:writable
-    throw object#IOError('File not open for writing')
+    throw object#IOError('file not open for writing')
   endif
   if !filewritable(a:file.name)
     throw object#IOError('file not writable: %s', string(a:file.name))
@@ -384,12 +379,15 @@ endfunction
 
 " Lazily read all the lines from {file}.
 function! s:lazy_readfile(file)
-  call s:read_mode(a:file)
+  call object#file#read_mode(a:file)
   if has_key(a:file, '_read')
     return
   endif
+  if !has_key(a:file, '_rflags')
+    let a:file._rflags = object#file#read_flags(a:file.mode)
+  endif
   try
-    let lines = readfile(a:file.name, s:read_flags(a:file))
+    let lines = readfile(a:file.name, a:file._rflags)
   catch /E484/
     throw object#IOError('cannot open file %s', string(a:file.name))
   catch /E485/

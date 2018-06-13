@@ -7,7 +7,7 @@
 
 Before;
 let write_family = ['write', 'writeline', 'writelines']
-let files = map(range(5), 'tempname()')
+let files = map(range(2), 'tempname()')
 call map(copy(files), 'writefile([], v:val)')
 
 
@@ -17,7 +17,7 @@ let f = object#open(t, 'w')
 
 call f.write('aaa')
 call f.close()
-AssertEqual ['aaa'], readfile(t)
+AssertEqual 'aaa', readfile(t)[0]
 
 
 Execute(write() concats to the current line of f);
@@ -45,6 +45,7 @@ for x in data
   call targets[1].writeline(x)
 endfor
 
+" Verify the results.
 call map(targets, 'v:val.close()')
 let results = map(copy(files), 'readfile(v:val)')
 AssertEqual results[0], results[1]
@@ -52,9 +53,9 @@ AssertEqual results[0], results[1]
 "
 " Throwing behaviours of write() and friends.
 "
-
 Execute(write()/writeline() throws WrongType for non-String);
 let f = object#open(files[0], 'w')
+
 for x in write_family[:1]
   AssertThrows call call(g:f[g:x], [1])
   Log g:vader_exception
@@ -90,6 +91,15 @@ call setfperm(t, 'r--------')
 
 for x in write_family
   AssertThrows call object#getattr(g:f, g:x)('aaa')
+  Assert g:vader_exception =~# 'IOError'
+endfor
+
+
+Execute(Throws IOError if write operations are not supported by the mode);
+let f = object#open(files[0])
+for x in write_family
+  AssertThrows call g:f[g:x]('')
+  Log g:vader_exception
   Assert g:vader_exception =~# 'IOError'
 endfor
 

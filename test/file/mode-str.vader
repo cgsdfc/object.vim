@@ -7,7 +7,7 @@ let [mode_pattern, readable, writable] = object#file#patterns()
 
 let bad_modes = [
       \ '+r', 'u', '@', ' r',
-      \ "U+",
+      \ "U+", ''
       \ ]
 
 let valid_modes = [

@@ -4,6 +4,7 @@ Before;
 function! UserDefinedError(...)
   return object#BaseException('UserDefinedError', a:000)
 endfunction
+
 let builtin_exceptions = [
       \ 'Exception',
       \ 'ValueError',
@@ -19,12 +20,14 @@ let builtin_exceptions = [
 Execute(No args);
 Assert UserDefinedError() =~# 'UserDefinedError:'
 
+
 Execute(One single msg);
 Assert UserDefinedError('message') =~# 'UserDefinedError: message'
 
 Execute(printf-style args);
 let err = UserDefinedError('number %d, string %s, char %c', 4, 'a', 44)
 Assert err =~# '^UserDefinedError:.*4.*a.*,'
+
 
 Execute(Create exceptions that takes no arguments);
 function! TakeNoArgs()
@@ -39,6 +42,7 @@ for x in builtin_exceptions
   let code = printf('object#%s()', x)
   Assert eval(code) =~# printf('%s:', x)
 endfor
+
 
 " Sanity checks.
 Execute(Throws WrongType if args[0] is not String);
@@ -61,8 +65,10 @@ for x in input
   Assert g:vader_exception =~# 'ValueError'
 endfor
 
+
 Execute(StopIteration() is simply itself);
 AssertEqual object#StopIteration(), 'StopIteration:'
+
 
 Execute(not_avail() throws TypeError);
 AssertThrows throw object#except#not_avail('len', 1)

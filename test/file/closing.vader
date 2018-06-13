@@ -2,20 +2,22 @@
 " Test the behaviors after a file is closed.
 
 Before;
-let files = map(range(5), 'tempname()')
-call map(copy(files), 'writefile([], v:val)')
+let file = tempname()
+call writefile([], file)
 let file_ = object#file_()
 let closed_exception = 'IOError.*closed'
+let content = 'Test Content'
+
 
 Execute (After closed, repr displays 'closed file');
-let f=object#open(files[0], 'r')
+let f=object#open(file, 'r')
 call f.close()
 Assert object#repr(f) =~# 'closed'
 
 
 Execute (After closed, read operation fails);
-let readers = ['read', 'readline', 'readlines', '__iter__']
-let f=object#open(files[0], 'r')
+let readers = ['read', 'readline', 'readlines', '__iter__', 'readable']
+let f=object#open(file, 'r')
 call f.close()
 
 for method in readers
@@ -27,7 +29,7 @@ endfor
 
 Execute (After closed, write operation fails);
 let writers = ['write', 'writeline', 'writelines']
-let f=object#open(files[0], 'w')
+let f=object#open(file, 'w')
 call f.write('Test')
 call f.close()
 
@@ -37,26 +39,36 @@ for method in writers
   Assert g:vader_exception =~# closed_exception
 endfor
 
-AssertThrows call g:f.flush()
-Assert g:vader_exception =~# closed_exception
+for method in ['flush', 'writable']
+  AssertThrows call g:f[g:method]()
+  Assert g:vader_exception =~# closed_exception
+endfor
 
 
 Execute(After closed, contents are written to file);
-let f=object#open(files[0], 'w')
-let content = 'Test Content'
+let f=object#open(file, 'w')
+
 call f.writeline(content)
 call f.close()
 AssertEqual readfile(f.name)[0], content
 
 
 Execute(Throws IOError when flush fails);
-let f=object#open(files[0], 'w')
-let content = 'Test Content'
+let f=object#open(file, 'w')
 call f.writeline(content)
 call setfperm(f.name, 'r--------')
+
 AssertThrows call g:f.close()
 Log g:vader_exception
 Assert g:vader_exception =~# 'IOError'
 
+
+Execute(If close() or flush() is omitted, the file stays unmodified);
+call writefile([content], file)
+let f = object#open(file, 'w')
+call f.write('This string is supposed to appear')
+" f.close()
+AssertEqual readfile(file)[0], content
+
 After;
-call map(files, 'delete(v:val)')
+call delete(file)
