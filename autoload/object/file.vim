@@ -104,6 +104,7 @@ let s:writable = '\v\C([aw]|r.*\+)'
 " The pattern for readable mode is a mode_pattern that contains 'r', w+ or a+.
 let s:readable = '\v\C(r|[aw].*\+)'
 
+let s:closed_exception = 'I/O operation on closed file'
 ""
 " @dict file
 " A file object for line-oriented I/O.
@@ -277,7 +278,7 @@ endfunction
 " @throws IOError if |writefile()| fails.
 function! s:file.flush()
   if self.closed
-    throw object#IOError('I/O operation on cloesd file')
+    throw object#IOError(s:closed_exception)
   endif
   " Note: Testing ``self.mode ~=# s:readable`` is not ok here. Think about 'rw'.
   if self.mode !~# s:writable || !has_key(self, '_written')
@@ -318,7 +319,7 @@ function! s:file.readable()
   if !self.closed
     return 1
   endif
-  throw object#IOError('I/O operation on cloesd file')
+  throw object#IOError(s:closed_exception)
 endfunction
 
 ""
@@ -331,7 +332,7 @@ function! s:file.writable()
   if !self.closed
     return 1
   endif
-  throw object#IOError('I/O operation on cloesd file')
+  throw object#IOError(s:closed_exception)
 endfunction
 
 " a stands for append.
@@ -358,7 +359,7 @@ endfunction
 " Ensure that {file} is opened for reading and it is readable.
 function! s:read_mode(file)
   if a:file.closed
-    throw object#IOError('I/O operation on cloesd file')
+    throw object#IOError(s:closed_exception)
   endif
   if a:file.mode !~# s:readable
     throw object#IOError('File not open for reading')
@@ -371,7 +372,7 @@ endfunction
 " Ensure that {file} is opened for writing and it is writable.
 function! s:write_mode(file)
   if a:file.closed
-    throw object#IOError('I/O operation on cloesd file')
+    throw object#IOError(s:closed_exception)
   endif
   if a:file.mode !~# s:writable
     throw object#IOError('File not open for writing')

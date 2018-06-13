@@ -1,33 +1,61 @@
 " vim: ft=vim
+" Test the behaviors after a file is closed.
+
 Before;
 let files = map(range(5), 'tempname()')
 call map(copy(files), 'writefile([], v:val)')
 let file_ = object#file_()
+let closed_exception = 'IOError.*closed'
 
 Execute (After closed, repr displays 'closed file');
 let f=object#open(files[0], 'r')
 call f.close()
 Assert object#repr(f) =~# 'closed'
 
-Execute (After closed, all file operation fails except close());
+
+Execute (After closed, read operation fails);
+let readers = ['read', 'readline', 'readlines', '__iter__']
 let f=object#open(files[0], 'r')
 call f.close()
-let readers = ['read', 'readline', 'readlines', '__iter__']
-let writers = ['write', 'writeline', 'writelines']
 
 for method in readers
   AssertThrows call g:f[g:method]()
   Log g:vader_exception
-  Assert g:vader_exception =~# 'IOError'
+  Assert g:vader_exception =~# closed_exception
 endfor
+
+
+Execute (After closed, write operation fails);
+let writers = ['write', 'writeline', 'writelines']
+let f=object#open(files[0], 'w')
+call f.write('Test')
+call f.close()
 
 for method in writers
   AssertThrows call g:f[g:method]('')
   Log g:vader_exception
-  Assert g:vader_exception =~# 'IOError'
+  Assert g:vader_exception =~# closed_exception
 endfor
 
 AssertThrows call g:f.flush()
+Assert g:vader_exception =~# closed_exception
+
+
+Execute(After closed, contents are written to file);
+let f=object#open(files[0], 'w')
+let content = 'Test Content'
+call f.writeline(content)
+call f.close()
+AssertEqual readfile(f.name)[0], content
+
+
+Execute(Throws IOError when flush fails);
+let f=object#open(files[0], 'w')
+let content = 'Test Content'
+call f.writeline(content)
+call setfperm(f.name, 'r--------')
+AssertThrows call g:f.close()
+Log g:vader_exception
 Assert g:vader_exception =~# 'IOError'
 
 After;
