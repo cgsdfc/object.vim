@@ -3,7 +3,7 @@
 "
 
 Before;
-let [mode_pattern, readable, writable, _ ] = object#file#patterns()
+let [mode_pattern, readable, writable] = object#file#patterns()
 
 let bad_modes = [
       \ '+r', 'u', '@', ' r',

@@ -426,13 +426,67 @@ Limitations:
 ==============================================================================
 FILE                                                         *object.vim-file*
 
-A simple interface to the |readfile()| and |writefile()| functions.
-
-Features:
+A simple interface to the |readfile()| and |writefile()| functions. Features:
   * Lazy reading and writing.
   * Line-oriented I/O.
   * Handle errors with IOError.
   * Mode string syntax like 'a', 'w' or '+', 'b'.
+
+Reference:
+
+file.read()                                                      *file.read()*
+Read the the whole of the file, return it as a string. Lines are joint with
+a NL character.
+
+file.readline()                                              *file.readline()*
+Return the next line from the file. Return an empty string at EOF.
+
+  Note: Newlines are stripped.
+
+file.readlines()                                            *file.readlines()*
+Return a list of strings, each a line from the file.
+
+  Note: Newlines are stripped.
+
+file.write({str})                                               *file.write()*
+Write a {str} to the file. {str} is appended to the last line of file.
+
+  Note: If {str} becomes the first line of the file, a newline will be added
+right after this line as if it is done with writeline().
+
+file.writeline({line})                                      *file.writeline()*
+Write a {line} to the file.
+
+file.writelines({iter})                                    *file.writelines()*
+Write a sequence of strings to the file.   Throws ERROR(WrongType) if {iter}
+returns non-string.
+
+file.flush()                                                    *file.flush()*
+Flush the written data.   Throws ERROR(IOError) if |writefile()| fails.
+
+file.close()                                                    *file.close()*
+Close the file and flush it. After that any file operation will fail.
+Calling close() multiple times does not causes errors.
+
+file.readable()                                              *file.readable()*
+Return whether the file is opened for reading.
+
+file.writable()                                              *file.writable()*
+Return whether the file is opened for writing.
+
+file.__bool__()                                              *file.__bool__()*
+__bool__(file) <==> file is not closed.
+
+file.__iter__()                                              *file.__iter__()*
+__iter__(file) <==> each line of file.
+
+file.__init__({name}, {mode})                                *file.__init__()*
+Initialize a file object with {name} and {mode}.   Throws ERROR(WrongType) if
+{mode} is not a String.   Throws ERROR(ValueError) is {mode} string is
+invalid.   Throws ERROR(IOError) if the file is not readable or writable.
+
+file.__repr__()                                              *file.__repr__()*
+__repr__(file) <==> repr(file)
 
 Limitations:
   * The file is always buffered.
@@ -601,62 +655,6 @@ DICTIONARIES                                                *object.vim-dicts*
 
                                                              *object.vim.file*
 A file object for line-oriented I/O.
-
-file.read()                                                      *file.read()*
-  Read the the whole of the file, return it as a string. Lines are joint with
-  a NL character.
-
-file.readline()                                              *file.readline()*
-  Return the next line from the file. Return an empty string at EOF.
-
-  Note: Newlines are stripped.
-
-file.readlines()                                            *file.readlines()*
-  Return a list of strings, each a line from the file.
-
-  Note: Newlines are stripped.
-
-file.write({str})                                               *file.write()*
-  Write a {str} to the file. {str} is appended to the last line of file.
-
-  Note: If {str} becomes the first line of the file, a newline will be added
-  right after this line as if it is done with writeline().
-
-file.writeline({line})                                      *file.writeline()*
-  Write a {line} to the file.
-
-file.writelines({iter})                                    *file.writelines()*
-  Write a sequence of strings to the file.
-  Throws ERROR(WrongType) if {iter} returns non-string.
-
-file.flush()                                                    *file.flush()*
-  Flush the written data.
-  Throws ERROR(IOError) if |writefile()| fails.
-
-file.close()                                                    *file.close()*
-  Close the file and flush it. After that any file operation will fail.
-  Calling close() multiple times does not causes errors.
-
-file.readable()                                              *file.readable()*
-  Return whether the file is opened for reading.
-
-file.writable()                                              *file.writable()*
-  Return whether the file is opened for writing.
-
-file.__bool__()                                              *file.__bool__()*
-  __bool__(file) <==> file is not closed.
-
-file.__iter__()                                              *file.__iter__()*
-  __iter__(file) <==> each line of file.
-
-file.__init__({name}, {mode})                                *file.__init__()*
-  Initialize a file object with {name} and {mode}.
-  Throws ERROR(WrongType) if {mode} is not a String.
-  Throws ERROR(ValueError) is {mode} string is invalid.
-  Throws ERROR(IOError) if the file is not readable or writable.
-
-file.__repr__()                                              *file.__repr__()*
-  __repr__(file) <==> repr(file)
 
                                                              *object.vim.list*
 A wrapper class of built-in |List|.

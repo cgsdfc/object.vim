@@ -1,12 +1,67 @@
 ""
 " @section File, file
 " A simple interface to the |readfile()| and |writefile()| functions.
-"
 " Features:
 "   * Lazy reading and writing.
 "   * Line-oriented I/O.
 "   * Handle errors with IOError.
 "   * Mode string syntax like 'a', 'w' or '+', 'b'.
+"
+" file.read()                                                      *file.read()*
+"   Read the the whole of the file, return it as a string. Lines are joint with
+"   a NL character.
+"
+" file.readline()                                              *file.readline()*
+"   Return the next line from the file. Return an empty string at EOF.
+"
+"   Note: Newlines are stripped.
+"
+" file.readlines()                                            *file.readlines()*
+"   Return a list of strings, each a line from the file.
+"
+"   Note: Newlines are stripped.
+"
+" file.write({str})                                               *file.write()*
+"   Write a {str} to the file. {str} is appended to the last line of file.
+"
+"   Note: If {str} becomes the first line of the file, a newline will be added
+"   right after this line as if it is done with writeline().
+"
+" file.writeline({line})                                      *file.writeline()*
+"   Write a {line} to the file.
+"
+" file.writelines({iter})                                    *file.writelines()*
+"   Write a sequence of strings to the file.
+"   Throws ERROR(WrongType) if {iter} returns non-string.
+"
+" file.flush()                                                    *file.flush()*
+"   Flush the written data.
+"   Throws ERROR(IOError) if |writefile()| fails.
+"
+" file.close()                                                    *file.close()*
+"   Close the file and flush it. After that any file operation will fail.
+"   Calling close() multiple times does not causes errors.
+"
+" file.readable()                                              *file.readable()*
+"   Return whether the file is opened for reading.
+"
+" file.writable()                                              *file.writable()*
+"   Return whether the file is opened for writing.
+"
+" file.__bool__()                                              *file.__bool__()*
+"   __bool__(file) <==> file is not closed.
+"
+" file.__iter__()                                              *file.__iter__()*
+"   __iter__(file) <==> each line of file.
+"
+" file.__init__({name}, {mode})                                *file.__init__()*
+"   Initialize a file object with {name} and {mode}.
+"   Throws ERROR(WrongType) if {mode} is not a String.
+"   Throws ERROR(ValueError) is {mode} string is invalid.
+"   Throws ERROR(IOError) if the file is not readable or writable.
+"
+" file.__repr__()                                              *file.__repr__()*
+"   __repr__(file) <==> repr(file)
 "
 " Limitations:
 "   * The file is always buffered.
@@ -39,12 +94,6 @@
 " <
 " This is rooted at the nature of |readfile()| and |writefile()|.
 
-""
-" @dict file
-" A file object for line-oriented I/O.
-
-let s:private_attrs = '\v\C(_read|_written)'
-
 " The pattern of a mode string is beginning with 'r', 'a' or 'w' and followed
 " by zero or more arbitrary characters.
 let s:mode_pattern = '\v\C^[raw].*$'
@@ -55,23 +104,11 @@ let s:writable = '\v\C([aw]|r.*\+)'
 " The pattern for readable mode is a mode_pattern that contains 'r', w+ or a+.
 let s:readable = '\v\C(r|[aw].*\+)'
 
-" We need document for each method.
-let s:file = object#type('file', [], {
-      \ '__init__': function('object#file#__init__'),
-      \ '__repr__': function('object#file#__repr__'),
-      \ '__bool__': function('object#file#__bool__'),
-      \ '__iter__': function('object#file#__iter__'),
-      \ 'read': function('object#file#read'),
-      \ 'readline': function('object#file#readline'),
-      \ 'readlines': function('object#file#readlines'),
-      \ 'write': function('object#file#write'),
-      \ 'writeline': function('object#file#writeline'),
-      \ 'writelines': function('object#file#writelines'),
-      \ 'flush': function('object#file#flush'),
-      \ 'close': function('object#file#close'),
-      \ 'readable': function('object#file#readable'),
-      \ 'writable': function('object#file#writable'),
-      \})
+""
+" @dict file
+" A file object for line-oriented I/O.
+
+let s:file = object#class('file')
 
 ""
 " @function open(...)
@@ -87,177 +124,9 @@ let s:file = object#type('file', [], {
 " Add a 'b' to the [mode] for binary files. See |readfile()| and |writefile()|.
 " Add a '+' to the [mode] to allow simultaneous reading and writing.
 function! object#file#open(name, ...)
-  let argc = object#util#ensure_argc(1, a:0)
-  let mode = argc > 0 ? a:1 : 'r'
+  call object#util#ensure_argc(1, a:0)
+  let mode = a:0 ? a:1 : 'r'
   return object#new(s:file, a:name, mode)
-endfunction
-
-""
-" @dict file
-" Read the the whole of the file, return it as a string.
-" Lines are joint with a NL character.
-function! object#file#read() dict
-  return join(self.readlines(), "\n")
-endfunction
-
-""
-" @dict file
-" Return the next line from the file.
-" Return an empty string at EOF.
-"
-" Note: Newlines are stripped.
-function! object#file#readline() dict
-  call s:lazy_readfile(self)
-  try
-    return object#next(self._read)
-  catch /StopIteration/
-    return ''
-  endtry
-endfunction
-
-""
-" @dict file
-" Return a list of strings, each a line from the file.
-"
-" Note: Newlines are stripped.
-function! object#file#readlines() dict
-  call s:lazy_readfile(self)
-  return object#list(self._read)
-endfunction
-
-""
-" @dict file
-" Write a {str} to the file.
-" {str} is appended to the last line of file.
-"
-" Note: If {str} becomes the first line of the file, a newline will be added
-" right after this line as if it is done with writeline().
-function! object#file#write(str) dict
-  call s:write_mode(self)
-  let str = maktaba#ensure#IsString(a:str)
-  if !has_key(self, '_written')
-    let self._written = [str]
-    return
-  endif
-  let self._written[-1] .= str
-endfunction
-
-""
-" @dict file
-" Write a {line} to the file.
-function! object#file#writeline(line) dict
-  call s:write_mode(self)
-  let line = maktaba#ensure#IsString(a:line)
-  if !has_key(self, '_written')
-    let self._written = []
-  endif
-  call add(self._written, line)
-endfunction
-
-""
-" @dict file
-" Write a sequence of strings to the file.
-" @throws WrongType if {iter} returns non-string.
-function! object#file#writelines(iter) dict
-  call s:write_mode(self)
-  let iter = object#iter(a:iter)
-  if !has_key(self, '_written')
-    let self._written = []
-  endif
-  " It will be too slow if we first consume the iter and then
-  " check for IsString.
-  try
-    while 1
-      call add(self._written, maktaba#ensure#IsString(object#next(iter)))
-    endwhile
-  catch /StopIteration/
-    return
-  endtry
-endfunction
-
-""
-" @dict file
-" Flush the written data.
-" @throws IOError if |writefile()| fails.
-function! object#file#flush() dict
-  if self.closed
-    throw object#IOError('I/O operation on cloesd file')
-  endif
-  " Note: Testing ``self.mode ~=# s:readable`` is not ok here. Think about 'rw'.
-  if self.mode !~# s:writable || !has_key(self, '_written')
-    return
-  endif
-  try
-    call writefile(self._written, self.name, s:write_flags(self))
-  catch /E482/
-    throw object#IOError('cannot create file %s', string(self.name))
-  endtry
-endfunction
-
-""
-" @dict file
-" Close the file and flush it. After that any file operation will fail.
-" Calling close() multiple times does not causes errors.
-function! object#file#close() dict
-  if self.closed
-    return
-  endif
-  call self.flush()
-  if has_key(self, '_read')
-    unlet self._read
-  endif
-  if has_key(self, '_written')
-    unlet self._written
-  endif
-  let self.closed = 1
-endfunction
-
-""
-" @dict file
-" Return whether the file is opened for reading.
-function! object#file#readable() dict
-  if self.mode !~# s:readable
-    return 0
-  endif
-  if !self.closed
-    return 1
-  endif
-  throw object#IOError('I/O operation on cloesd file')
-endfunction
-
-""
-" @dict file
-" Return whether the file is opened for writing.
-function! object#file#writable() dict
-  if self.mode !~# s:writable
-    return 0
-  endif
-  if !self.closed
-    return 1
-  endif
-  throw object#IOError('I/O operation on cloesd file')
-endfunction
-
-""
-" Return the file class object.
-
-function! object#file#file_()
-  return s:file
-endfunction
-
-""
-" @dict file
-" __bool__(file) <==> file is not closed.
-function! object#file#__bool__() dict
-  return !self.closed
-endfunction
-
-""
-" @dict file
-" __iter__(file) <==> each line of file.
-function! object#file#__iter__() dict
-  call s:lazy_readfile(self)
-  return self._read
 endfunction
 
 ""
@@ -266,7 +135,7 @@ endfunction
 " @throws WrongType if {mode} is not a String.
 " @throws ValueError is {mode} string is invalid.
 " @throws IOError if the file is not readable or writable.
-function! object#file#__init__(name, mode) dict
+function! s:file.__init__(name, mode)
   let name = maktaba#ensure#IsString(a:name)
   let mode = maktaba#ensure#IsString(a:mode)
   if empty(mode)
@@ -291,14 +160,180 @@ function! object#file#__init__(name, mode) dict
 endfunction
 
 ""
+" Return the file class object.
+function! object#file#file_()
+  return s:file
+endfunction
+
+""
+" @dict file
+" __bool__(file) <==> file is not closed.
+function! s:file.__bool__()
+  return !self.closed
+endfunction
+
+""
+" @dict file
+" __iter__(file) <==> each line of file.
+function! s:file.__iter__()
+  call s:lazy_readfile(self)
+  return self._read
+endfunction
+
+""
 " @dict file
 " __repr__(file) <==> repr(file)
-function! object#file#__repr__() dict
+function! s:file.__repr__()
   return printf('<%s file %s, mode %s>', self.closed ? 'closed' : 'open',
         \ string(self.name), string(self.mode))
 endfunction
 
+""
+" @dict file
+" Read the the whole of the file, return it as a string.
+" Lines are joint with a NL character.
+function! s:file.read()
+  return join(self.readlines(), "\n")
+endfunction
+
+""
+" @dict file
+" Return the next line from the file.
+" Return an empty string at EOF.
 "
+" Note: Newlines are stripped.
+function! s:file.readline()
+  call s:lazy_readfile(self)
+  try
+    return object#next(self._read)
+  catch /StopIteration/
+    return ''
+  endtry
+endfunction
+
+""
+" @dict file
+" Return a list of strings, each a line from the file.
+"
+" Note: Newlines are stripped.
+function! s:file.readlines()
+  call s:lazy_readfile(self)
+  return object#list(self._read)
+endfunction
+
+""
+" @dict file
+" Write a {str} to the file.
+" {str} is appended to the last line of file.
+"
+" Note: If {str} becomes the first line of the file, a newline will be added
+" right after this line as if it is done with writeline().
+function! s:file.write(str)
+  call s:write_mode(self)
+  let str = maktaba#ensure#IsString(a:str)
+  if !has_key(self, '_written')
+    let self._written = [str]
+    return
+  endif
+  let self._written[-1] .= str
+endfunction
+
+""
+" @dict file
+" Write a {line} to the file.
+function! s:file.writeline(line)
+  call s:write_mode(self)
+  let line = maktaba#ensure#IsString(a:line)
+  if !has_key(self, '_written')
+    let self._written = []
+  endif
+  call add(self._written, line)
+endfunction
+
+""
+" @dict file
+" Write a sequence of strings to the file.
+" @throws WrongType if {iter} returns non-string.
+function! s:file.writelines(iter)
+  call s:write_mode(self)
+  let iter = object#iter(a:iter)
+  if !has_key(self, '_written')
+    let self._written = []
+  endif
+  " It will be too slow if we first consume the iter and then
+  " check for IsString.
+  try
+    while 1
+      call add(self._written, maktaba#ensure#IsString(object#next(iter)))
+    endwhile
+  catch /StopIteration/
+    return
+  endtry
+endfunction
+
+""
+" @dict file
+" Flush the written data.
+" @throws IOError if |writefile()| fails.
+function! s:file.flush()
+  if self.closed
+    throw object#IOError('I/O operation on cloesd file')
+  endif
+  " Note: Testing ``self.mode ~=# s:readable`` is not ok here. Think about 'rw'.
+  if self.mode !~# s:writable || !has_key(self, '_written')
+    return
+  endif
+  try
+    call writefile(self._written, self.name, s:write_flags(self))
+  catch /E482/
+    throw object#IOError('cannot create file %s', string(self.name))
+  endtry
+endfunction
+
+""
+" @dict file
+" Close the file and flush it. After that any file operation will fail.
+" Calling close() multiple times does not causes errors.
+function! s:file.close()
+  if self.closed
+    return
+  endif
+  call self.flush()
+  if has_key(self, '_read')
+    unlet self._read
+  endif
+  if has_key(self, '_written')
+    unlet self._written
+  endif
+  let self.closed = 1
+endfunction
+
+""
+" @dict file
+" Return whether the file is opened for reading.
+function! s:file.readable()
+  if self.mode !~# s:readable
+    return 0
+  endif
+  if !self.closed
+    return 1
+  endif
+  throw object#IOError('I/O operation on cloesd file')
+endfunction
+
+""
+" @dict file
+" Return whether the file is opened for writing.
+function! s:file.writable()
+  if self.mode !~# s:writable
+    return 0
+  endif
+  if !self.closed
+    return 1
+  endif
+  throw object#IOError('I/O operation on cloesd file')
+endfunction
+
 " a stands for append.
 " b stands for binary.
 function! s:write_flags(file)
@@ -310,7 +345,6 @@ function! s:write_flags(file)
   return flags
 endfunction
 
-"
 " Extract flags to |readfile()| from mode string.
 function! s:read_flags(file)
   if has_key(a:file, '_rflags')
@@ -321,7 +355,6 @@ function! s:read_flags(file)
   return flags
 endfunction
 
-"
 " Ensure that {file} is opened for reading and it is readable.
 function! s:read_mode(file)
   if a:file.closed
@@ -335,7 +368,6 @@ function! s:read_mode(file)
   endif
 endfunction
 
-"
 " Ensure that {file} is opened for writing and it is writable.
 function! s:write_mode(file)
   if a:file.closed
@@ -349,8 +381,6 @@ function! s:write_mode(file)
   endif
 endfunction
 
-
-"
 " Lazily read all the lines from {file}.
 function! s:lazy_readfile(file)
   call s:read_mode(a:file)
@@ -367,19 +397,8 @@ function! s:lazy_readfile(file)
   let a:file._read = object#iter(lines)
 endfunction
 
-"
-" Ensure that {file} is not closed.
-" @throws IOError if it is closed.
-function! s:ensure_opened(file)
-  if !a:file.closed
-    return
-  endif
-  throw object#IOError('I/O operation on cloesd file')
-endfunction
-
-"
 " Return patterns for valid mode string, readable and writable mode string.
 " Append counts as writable.
 function! object#file#patterns()
-  return [s:mode_pattern, s:readable, s:writable, s:private_attrs]
+  return [s:mode_pattern, s:readable, s:writable]
 endfunction
