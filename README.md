@@ -133,7 +133,7 @@ and as such it can be installed with a variety of plugin managers:
 
 * [vim-maktaba][1] for handling built-in type.
 * [vader.vim][2] for unit tests.
-* [vimdoc.vim][3] for generating the help file from comments.
+* [vimdoc][3] for generating the help file from comments.
 
 # Documentation
 
