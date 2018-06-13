@@ -7,62 +7,6 @@
 "   * Handle errors with IOError.
 "   * Mode string syntax like 'a', 'w' or '+', 'b'.
 "
-" file.read()                                                      *file.read()*
-"   Read the the whole of the file, return it as a string. Lines are joint with
-"   a NL character.
-"
-" file.readline()                                              *file.readline()*
-"   Return the next line from the file. Return an empty string at EOF.
-"
-"   Note: Newlines are stripped.
-"
-" file.readlines()                                            *file.readlines()*
-"   Return a list of strings, each a line from the file.
-"
-"   Note: Newlines are stripped.
-"
-" file.write({str})                                               *file.write()*
-"   Write a {str} to the file. {str} is appended to the last line of file.
-"
-"   Note: If {str} becomes the first line of the file, a newline will be added
-"   right after this line as if it is done with writeline().
-"
-" file.writeline({line})                                      *file.writeline()*
-"   Write a {line} to the file.
-"
-" file.writelines({iter})                                    *file.writelines()*
-"   Write a sequence of strings to the file.
-"   Throws ERROR(WrongType) if {iter} returns non-string.
-"
-" file.flush()                                                    *file.flush()*
-"   Flush the written data.
-"   Throws ERROR(IOError) if |writefile()| fails.
-"
-" file.close()                                                    *file.close()*
-"   Close the file and flush it. After that any file operation will fail.
-"   Calling close() multiple times does not causes errors.
-"
-" file.readable()                                              *file.readable()*
-"   Return whether the file is opened for reading.
-"
-" file.writable()                                              *file.writable()*
-"   Return whether the file is opened for writing.
-"
-" file.__bool__()                                              *file.__bool__()*
-"   __bool__(file) <==> file is not closed.
-"
-" file.__iter__()                                              *file.__iter__()*
-"   __iter__(file) <==> each line of file.
-"
-" file.__init__({name}, {mode})                                *file.__init__()*
-"   Initialize a file object with {name} and {mode}.
-"   Throws ERROR(WrongType) if {mode} is not a String.
-"   Throws ERROR(ValueError) is {mode} string is invalid.
-"   Throws ERROR(IOError) if the file is not readable or writable.
-"
-" file.__repr__()                                              *file.__repr__()*
-"   __repr__(file) <==> repr(file)
-"
 " Limitations:
 "   * The file is always buffered.
 "   * The content of the file object is not synchronized with external changes to the
@@ -178,7 +122,7 @@ endfunction
 " __iter__(file) <==> each line of file.
 function! s:file.__iter__()
   call s:lazy_readfile(self)
-  return self._read
+  return self._rbuf
 endfunction
 
 ""
@@ -206,7 +150,7 @@ endfunction
 function! s:file.readline()
   call s:lazy_readfile(self)
   try
-    return object#next(self._read)
+    return object#next(self._rbuf)
   catch /StopIteration/
     return ''
   endtry
@@ -219,7 +163,7 @@ endfunction
 " Note: Newlines are stripped.
 function! s:file.readlines()
   call s:lazy_readfile(self)
-  return object#list(self._read)
+  return object#list(self._rbuf)
 endfunction
 
 ""
@@ -232,11 +176,11 @@ endfunction
 function! s:file.write(str)
   call object#file#write_mode(self)
   let str = maktaba#ensure#IsString(a:str)
-  if !has_key(self, '_written')
-    let self._written = [str]
+  if !has_key(self, '_wbuf')
+    let self._wbuf = [str]
     return
   endif
-  let self._written[-1] .= str
+  let self._wbuf[-1] .= str
 endfunction
 
 ""
@@ -245,10 +189,10 @@ endfunction
 function! s:file.writeline(line)
   call object#file#write_mode(self)
   let line = maktaba#ensure#IsString(a:line)
-  if !has_key(self, '_written')
-    let self._written = []
+  if !has_key(self, '_wbuf')
+    let self._wbuf = []
   endif
-  call add(self._written, line)
+  call add(self._wbuf, line)
 endfunction
 
 ""
@@ -258,14 +202,14 @@ endfunction
 function! s:file.writelines(iter)
   call object#file#write_mode(self)
   let iter = object#iter(a:iter)
-  if !has_key(self, '_written')
-    let self._written = []
+  if !has_key(self, '_wbuf')
+    let self._wbuf = []
   endif
   " It will be too slow if we first consume the iter and then
   " check for IsString.
   try
     while 1
-      call add(self._written, maktaba#ensure#IsString(object#next(iter)))
+      call add(self._wbuf, maktaba#ensure#IsString(object#next(iter)))
     endwhile
   catch /StopIteration/
     return
@@ -281,14 +225,14 @@ function! s:file.flush()
     throw object#IOError(s:closed_exception)
   endif
   " Note: Testing ``self.mode ~=# s:readable`` is not ok here. Think about 'rw'.
-  if self.mode !~# s:writable || !has_key(self, '_written')
+  if self.mode !~# s:writable || !has_key(self, '_wbuf')
     return
   endif
   if !has_key(self, '_wflags')
     let self._wflags = substitute(self.mode, '\C^.*(a)?.*(b)?.*$', '\1\2', '')
   endif
   try
-    call writefile(self._written, self.name, self._wflags)
+    call writefile(self._wbuf, self.name, self._wflags)
   catch /E482/
     throw object#IOError('cannot create file %s', string(self.name))
   endtry
@@ -303,11 +247,11 @@ function! s:file.close()
     return
   endif
   call self.flush()
-  if has_key(self, '_read')
-    unlet self._read
+  if has_key(self, '_rbuf')
+    unlet self._rbuf
   endif
-  if has_key(self, '_written')
-    unlet self._written
+  if has_key(self, '_wbuf')
+    unlet self._wbuf
   endif
   let self.closed = 1
 endfunction
@@ -380,7 +324,7 @@ endfunction
 " Lazily read all the lines from {file}.
 function! s:lazy_readfile(file)
   call object#file#read_mode(a:file)
-  if has_key(a:file, '_read')
+  if has_key(a:file, '_rbuf')
     return
   endif
   if !has_key(a:file, '_rflags')
@@ -393,7 +337,7 @@ function! s:lazy_readfile(file)
   catch /E485/
     throw object#IOError('cannot read file %s', string(a:file.name))
   endtry
-  let a:file._read = object#iter(lines)
+  let a:file._rbuf = object#iter(lines)
 endfunction
 
 " Return patterns for valid mode string, readable and writable mode string.

@@ -1,5 +1,6 @@
 " vim:ft=vim
-" Test the patterns for matching mode strings.
+" Test the patterns for matching mode strings
+" and extracting flags from them.
 "
 
 Before;
