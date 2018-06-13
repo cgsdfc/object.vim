@@ -121,7 +121,7 @@ endfunction
 " @dict file
 " __iter__(file) <==> each line of file.
 function! s:file.__iter__()
-  call s:lazy_readfile(self)
+  call self._lazy_readfile()
   return self._rbuf
 endfunction
 
@@ -148,7 +148,7 @@ endfunction
 "
 " Note: Newlines are stripped.
 function! s:file.readline()
-  call s:lazy_readfile(self)
+  call self._lazy_readfile()
   try
     return object#next(self._rbuf)
   catch /StopIteration/
@@ -162,7 +162,7 @@ endfunction
 "
 " Note: Newlines are stripped.
 function! s:file.readlines()
-  call s:lazy_readfile(self)
+  call self._lazy_readfile()
   return object#list(self._rbuf)
 endfunction
 
@@ -174,7 +174,7 @@ endfunction
 " Note: If {str} becomes the first line of the file, a newline will be added
 " right after this line as if it is done with writeline().
 function! s:file.write(str)
-  call object#file#write_mode(self)
+  call self._write_mode()
   let str = maktaba#ensure#IsString(a:str)
   if !has_key(self, '_wbuf')
     let self._wbuf = [str]
@@ -187,7 +187,7 @@ endfunction
 " @dict file
 " Write a {line} to the file.
 function! s:file.writeline(line)
-  call object#file#write_mode(self)
+  call self._write_mode()
   let line = maktaba#ensure#IsString(a:line)
   if !has_key(self, '_wbuf')
     let self._wbuf = []
@@ -200,7 +200,7 @@ endfunction
 " Write a sequence of strings to the file.
 " @throws WrongType if {iter} returns non-string.
 function! s:file.writelines(iter)
-  call object#file#write_mode(self)
+  call self._write_mode()
   let iter = object#iter(a:iter)
   if !has_key(self, '_wbuf')
     let self._wbuf = []
@@ -282,8 +282,10 @@ function! s:file.writable()
   throw object#IOError(s:closed_exception)
 endfunction
 
-" a stands for append.
-" b stands for binary.
+"
+" Private Helpers
+"
+
 function! object#file#write_flags(mode)
   " Note: substitute() works as if 'magic' is set.
   return substitute(a:mode, '\C^.*(a)?.*(b)?.*$', '\1\2', '')
@@ -296,48 +298,48 @@ endfunction
 
 " Ensure that {file} is opened for reading and it is readable.
 " TODO: test correct w/r flags
-function! object#file#read_mode(file)
-  if a:file.closed
+function! s:file._read_mode()
+  if self.closed
     throw object#IOError(s:closed_exception)
   endif
-  if a:file.mode !~# s:readable
+  if self.mode !~# s:readable
     throw object#IOError('file not open for reading')
   endif
-  if !filereadable(a:file.name)
-    throw object#IOError('file not readable: %s', string(a:file.name))
+  if !filereadable(self.name)
+    throw object#IOError('file not readable: %s', string(self.name))
   endif
 endfunction
 
 " Ensure that {file} is opened for writing and it is writable.
-function! object#file#write_mode(file)
-  if a:file.closed
+function! s:file._write_mode()
+  if self.closed
     throw object#IOError(s:closed_exception)
   endif
-  if a:file.mode !~# s:writable
+  if self.mode !~# s:writable
     throw object#IOError('file not open for writing')
   endif
-  if !filewritable(a:file.name)
-    throw object#IOError('file not writable: %s', string(a:file.name))
+  if !filewritable(self.name)
+    throw object#IOError('file not writable: %s', string(self.name))
   endif
 endfunction
 
 " Lazily read all the lines from {file}.
-function! s:lazy_readfile(file)
-  call object#file#read_mode(a:file)
-  if has_key(a:file, '_rbuf')
+function! s:file._lazy_readfile()
+  call self._read_mode()
+  if has_key(self, '_rbuf')
     return
   endif
-  if !has_key(a:file, '_rflags')
-    let a:file._rflags = object#file#read_flags(a:file.mode)
+  if !has_key(self, '_rflags')
+    let self._rflags = object#file#read_flags(self.mode)
   endif
   try
-    let lines = readfile(a:file.name, a:file._rflags)
+    let lines = readfile(self.name, self._rflags)
   catch /E484/
-    throw object#IOError('cannot open file %s', string(a:file.name))
+    throw object#IOError('cannot open file %s', string(self.name))
   catch /E485/
-    throw object#IOError('cannot read file %s', string(a:file.name))
+    throw object#IOError('cannot read file %s', string(self.name))
   endtry
-  let a:file._rbuf = object#iter(lines)
+  let self._rbuf = object#iter(lines)
 endfunction
 
 " Return patterns for valid mode string, readable and writable mode string.
