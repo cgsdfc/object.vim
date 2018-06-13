@@ -43,3 +43,7 @@ AssertThrows call object#new(g:NoneType)
 Log g:vader_exception
 Assert g:vader_exception =~# 'TypeError'
 Log object#dir(None)
+
+
+Execute(bool() with plain object);
+Assert object#bool(object#object())

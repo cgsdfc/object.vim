@@ -70,6 +70,8 @@
 "   <type 'int'>
 " <
 
+" TODO: let bin() e.g. hook into __index__().
+
 let s:int = object#class('int')
 " These silly zero-dividends work.
 let s:int.INT_MAX = 1/0

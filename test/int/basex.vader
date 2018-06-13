@@ -5,21 +5,33 @@ let int = object#int_()
 
 Execute(Zero cases);
 AssertEqual object#bin(0), '0b0'
+AssertEqual object#bin(0), object#int#convert_binary(0)
+
 AssertEqual object#oct(0), '00'
 AssertEqual object#hex(0), '0x0'
+
 
 Execute(Positive cases);
-AssertEqual object#bin(1), '0b1'
-AssertEqual object#oct(0), '00'
-AssertEqual object#hex(0), '0x0'
+AssertEqual object#bin(10), object#int#convert_binary(10)
+AssertEqual object#bin(10), '0b1010'
+
+AssertEqual object#oct(10), '012'
+AssertEqual object#hex(10), '0xa'
+
 
 Execute(Negative cases);
-AssertEqual object#bin(1), '0b1'
-AssertEqual object#oct(0), '00'
-AssertEqual object#hex(0), '0x0'
+AssertEqual object#bin(-10), object#int#convert_binary(-10)
+AssertEqual object#bin(-10), '-0b1010'
+
+AssertEqual object#oct(-10), '-012'
+AssertEqual object#hex(-10), '-0xa'
+
 
 Execute(INT_MAX/INT_MIN cases);
 if int.INT_WIDTH == 32
+  AssertEqual object#int#convert_binary(int.INT_MAX), object#bin(int.INT_MAX)
+  AssertEqual object#int#convert_binary(int.INT_MIN), object#bin(int.INT_MIN)
+
   AssertEqual object#bin(int.INT_MAX), '0b1111111111111111111111111111111'
   AssertEqual object#oct(int.INT_MAX), '017777777777'
   AssertEqual object#hex(int.INT_MAX), '0x7fffffff'
@@ -29,6 +41,9 @@ if int.INT_WIDTH == 32
   AssertEqual object#hex(int.INT_MIN), '-0x80000000'
 
 elseif int.INT_WIDTH == 64
+  AssertEqual object#int#convert_binary(int.INT_MAX), object#bin(int.INT_MAX)
+  AssertEqual object#int#convert_binary(int.INT_MIN), object#bin(int.INT_MIN)
+
   AssertEqual object#bin(int.INT_MAX), '0b111111111111111111111111111111111111111111111111111111111111111'
   AssertEqual object#oct(int.INT_MAX), '0777777777777777777777'
   AssertEqual object#hex(int.INT_MAX), '0x7fffffffffffffff'
@@ -37,5 +52,25 @@ elseif int.INT_WIDTH == 64
   AssertEqual object#oct(int.INT_MIN), '-01000000000000000000000'
   AssertEqual object#hex(int.INT_MIN), '-0x8000000000000000'
 else
-  throw 'Unknown INT_WIDTH'
+  throw printf('Unknown INT_WIDTH %d', int.INT_WIDTH)
 endif
+
+
+" Temporarily put abs() here.
+Execute(abs);
+let input = [
+      \ 1.2,
+      \ 1,
+      \ 0,
+      \ 0.0,
+      \ -1,
+      \ -1.2
+      \]
+
+for x in input
+  AssertEqual object#abs(x), abs(x)
+endfor
+
+AssertThrows call object#abs([])
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'

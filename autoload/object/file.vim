@@ -55,6 +55,7 @@ let s:writable = '\v\C([aw]|r.*\+)'
 " The pattern for readable mode is a mode_pattern that contains 'r', w+ or a+.
 let s:readable = '\v\C(r|[aw].*\+)'
 
+" We need document for each method.
 let s:file = object#type('file', [], {
       \ '__init__': function('object#file#__init__'),
       \ '__repr__': function('object#file#__repr__'),

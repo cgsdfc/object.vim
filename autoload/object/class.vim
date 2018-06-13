@@ -171,6 +171,23 @@
 "   let formatter = useful#Formatter()
 " <
 
+" TODO: classmethod feature.
+" let s:MyClass.__classmethods__ = [...]
+" Then when new() is called, we can filter out those names in
+" __classmethods__. Alternatively, we can provide helper to mark
+" a method is classmethod, like:
+" function! object#classmethod(cls, name)
+"   call add(a:cls.__classmethods__, a:name)
+"   return a:cls
+" endfunction
+" Use like:
+" call object#classmethod(s:MyClass, 'some')
+" function! s:MyClass.some()
+"   ...
+" endfunction
+" But it is somehow too repeated?
+" Note: the point here is to mark some methods using book-keeping
+" inside the class object.
 let s:object_class = object#object_()
 let s:type_class = object#type_()
 let s:None = object#None()

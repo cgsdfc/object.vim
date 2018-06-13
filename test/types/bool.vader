@@ -3,7 +3,11 @@
 " bool()
 "
 
-Execute(bool() works with Number, List, Dict, String, Float and special variables);
+Execute(Without args return false);
+AssertEqual 0, object#bool()
+
+
+Execute(Works with Number, List, Dict, String, Float and special variables);
 let input = [
       \ [ 0, 0], [ 1, 1 ], [ -1, 1],
       \ [ [], 0 ], [ [0], 1 ],
@@ -12,16 +16,20 @@ let input = [
       \ [ '', 0 ], [ 'a', 1 ],
       \ [ function('tr'), 1]
       \ ]
+
 if object#util#has_special_variables()
   call extend(input,
         \ [[v:false, 0], [v:true, 1], [v:null, 0], [v:none, 0]])
 endif
+
 for [X, y] in input
   AssertEqual object#bool(X), y
 endfor
 
-Execute(bool() hooks into __bool__);
+
+Execute(Hooks into __bool__);
 let cls = { 'nr' : 2 }
+
 function! cls.__bool__()
   return self.nr > 0
 endfunction
@@ -30,13 +38,19 @@ Assert object#bool(cls)
 let cls.nr = 0
 Assert !object#bool(cls)
 
-Execute(bool() throws BadValue (by maktaba#ensure#IsBool()) if __bool__ returns neither 0 nor 1);
+" It is weird maktaba#ensure#IsBool() throws BadValue while other ensurers
+" throw WrongType. Perhpas the author don't think bool is a real type. But
+" to me, bool is as real as the chair I am sitting on ;)
+Execute(Throws BadValue if __bool__ returns neither 0 nor 1);
 let cls = {}
 function! cls.__bool__()
   return 3
 endfunction
+
 AssertThrows call object#bool(g:cls)
 Assert g:vader_exception =~# 'BadValue'
 
-Execute(bool()'s dealing with Funcref);
-call object#bool(function('tr'))
+
+Execute(With plain object subclass);
+let X = object#class('X')
+Assert object#bool(object#new(X))

@@ -14,6 +14,8 @@
 
 " Note: We cannot use in global scope any of the functions from class.vim.
 
+" TODO: __new__() hook
+
 " TODO mv to object#util#typename()
 " Get the typename of {obj}. If {obj} is a type,
 " 'type' will be returned always.
@@ -48,6 +50,9 @@ call object#types#install(s:NoneType, 'NoneType', s:type, s:object, [s:NoneType,
 for s:obj in [s:object, s:type]
   function! s:obj.__repr__()
     return printf('<%s object>', string(self.__class__.__name__))
+  endfunction
+  function! s:obj.__bool__()
+    return 1
   endfunction
 endfor
 

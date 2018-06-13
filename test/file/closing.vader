@@ -2,11 +2,33 @@
 Before;
 let files = map(range(5), 'tempname()')
 call map(copy(files), 'writefile([], v:val)')
-
+let file_ = object#file_()
 
 Execute (After closed, repr displays 'closed file');
-Execute (After closed, all file operation fails except close());
+let f=object#open(files[0], 'r')
 call f.close()
+Assert object#repr(f) =~# 'closed'
+
+Execute (After closed, all file operation fails except close());
+let f=object#open(files[0], 'r')
+call f.close()
+let readers = ['read', 'readline', 'readlines', '__iter__']
+let writers = ['write', 'writeline', 'writelines']
+
+for method in readers
+  AssertThrows call g:f[g:method]()
+  Log g:vader_exception
+  Assert g:vader_exception =~# 'IOError'
+endfor
+
+for method in writers
+  AssertThrows call g:f[g:method]('')
+  Log g:vader_exception
+  Assert g:vader_exception =~# 'IOError'
+endfor
+
+AssertThrows call g:f.flush()
+Assert g:vader_exception =~# 'IOError'
 
 After;
 call map(files, 'delete(v:val)')
