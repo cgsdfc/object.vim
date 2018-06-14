@@ -263,7 +263,7 @@ function! object#class#type(...)
     return object#class#ensure_object(a:1).__class__
   endif
   if a:0 == 3
-    return object#new(s:type_class, a:1, a:2, a:3)
+    return object#new_(s:type_class, a:000)
   endif
   throw object#TypeError('type() takes 1 or 3 arguments (%d given)', a:0)
 endfunction
