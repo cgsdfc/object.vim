@@ -121,7 +121,7 @@ endfunction
 " @dict file
 " __iter__(file) <==> each line of file.
 function! s:file.__iter__()
-  call self._lazy_readfile()
+  call self._read_mode()
   return self._rbuf
 endfunction
 
@@ -131,6 +131,13 @@ endfunction
 function! s:file.__repr__()
   return printf('<%s file %s, mode %s>', self.closed ? 'closed' : 'open',
         \ string(self.name), string(self.mode))
+endfunction
+
+""
+" @dict file
+" __str__(file) <==> str(file)
+function! s:file.__str__()
+  return self.__repr__()
 endfunction
 
 ""
@@ -148,7 +155,7 @@ endfunction
 "
 " Note: Newlines are stripped.
 function! s:file.readline()
-  call self._lazy_readfile()
+  call self._read_mode()
   try
     return object#next(self._rbuf)
   catch /StopIteration/
@@ -162,7 +169,7 @@ endfunction
 "
 " Note: Newlines are stripped.
 function! s:file.readlines()
-  call self._lazy_readfile()
+  call self._read_mode()
   return object#list(self._rbuf)
 endfunction
 
@@ -176,11 +183,11 @@ endfunction
 function! s:file.write(str)
   call self._write_mode()
   let str = maktaba#ensure#IsString(a:str)
-  if !has_key(self, '_wbuf')
-    let self._wbuf = [str]
-    return
+  if empty(self._wbuf)
+    call add(self._wbuf, str)
+  else
+    let self._wbuf[-1] .= str
   endif
-  let self._wbuf[-1] .= str
 endfunction
 
 ""
@@ -188,11 +195,7 @@ endfunction
 " Write a {line} to the file.
 function! s:file.writeline(line)
   call self._write_mode()
-  let line = maktaba#ensure#IsString(a:line)
-  if !has_key(self, '_wbuf')
-    let self._wbuf = []
-  endif
-  call add(self._wbuf, line)
+  call add(self._wbuf, maktaba#ensure#IsString(a:line))
 endfunction
 
 ""
@@ -202,11 +205,6 @@ endfunction
 function! s:file.writelines(iter)
   call self._write_mode()
   let iter = object#iter(a:iter)
-  if !has_key(self, '_wbuf')
-    let self._wbuf = []
-  endif
-  " It will be too slow if we first consume the iter and then
-  " check for IsString.
   try
     while 1
       call add(self._wbuf, maktaba#ensure#IsString(object#next(iter)))
@@ -229,7 +227,7 @@ function! s:file.flush()
     return
   endif
   if !has_key(self, '_wflags')
-    let self._wflags = substitute(self.mode, '\C^.*(a)?.*(b)?.*$', '\1\2', '')
+    let self._wflags = object#file#write_flags(self.mode)
   endif
   try
     call writefile(self._wbuf, self.name, self._wflags)
@@ -296,6 +294,22 @@ function! object#file#read_flags(mode)
   return substitute(a:mode, '\C^.*(b)?.*$', '\1', '')
 endfunction
 
+" Ensure that {file} is opened for writing and it is writable.
+function! s:file._write_mode()
+  if self.closed
+    throw object#IOError(s:closed_exception)
+  endif
+  if self.mode !~# s:writable
+    throw object#IOError('file not open for writing')
+  endif
+  if !filewritable(self.name)
+    throw object#IOError('file not writable: %s', string(self.name))
+  endif
+  if !has_key(self, '_wbuf')
+    let self._wbuf = []
+  endif
+endfunction
+
 " Ensure that {file} is opened for reading and it is readable.
 " TODO: test correct w/r flags
 function! s:file._read_mode()
@@ -308,30 +322,13 @@ function! s:file._read_mode()
   if !filereadable(self.name)
     throw object#IOError('file not readable: %s', string(self.name))
   endif
-endfunction
-
-" Ensure that {file} is opened for writing and it is writable.
-function! s:file._write_mode()
-  if self.closed
-    throw object#IOError(s:closed_exception)
-  endif
-  if self.mode !~# s:writable
-    throw object#IOError('file not open for writing')
-  endif
-  if !filewritable(self.name)
-    throw object#IOError('file not writable: %s', string(self.name))
-  endif
-endfunction
-
-" Lazily read all the lines from {file}.
-function! s:file._lazy_readfile()
-  call self._read_mode()
-  if has_key(self, '_rbuf')
-    return
-  endif
   if !has_key(self, '_rflags')
     let self._rflags = object#file#read_flags(self.mode)
   endif
+  if has_key(self, '_rbuf')
+    return
+  endif
+
   try
     let lines = readfile(self.name, self._rflags)
   catch /E484/
