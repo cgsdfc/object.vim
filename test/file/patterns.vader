@@ -103,5 +103,7 @@ endfor
 
 Execute(write_flags);
 AssertEqual 'a', object#file#write_flags('ra')
+AssertEqual 'a', object#file#write_flags('a+')
 AssertEqual 'ab', object#file#write_flags('rab')
+AssertEqual 'ab', object#file#write_flags('a+b')
 AssertEqual '', object#file#read_flags('r')

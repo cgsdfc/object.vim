@@ -18,24 +18,25 @@ call f.flush()
 AssertEqual readfile(file)[0], content
 
 
-" Execute(Read+Append);
-" let f = object#open(file, 'ra')
-" Assert f.readable() && f.writable()
+Execute(Read+Append);
+let f = object#open(file, 'ra')
+Assert f.readable() && f.writable()
 
-" call f.writeline(f.read())
-" call f.close()
+call f.writeline(f.read())
+call f.close()
 
-" AssertEqual readfile(file), map(range(2), 'content')
+AssertEqual readfile(file), [content, content]
 
-" Execute(Append);
-" " Open for appending.
-" let f = object#open(file, 'a')
-" Assert f.writable()
 
-" call f.writeline(content)
-" call f.close()
+Execute(Append);
+" Open for appending.
+let f = object#open(file, 'a')
+Assert f.writable()
 
-" AssertEqual readfile(file), map(range(2), 'content')
+call f.writeline(content)
+call f.close()
+
+AssertEqual readfile(file), [content, content]
 
 
 After;
