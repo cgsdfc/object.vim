@@ -1,18 +1,12 @@
 " vim:ft=vim
 "
-" file interface
+" Test file
 "
-" TODO: make mode-str stricter.
-" TODO: test binary.
-" TODO: fix append
-" TODO: test flags extraction
-" TODO: test flush and ensure that a second flush
-" appends rather than overwrites content in file.
 
 Include(Patterns): file/patterns.vader
 Include(Protocols): file/proto.vader
 Include(Reading): file/reading.vader
 Include(Writing): file/writing.vader
 Include(Closing): file/closing.vader
-Include(Read+Write): file/read-write.vader
+Include(Read + Write): file/read-write.vader
 Include(Binary Mode): file/binary.vader

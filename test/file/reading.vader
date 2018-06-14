@@ -2,7 +2,7 @@
 " Test reading functionality.
 
 Before;
-let files = map(range(5), 'tempname()')
+let files = map(range(2), 'tempname()')
 call map(copy(files), 'writefile([], v:val)')
 
 let basename = maktaba#path#Basename(g:vader_file)

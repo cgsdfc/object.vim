@@ -42,7 +42,8 @@ let s:readable =    '\V\C\^\(r\[aw+]\?\|\[aw]\[r+]\)b\?\$'
 let s:writable =    '\V\C\^\(\[aw]\[r+]\?\|r\[aw+]\)b\?\$'
 let s:valid_mode =  '\V\C\^\(r\[aw+]\?\|\[aw]\[r+]\|\[aw]\[r+]\?\|r\[aw+]\)b\?\$'
 
-let s:closed_exception = 'I/O operation on closed file'
+" TODO: I haven't think of a way to document the methods of a class, but the
+" current doc is likely outdated.
 
 ""
 " @dict file
@@ -90,8 +91,13 @@ function! s:file.__init__(name, mode)
   endif
 
   if mode =~# s:writable
-    if maktaba#path#Exists(name) && !filewritable(name)
-      throw object#IOError('file not writable: ''%s''', name)
+    if !filewritable(name)
+      " Try to create a new file.
+      try
+        call writefile([], name)
+      catch /E482/
+        throw object#IOError('file not writable: ''%s''', name)
+      endtry
     endif
     let self._wflags = object#file#write_flags(mode)
     let self._wbuf = []
@@ -223,9 +229,7 @@ endfunction
 " Flush the written data.
 " @throws IOError if |writefile()| fails.
 function! s:file.flush()
-  if self.closed
-    throw object#IOError(s:closed_exception)
-  endif
+  call self._check_closed()
   if self.mode !~# s:writable
     return
   endif
@@ -258,26 +262,16 @@ endfunction
 " @dict file
 " Return whether the file is opened for reading.
 function! s:file.readable()
-  if self.mode !~# s:readable
-    return 0
-  endif
-  if !self.closed
-    return 1
-  endif
-  throw object#IOError(s:closed_exception)
+  call self._check_closed()
+  return self.mode =~# s:readable && filereadable(self.name)
 endfunction
 
 ""
 " @dict file
 " Return whether the file is opened for writing.
 function! s:file.writable()
-  if self.mode !~# s:writable
-    return 0
-  endif
-  if !self.closed
-    return 1
-  endif
-  throw object#IOError(s:closed_exception)
+  call self._check_closed()
+  return self.mode =~# s:writable && filewritable(self.name)
 endfunction
 
 "
@@ -291,24 +285,26 @@ function! object#file#write_flags(mode)
   return join(map(['a', 'b'], 'stridx(a:mode, v:val)>=0?v:val:""'), '')
 endfunction
 
+function! s:file._check_closed()
+  if self.closed
+    throw object#IOError('I/O operation on closed file')
+  endif
+endfunction
+
 " Ensure that {file} is opened for writing and it is writable.
 function! s:file._check_writable()
-  if self.closed
-    throw object#IOError(s:closed_exception)
-  endif
-  if maktaba#path#Exists(self.name) && !filewritable(self.name)
-    throw object#IOError('file not writable: ''%s''', self.name)
-  endif
+  call self._check_closed()
   if self.mode !~# s:writable
     throw object#IOError('file not open for writing')
+  endif
+  if !filewritable(self.name)
+    throw object#IOError('file not writable: ''%s''', self.name)
   endif
 endfunction
 
 " Ensure that {file} is opened for reading and it is readable.
 function! s:file._check_readable()
-  if self.closed
-    throw object#IOError(s:closed_exception)
-  endif
+  call self._check_closed()
   if self.mode !~# s:readable
     throw object#IOError('file not open for reading')
   endif
@@ -318,7 +314,6 @@ function! s:file._check_readable()
   if has_key(self, '_rbuf')
     return
   endif
-
   try
     let lines = readfile(self.name, self._rflags)
   catch /E484/
