@@ -49,6 +49,10 @@ let s:writable = '\v\C([aw]|r.*\+)'
 let s:readable = '\v\C(r|[aw].*\+)'
 
 let s:closed_exception = 'I/O operation on closed file'
+" TODO: Make some cheap operations eager, such as creation of _wbuf, _wflags,
+" _rflags.
+" Add subclass test
+
 ""
 " @dict file
 " A file object for line-oriented I/O.

@@ -8,7 +8,7 @@
 " TODO: Test all pattern including substitute.
 
 Include(Patterns): file/patterns.vader
-Include(Attributes): file/attrs.vader
+Include(Protocol): file/proto.vader
 Include(Reading): file/reading.vader
 Include(Writing): file/writing.vader
 Include(Closing): file/closing.vader

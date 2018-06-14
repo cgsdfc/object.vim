@@ -1,0 +1,48 @@
+" vim:ft=vim
+" Test public attributes.
+
+Before;
+let file_ = object#file_()
+let file = tempname()
+call writefile([], file)
+
+"
+" Initial attributes right after open()'ed
+"
+
+Execute(open() without mode default for reading);
+let f = object#open(file)
+AssertEqual f.mode, 'r'
+
+
+Execute(__repr__);
+let f = object#open(file)
+Log object#repr(f)
+
+
+Execute(__bool__);
+let f = object#open(file)
+Assert object#bool(f)
+call f.close()
+Assert !object#bool(f)
+
+Execute(__iter__);
+let data = range(10)
+call writefile(data, file)
+let f = object#open(file)
+AssertEqual object#list(f), map(data, 'string(v:val)')
+
+
+Execute(__str__ currently does the same as __repr__);
+let f = object#open(file)
+AssertEqual object#str(f), object#repr(f)
+
+Execute(Subclass);
+let MyFile = object#class('MyFile', file_)
+" __init__ currently takes no default arg.
+let var = object#new(MyFile, file, 'w')
+call var.writelines(repeat('a', 10))
+call var.close()
+
+After;
+call delete(file)
