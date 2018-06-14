@@ -79,19 +79,19 @@ function! s:file.__init__(name, mode)
   let name = maktaba#ensure#IsString(a:name)
   let mode = maktaba#ensure#IsString(a:mode)
   if mode !~# s:valid_mode
-    throw object#ValueError('invalid mode %s', string(mode))
+    throw object#ValueError('invalid mode ''%s''', mode)
   endif
 
   if mode =~# s:readable
     if !filereadable(name)
-      throw object#IOError('file not readable: %s', string(name))
+      throw object#IOError('file not readable: ''%s''', name)
     endif
     let self._rflags = object#file#read_flags(mode)
   endif
 
   if mode =~# s:writable
-    if !filewritable(name)
-      throw object#IOError('file not writable %s', string(name))
+    if maktaba#path#Exists(name) && !filewritable(name)
+      throw object#IOError('file not writable: ''%s''', name)
     endif
     let self._wflags = object#file#write_flags(mode)
     let self._wbuf = []
@@ -119,7 +119,7 @@ endfunction
 " @dict file
 " __iter__(file) <==> each line of file.
 function! s:file.__iter__()
-  call self._read_mode()
+  call self._check_readable()
   return self._rbuf
 endfunction
 
@@ -127,8 +127,8 @@ endfunction
 " @dict file
 " __repr__(file) <==> repr(file)
 function! s:file.__repr__()
-  return printf('<%s file %s, mode %s>', self.closed ? 'closed' : 'open',
-        \ string(self.name), string(self.mode))
+  return printf('<%s file ''%s'', mode ''%s''>',
+        \ self.closed ? 'closed' : 'open', self.name, self.mode)
 endfunction
 
 ""
@@ -159,7 +159,7 @@ endfunction
 "
 " Note: Newlines are stripped.
 function! s:file.readline()
-  call self._read_mode()
+  call self._check_readable()
   try
     return object#next(self._rbuf)
   catch /StopIteration/
@@ -173,7 +173,7 @@ endfunction
 "
 " Note: Newlines are stripped.
 function! s:file.readlines()
-  call self._read_mode()
+  call self._check_readable()
   return object#list(self._rbuf)
 endfunction
 
@@ -185,7 +185,7 @@ endfunction
 " Note: If {str} becomes the first line of the file, a newline will be added
 " right after this line as if it is done with writeline().
 function! s:file.write(str)
-  call self._write_mode()
+  call self._check_writable()
   let str = maktaba#ensure#IsString(a:str)
   if empty(self._wbuf)
     call add(self._wbuf, str)
@@ -198,7 +198,7 @@ endfunction
 " @dict file
 " Write a {line} to the file.
 function! s:file.writeline(line)
-  call self._write_mode()
+  call self._check_writable()
   call add(self._wbuf, maktaba#ensure#IsString(a:line))
 endfunction
 
@@ -207,7 +207,7 @@ endfunction
 " Write a sequence of strings to the file.
 " @throws WrongType if {iter} returns non-string.
 function! s:file.writelines(iter)
-  call self._write_mode()
+  call self._check_writable()
   let iter = object#iter(a:iter)
   try
     while 1
@@ -226,14 +226,13 @@ function! s:file.flush()
   if self.closed
     throw object#IOError(s:closed_exception)
   endif
-  " Note: Testing ``self.mode ~=# s:readable`` is not ok here. Think about 'rw'.
   if self.mode !~# s:writable
     return
   endif
   try
     call writefile(self._wbuf, self.name, self._wflags)
   catch /E482/
-    throw object#IOError('cannot create file %s', string(self.name))
+    throw object#IOError('cannot create file ''%s''', self.name)
   endtry
 endfunction
 
@@ -293,20 +292,20 @@ function! object#file#write_flags(mode)
 endfunction
 
 " Ensure that {file} is opened for writing and it is writable.
-function! s:file._write_mode()
+function! s:file._check_writable()
   if self.closed
     throw object#IOError(s:closed_exception)
+  endif
+  if maktaba#path#Exists(self.name) && !filewritable(self.name)
+    throw object#IOError('file not writable: ''%s''', self.name)
   endif
   if self.mode !~# s:writable
     throw object#IOError('file not open for writing')
   endif
-  if !filewritable(self.name)
-    throw object#IOError('file not writable: %s', string(self.name))
-  endif
 endfunction
 
 " Ensure that {file} is opened for reading and it is readable.
-function! s:file._read_mode()
+function! s:file._check_readable()
   if self.closed
     throw object#IOError(s:closed_exception)
   endif
@@ -314,7 +313,7 @@ function! s:file._read_mode()
     throw object#IOError('file not open for reading')
   endif
   if !filereadable(self.name)
-    throw object#IOError('file not readable: %s', string(self.name))
+    throw object#IOError('file not readable: ''%s''', self.name)
   endif
   if has_key(self, '_rbuf')
     return
@@ -323,9 +322,9 @@ function! s:file._read_mode()
   try
     let lines = readfile(self.name, self._rflags)
   catch /E484/
-    throw object#IOError('cannot open file %s', string(self.name))
+    throw object#IOError('cannot open file ''%s''', self.name)
   catch /E485/
-    throw object#IOError('cannot read file %s', string(self.name))
+    throw object#IOError('cannot read file ''%s''', self.name)
   endtry
   let self._rbuf = object#iter(lines)
 endfunction

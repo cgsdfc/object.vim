@@ -15,3 +15,4 @@ Include(Reading): file/reading.vader
 Include(Writing): file/writing.vader
 Include(Closing): file/closing.vader
 Include(Read+Write): file/read-write.vader
+Include(Binary Mode): file/binary.vader

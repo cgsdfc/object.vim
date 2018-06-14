@@ -11,6 +11,13 @@ let files = map(range(2), 'tempname()')
 call map(copy(files), 'writefile([], v:val)')
 
 
+Execute(Write mode creates non-existing file);
+let file = tempname()
+Assert !filewritable(file)
+let f = object#open(file, 'w')
+call f.close()
+Assert filewritable(file)
+
 Execute(a single call to write(str) writes a _line_ to f);
 let t = files[0]
 let f = object#open(t, 'w')
@@ -75,13 +82,6 @@ AssertThrows call g:f.writelines(1)
 Assert g:vader_exception =~# 'TypeError'
 
 
-Execute(open an unwritable file throws IOError);
-let t = files[0]
-call setfperm(t, 'r--------')
-AssertThrows call object#open(g:t, 'w')
-Assert g:vader_exception =~# 'IOError'
-
-
 Execute(Although open()'ed writable, f.write() and friends throw IOError if f becomes unwritable);
 let t = files[0]
 Assert filewritable(t)
@@ -90,7 +90,7 @@ let f = object#open(t, 'w')
 call setfperm(t, 'r--------')
 
 for x in write_family
-  AssertThrows call object#getattr(g:f, g:x)('aaa')
+  AssertThrows call g:f[g:x]('aaa')
   Assert g:vader_exception =~# 'IOError'
 endfor
 

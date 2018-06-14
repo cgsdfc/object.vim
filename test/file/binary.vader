@@ -1,0 +1,31 @@
+" vim: ft=vim
+" Test Binary Mode
+
+Before;
+" Make some binary data
+let binary = join(map(range(-10, 10), 'nr2char(v:val)'),'')
+let file = tempname()
+
+Execute(Read);
+call writefile([binary], file, 'b')
+let f = object#open(file, 'rb')
+AssertEqual f.read(), binary
+
+
+Execute(Write);
+let f = object#open(file, 'wb')
+call f.write(binary)
+call f.close()
+AssertEqual binary, readfile(file, 'b')[0]
+
+
+Execute(Append);
+call writefile([binary], file, 'b')
+let f = object#open(file, 'ab')
+call f.write(binary)
+call f.close()
+AssertEqual readfile(file, 'b')[0], repeat(binary, 2)
+
+
+After;
+call delete(file)
