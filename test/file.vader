@@ -2,13 +2,15 @@
 "
 " file interface
 "
-" TODO: test append and binary.
-" TODO: readwrite.
-" TODO: closing.
-" TODO: Test all pattern including substitute.
+" TODO: make mode-str stricter.
+" TODO: test binary.
+" TODO: fix append
+" TODO: test flags extraction
+" TODO: test flush and ensure that a second flush
+" appends rather than overwrites content in file.
 
 Include(Patterns): file/patterns.vader
-Include(Protocol): file/proto.vader
+Include(Protocols): file/proto.vader
 Include(Reading): file/reading.vader
 Include(Writing): file/writing.vader
 Include(Closing): file/closing.vader

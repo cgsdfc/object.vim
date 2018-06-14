@@ -38,20 +38,11 @@
 " <
 " This is rooted at the nature of |readfile()| and |writefile()|.
 
-" The pattern of a mode string is beginning with 'r', 'a' or 'w' and followed
-" by zero or more arbitrary characters.
-let s:mode_pattern = '\v\C^[raw].*$'
-
-" The pattern for writable mode is a mode_pattern containing 'a', 'w' or 'r+'.
-let s:writable = '\v\C([aw]|r.*\+)'
-
-" The pattern for readable mode is a mode_pattern that contains 'r', w+ or a+.
-let s:readable = '\v\C(r|[aw].*\+)'
+let s:readable =    '\V\C\^\(r\[aw+]\?\|\[aw]\[r+]\)b\?\$'
+let s:writable =    '\V\C\^\(\[aw]\[r+]\?\|r\[aw+]\)b\?\$'
+let s:valid_mode =  '\V\C\^\(r\[aw+]\?\|\[aw]\[r+]\|\[aw]\[r+]\?\|r\[aw+]\)b\?\$'
 
 let s:closed_exception = 'I/O operation on closed file'
-" TODO: Make some cheap operations eager, such as creation of _wbuf, _wflags,
-" _rflags.
-" Add subclass test
 
 ""
 " @dict file
@@ -87,20 +78,23 @@ endfunction
 function! s:file.__init__(name, mode)
   let name = maktaba#ensure#IsString(a:name)
   let mode = maktaba#ensure#IsString(a:mode)
-  if empty(mode)
-    throw object#ValueError('empty mode string')
-  endif
-  if mode !~# s:mode_pattern
-    let msg = "mode string must begin with one of 'r', 'w' or 'a', not %s"
-    throw object#ValueError(msg, string(mode))
+  if mode !~# s:valid_mode
+    throw object#ValueError('invalid mode %s', string(mode))
   endif
 
-  if mode =~# s:readable && !filereadable(name)
-    throw object#IOError('file not readable: %s', string(name))
+  if mode =~# s:readable
+    if !filereadable(name)
+      throw object#IOError('file not readable: %s', string(name))
+    endif
+    let self._rflags = object#file#read_flags(mode)
   endif
 
-  if mode =~# s:writable && !filewritable(name)
-    throw object#IOError('file not writable %s', string(name))
+  if mode =~# s:writable
+    if !filewritable(name)
+      throw object#IOError('file not writable %s', string(name))
+    endif
+    let self._wflags = object#file#write_flags(mode)
+    let self._wbuf = []
   endif
 
   let self.name = name
@@ -233,11 +227,8 @@ function! s:file.flush()
     throw object#IOError(s:closed_exception)
   endif
   " Note: Testing ``self.mode ~=# s:readable`` is not ok here. Think about 'rw'.
-  if self.mode !~# s:writable || !has_key(self, '_wbuf')
+  if self.mode !~# s:writable
     return
-  endif
-  if !has_key(self, '_wflags')
-    let self._wflags = object#file#write_flags(self.mode)
   endif
   try
     call writefile(self._wbuf, self.name, self._wflags)
@@ -293,15 +284,12 @@ endfunction
 "
 " Private Helpers
 "
-
-function! object#file#write_flags(mode)
-  " Note: substitute() works as if 'magic' is set.
-  return substitute(a:mode, '\C^.*(a)?.*(b)?.*$', '\1\2', '')
+function! object#file#read_flags(mode)
+  return matchstr(a:mode, 'b')
 endfunction
 
-" Extract flags to |readfile()| from mode string.
-function! object#file#read_flags(mode)
-  return substitute(a:mode, '\C^.*(b)?.*$', '\1', '')
+function! object#file#write_flags(mode)
+  return join(map(['a', 'b'], 'stridx(a:mode, v:val)>=0?v:val:""'), '')
 endfunction
 
 " Ensure that {file} is opened for writing and it is writable.
@@ -315,13 +303,9 @@ function! s:file._write_mode()
   if !filewritable(self.name)
     throw object#IOError('file not writable: %s', string(self.name))
   endif
-  if !has_key(self, '_wbuf')
-    let self._wbuf = []
-  endif
 endfunction
 
 " Ensure that {file} is opened for reading and it is readable.
-" TODO: test correct w/r flags
 function! s:file._read_mode()
   if self.closed
     throw object#IOError(s:closed_exception)
@@ -331,9 +315,6 @@ function! s:file._read_mode()
   endif
   if !filereadable(self.name)
     throw object#IOError('file not readable: %s', string(self.name))
-  endif
-  if !has_key(self, '_rflags')
-    let self._rflags = object#file#read_flags(self.mode)
   endif
   if has_key(self, '_rbuf')
     return
@@ -352,5 +333,5 @@ endfunction
 " Return patterns for valid mode string, readable and writable mode string.
 " Append counts as writable.
 function! object#file#patterns()
-  return [s:mode_pattern, s:readable, s:writable]
+  return [s:valid_mode, s:readable, s:writable]
 endfunction

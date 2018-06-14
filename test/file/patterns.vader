@@ -4,79 +4,104 @@
 "
 
 Before;
-let [mode_pattern, readable, writable] = object#file#patterns()
-
-let bad_modes = [
-      \ '+r', 'u', '@', ' r',
-      \ "U+", ''
-      \ ]
+let [valid_mode, readable, writable] = object#file#patterns()
 
 let valid_modes = [
       \ 'w', 'r', 'a',
+      \ 'wb', 'rb', 'ab',
       \ "w+", "r+", "a+",
-      \ 'rw', 'ra', 'wa', 'wr', 'ar', 'aw',
+      \ "w+b", "r+b", "a+b",
+      \ 'rw', 'ra', 'wr', 'ar',
+      \ 'rwb', 'rab', 'wrb', 'arb',
+      \]
+
+let bad_modes = [
+      \ '+', '',
+      \ 'aw', 'wa',
       \ 'raw', 'rwa', 'awr', 'arw', 'war', 'wra',
-      \ 'ra+', 'wr+', 'raw+',
-      \ 'rkkk', 'r    +', 'www', 'w&&&+',
-      \]
-
-let bad_args = [
-      \ [ 1, [] ],
-      \ [ {}, 1 ],
-      \]
+      \ 'ra+', 'wr+', 'raw+', 'rb+', 'wb+',
+      \ ]
 
 
-Execute(valid mode strings match mode_pattern);
+Execute(Match valid_mode);
 for x in valid_modes
-  Assert x =~# mode_pattern
+  Assert x =~# valid_mode
 endfor
 
-
-Execute(bad mode strings do not match mode_pattern);
 for x in bad_modes
-  Assert x !~# mode_pattern
+  Assert x !~# valid_mode
 endfor
 
+for x in valid_modes
+  Assert x =~ readable || x =~ writable,
+        \ 'a mode is either readable or writable'
+endfor
 
-Execute(readable mode strings match readable);
-let positive = [ 'r', "w+", "a+", 'rw', 'ra',]
+Execute(Match readable);
+let positive = [ 'rb', 'r', "w+", "a+", 'rw', 'ra',]
 for x in positive
   Assert x =~# readable
 endfor
 
-
-Execute(not readable mode strings do not match readable);
-let negative = ['w', 'a', 'wa', 'aw' ]
+let negative = ['w', 'a', 'ab', 'wb']
 for x in negative
   Assert x !~# readable
 endfor
 
 
-Execute(writable modes);
-let positive = [ 'w', 'a', "r+", 'wa', 'wr',
-      \ 'rw', 'r   +', 'www', "w+", "a+",
+Execute(Match writable);
+let positive = [
+      \ 'w', 'a', "r+", 'wr',
+      \ 'rw', "r+", "w+", "a+",
+      \ 'rwb', "r+", "w+", "a+",
       \]
+
 for x in positive
   Assert x =~# writable
 endfor
+Assert 'r' !~# writable && 'rb' !~# writable
 
 
-Execute(not writable/readonly modes);
-Assert 'r' !~# writable
-
-"
-" open()'s dealing with mode strings
-"
-
-Execute(open() throws ValueError for bad mode string);
+Execute(Throws ValueError for bad mode string);
 for x in bad_modes
   AssertThrows call object#open(tempname(), g:x)
   Assert g:vader_exception =~# 'ValueError'
 endfor
 
 
-Execute(open() throws WrongType if name or mode is not String);
+Execute(Throws WrongType if name or mode is not String);
+let bad_args = [
+      \ [ 1, [] ],
+      \ [ {}, 1 ],
+      \]
+
 for x in bad_args
   AssertThrows call call("object#open", g:x)
   Assert g:vader_exception =~# 'WrongType'
 endfor
+
+"
+" Extracting flags from mode
+"
+Execute(read_flags);
+let with_binary = [
+      \ 'rb', 'rb ', "r+b", "rwb",
+      \]
+
+let without_binary = [
+      \ 'r', 'ra', 'rw', "r+",
+      \]
+
+for x in with_binary
+  AssertEqual 'b', object#file#read_flags(x)
+endfor
+
+for x in without_binary
+  AssertEqual '', object#file#read_flags(x)
+endfor
+
+
+Execute(write_flags);
+AssertEqual 'a', object#file#write_flags('ra')
+AssertEqual 'ab', object#file#write_flags('rab')
+AssertEqual '', object#file#read_flags('r')

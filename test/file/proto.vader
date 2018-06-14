@@ -6,9 +6,6 @@ let file_ = object#file_()
 let file = tempname()
 call writefile([], file)
 
-"
-" Initial attributes right after open()'ed
-"
 
 Execute(open() without mode default for reading);
 let f = object#open(file)
