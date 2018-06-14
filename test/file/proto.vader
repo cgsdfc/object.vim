@@ -37,6 +37,12 @@ Execute(__str__ currently does the same as __repr__);
 let f = object#open(file)
 AssertEqual object#str(f), object#repr(f)
 
+
+Execute(__hash__);
+let f = object#open(file)
+Assert object#hash(f) >= 0
+
+
 Execute(Subclass);
 let MyFile = object#class('MyFile', file_)
 " __init__ currently takes no default arg.

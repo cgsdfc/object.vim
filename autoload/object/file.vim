@@ -144,6 +144,12 @@ function! s:file.__str__()
   return self.__repr__()
 endfunction
 
+function! s:file.__hash__()
+  " Note: Python2 open/closed file hash the same.
+  " However, mode does matter.
+  return object#hash(printf('%s%s', self.name, self.mode))
+endfunction
+
 ""
 " @dict file
 " Read the the whole of the file, return it as a string.
