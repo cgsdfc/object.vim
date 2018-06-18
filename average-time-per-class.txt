@@ -1,0 +1,8 @@
+0.002273
+since we have 64 Exceptions.
+Each one takes 0.002,
+so total is 0.145472.
+
+If we want to cut the total to 0.014,
+average must be 0.000219.
+We need a ten times speed-up

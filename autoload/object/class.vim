@@ -331,21 +331,16 @@ function! object#class#methods(cls)
   return filter(copy(a:cls), 'object#class#is_method(v:key, v:val)')
 endfunction
 
-"
 " Ensure that {x} is one valid class or a list of
 " non-duplicate classes.
-"
 function! object#class#ensure_bases(x)
-  let base = map(maktaba#ensure#IsList(a:x),
-        \  'object#class#ensure_class(v:val)')
+  let base = maktaba#ensure#IsList(a:x)
   let N = len(base)
-  if N == 1
-    return base
-  endif
   let i = 0
   while i < N-1
     let j = i + 1
     while j < N
+      call object#class#ensure_class(bases[i])
       if base[i] isnot# base[j]
         let j += 1
         continue
@@ -371,19 +366,25 @@ endfunction
 "
 function! object#class#class_init(cls, name, bases)
   let a:cls.__name__ = object#util#ensure_identifier(a:name)
-  let a:cls.__bases__ = empty(a:bases) ? [s:object_class]:
-        \ copy(object#class#ensure_bases(a:bases))
+  if empty(a:bases)
+    let a:cls.__bases__ = [s:object_class]
+  elseif len(a:bases) == 1
+    let a:cls.__bases__ = [object#class#ensure_class(a:bases[0])]
+  else
+    let a:cls.__bases__ = copy(object#class#ensure_bases(a:bases))
+  endif
   let a:cls.__base__ = a:cls.__bases__[0]
-  let a:cls.__mro__ = object#class#mro(a:cls)
-
+  if len(a:bases) == 1
+    let a:cls.__mro__ = [a:cls] + a:bases[0].__mro__
+  else
+    let a:cls.__mro__ = object#class#mro(a:cls)
+  endif
   for x in a:cls.__mro__
     call extend(a:cls, object#class#methods(x), 'keep')
   endfor
 endfunction
 
-"
 " Compute Method Resolution Order for {cls}.
-"
 function! object#class#mro(cls)
   let bases = copy(a:cls.__bases__)
   let bases_mro = map(copy(bases), 'copy(v:val.__mro__)')
