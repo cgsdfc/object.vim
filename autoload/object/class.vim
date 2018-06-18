@@ -196,17 +196,22 @@ let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__', '__mro_
 
 ""
 " @function class(...)
-" Define a class that has a {name} and [bases].
+" Define a class that has a {name} and [bases] and optionally
+" insert it into [scope].
 " >
 "   class(name) -> inherited from object
 "   class(name, bases) -> inherited from bases
+"   class(name, bases, scope) -> scope[name] = cls
 " <
 " {name} should be a |String| of valid identifier.
 " [bases] should be a class or a |List| of classes.
 " If no [bases] are given or [bases] is an empty |List|,
 " the new class will subclass `object`.
 function! object#class#class(name, ...)
-  let argc = object#util#ensure_argc(1, a:0)
+  let argc = object#util#ensure_argc(2, a:0)
+  if a:0 == 2
+    let scope = maktaba#ensure#IsDict(a:2)
+  endif
 
   " Figure out the bases list
   if !argc
@@ -221,6 +226,9 @@ function! object#class#class(name, ...)
         \ '__class__' : s:type_class,
         \}
   call object#class#class_init(cls, a:name, bases)
+  if a:0 == 2
+    let scope[a:name] = cls
+  endif
   return cls
 endfunction
 
@@ -265,7 +273,7 @@ function! object#class#type(...)
   if a:0 == 3
     return object#new_(s:type_class, a:000)
   endif
-  throw object#TypeError('type() takes 1 or 3 arguments (%d given)', a:0)
+  call object#TypeError('type() takes 1 or 3 arguments (%d given)', a:0)
 endfunction
 
 ""
@@ -304,7 +312,7 @@ endfunction
 " Every valid object is a |Dict| with a __class__ attribute.
 "
 function! object#class#is_valid_object(x)
-  return object#hasattr(a:x, '__class__')
+  return maktaba#value#IsDict(a:x) && has_key(a:x, '__class__')
 endfunction
 
 "
@@ -342,7 +350,7 @@ function! object#class#ensure_bases(x)
         let j += 1
         continue
       endif
-      throw object#TypeError('duplicate base class %s', string(base[i].__name__))
+      call object#TypeError('duplicate base class %s', string(base[i].__name__))
     endwhile
     let i += 1
   endwhile
@@ -385,7 +393,7 @@ function! object#class#mro(cls)
     " it is safe to prepend it to the merged list.
     return insert(mro, a:cls)
   endif
-  throw object#TypeError(
+  call object#TypeError(
         \ 'cannot create a consistent method resolution for bases %s',
         \ join(map(bases, 'v:val.__name__'), ', '))
 endfunction
@@ -444,14 +452,14 @@ function! object#class#ensure_class(x)
   if object#class#is_valid_class(a:x)
     return a:x
   endif
-  throw object#TypeError('not a valid class')
+  call object#TypeError('not a valid class')
 endfunction
 
 function! object#class#ensure_object(x)
   if object#class#is_valid_object(a:x)
     return a:x
   endif
-  throw object#TypeError('not a valid object')
+  call object#TypeError('not a valid object')
 endfunction
 
 "
