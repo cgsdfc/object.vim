@@ -71,24 +71,30 @@ endfunction
 function! object#protocols#setattr(obj, name, val)
   let obj = maktaba#ensure#IsDict(a:obj)
   let name = maktaba#ensure#IsString(a:name)
-
-  if object#protocols#hasattr(obj, '__setattr__')
+  if has_key(obj, '__setattr__')
     call object#protocols#call(obj.__setattr__, name, a:val)
-    return
+  else
+    let obj[name] = a:val
   endif
-
-  let obj[name] = a:val
 endfunction
 
 ""
 " @function hasattr(...)
 " Test whether {obj} has attribute {name}.
 " >
-"   hasattr(obj, name) -> obj is a dict and has_key(obj, name)
+"   hasattr(obj, name) -> getattr(obj, name) succeeds or not.
 " <
+" @throws WrongType if {name} is not a String.
+" @throws WrongType if {obj} is not a Dict.
 function! object#protocols#hasattr(obj, name)
+  let obj = maktaba#ensure#IsDict(a:obj)
   let name = maktaba#ensure#IsString(a:name)
-  return maktaba#value#IsDict(a:obj) && has_key(a:obj, name)
+  try
+    call object#getattr(obj, name)
+  catch
+    return 0
+  endtry
+  return 1
 endfunction
 
 ""
@@ -102,14 +108,15 @@ function! object#protocols#repr(obj)
   if object#class#is_valid_class(a:obj)
     return printf('<type %s>', string(a:obj.__name__))
   endif
-  if object#protocols#hasattr(a:obj, '__repr__')
-    return maktaba#ensure#IsString(object#protocols#call(a:obj.__repr__))
-  endif
   if maktaba#value#IsList(a:obj)
     return object#list#repr(a:obj)
   endif
   if maktaba#value#IsDict(a:obj)
-    return object#dict#repr(a:obj)
+    if has_key(a:obj, '__repr__')
+      return maktaba#ensure#IsString(object#protocols#call(a:obj.__repr__))
+    else
+      return object#dict#repr(a:obj)
+    endif
   endif
   return string(a:obj)
 endfunction
@@ -122,13 +129,17 @@ endfunction
 "   len(obj) -> obj.__len__()
 " <
 function! object#protocols#len(obj)
-  if maktaba#value#IsString(a:obj)
+  if maktaba#value#IsString(a:obj) || maktaba#value#IsList(a:obj)
     return len(a:obj)
   endif
-  if !object#protocols#hasattr(a:obj, '__len__')
-    return len(maktaba#ensure#IsCollection(a:obj))
+  if maktaba#value#IsDict(a:obj)
+    if has_key(a:obj, '__len__')
+      return maktaba#ensure#IsNumber(object#protocols#call(a:obj.__len__))
+    else
+      return len(a:obj)
+    endif
   endif
-  return maktaba#ensure#IsNumber(object#protocols#call(a:obj.__len__))
+  call object#except#not_avail('len', a:obj)
 endfunction
 
 ""
@@ -159,12 +170,13 @@ function! object#protocols#contains(item, obj)
   if maktaba#value#IsString(a:obj)
     return stridx(a:obj, maktaba#ensure#IsString(a:item)) >= 0
   endif
-  if object#hasattr(a:obj, '__contains__')
-    return maktaba#ensure#IsBool(
-          \ object#protocols#call(a:obj.__contains__, a:item))
-  endif
   if maktaba#value#IsDict(a:obj)
-    return has_key(a:obj, maktaba#ensure#IsString(a:item))
+    if has_key(a:obj, '__contains__')
+      return maktaba#ensure#IsBool(
+            \ object#protocols#call(a:obj.__contains__, a:item))
+    else
+      return has_key(a:obj, maktaba#ensure#IsString(a:item))
+    endif
   endif
-  return 0
+  call object#except#not_avail('contains', a:obj)
 endfunction

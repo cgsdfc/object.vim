@@ -655,6 +655,9 @@ issubclass(...)                                    *object#class#issubclass()*
     issubclass(cls, base) -> if cls is a subclass of base
 <
 
+object#cmp#cmp({a})                                         *object#cmp#cmp()*
+  {a}
+
 dict(...)                                                 *object#dict#dict()*
   Create a plain |Dict|.
 >
@@ -936,8 +939,10 @@ setattr(...)                                      *object#protocols#setattr()*
 hasattr(...)                                      *object#protocols#hasattr()*
   Test whether {obj} has attribute {name}.
 >
-    hasattr(obj, name) -> obj is a dict and has_key(obj, name)
+    hasattr(obj, name) -> getattr(obj, name) succeeds or not.
 <
+  Throws ERROR(WrongType) if {name} is not a String.
+  Throws ERROR(WrongType) if {obj} is not a Dict.
 
 repr(...)                                            *object#protocols#repr()*
   Generate string representation for {obj}.

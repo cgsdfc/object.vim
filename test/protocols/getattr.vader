@@ -51,6 +51,7 @@ function! X.__getattribute__(key)
 endfunction
 
 AssertThrows call object#getattr(object#new(g:X), 'foo')
+Log g:vader_exception
 Assert g:vader_exception =~# 'AttributeError'
 
 
