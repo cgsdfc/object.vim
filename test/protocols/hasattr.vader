@@ -15,6 +15,7 @@ Assert !object#hasattr('', 'toupper')
 Assert !object#hasattr(30, 'digits')
 Assert !object#hasattr({'gender' : 'male'}, 'age')
 
-Execute(Throw WrongType with non-String name);
-AssertThrows call object#hasattr({}, [])
-Assert g:vader_exception =~# 'WrongType'
+Execute(Throw TypeError with non-String name);
+AssertThrows call object#hasattr({}, 1)
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'

@@ -22,7 +22,7 @@ for x in input
 endfor
 
 
-Execute(Throw WrongType if the len of obj cannot be determined);
+Execute(Throw TypeError if the len of obj cannot be determined);
 let input = [
       \ 1,
       \ function('empty'),
@@ -38,7 +38,8 @@ endif
 
 for X in input
   AssertThrows call object#len(g:X)
-  Assert g:vader_exception =~# 'WrongType'
+  Log g:vader_exception
+  Assert g:vader_exception =~# 'TypeError'
 endfor
 
 

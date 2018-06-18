@@ -10,11 +10,19 @@ function! s:BaseException.__init__(...)
 endfunction
 
 function! s:BaseException.__repr__()
-  return object#repr(self.args)
+  return printf('%s(%s)', self.__class__.__name__, object#repr(self.args))
 endfunction
 
 function! s:BaseException.__str__()
-  return object#str(self.args)
+  let N = len(self.args)
+  if !N
+    return ''
+  endif
+  call maktaba#ensure#IsString(self.args[0])
+  if N == 1
+    return self.args[0]
+  endif
+  return call('printf', self.args)
 endfunction
 
 "" Class: Derived from BaseException {{{2
@@ -166,7 +174,7 @@ endfunction
 " @function StopIteration(...)
 " Iteration stops.
 function! object#except#StopIteration()
-  call object#except#throw_(s:StopIteration)
+  call object#except#throw(s:StopIteration)
 endfunction
 
 ""

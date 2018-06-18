@@ -87,10 +87,11 @@ endfunction
 " @throws WrongType if {name} is not a String.
 " @throws WrongType if {obj} is not a Dict.
 function! object#protocols#hasattr(obj, name)
-  let obj = maktaba#ensure#IsDict(a:obj)
-  let name = maktaba#ensure#IsString(a:name)
+  if !maktaba#value#IsString(a:name)
+    call object#TypeError('hasattr(): attribute name must be string')
+  endif
   try
-    call object#getattr(obj, name)
+    call object#getattr(a:obj, a:name)
   catch
     return 0
   endtry

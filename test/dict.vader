@@ -1,4 +1,5 @@
 " vim: ft=vim
+" Test class dict
 
 Include(Methods of dict object): dict/methods.vader
 Include(Plain dict creator): dict/dict.vader

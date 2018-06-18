@@ -52,8 +52,9 @@ for i in range(10)
 endfor
 
 
-Execute(When the haystack does not provide membership tesing, false is returned);
+Execute(Throw TypeError when arg is not iterable);
 let input = [ function('tr'), 1 ]
 for X in input
-  Assert !object#contains(1, X)
+  AssertThrows call object#contains(1, g:X)
+  Assert g:vader_exception =~# 'TypeError'
 endfor

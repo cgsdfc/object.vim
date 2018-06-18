@@ -8,8 +8,8 @@ let type = object#type_()
 let None = object#None()
 let X = object#class('X')
 
-Execute(Throws TypeError with argc > 2);
-AssertThrows call object#class('Boy', g:object, 'hey')
+Execute(Take at most 3 arguments);
+AssertThrows call object#class('Boy', g:object, g:, '')
 Assert g:vader_exception =~# 'TypeError'
 Log g:vader_exception
 
