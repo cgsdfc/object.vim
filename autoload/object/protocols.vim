@@ -107,7 +107,7 @@ endfunction
 " Fail back on |string()|.
 function! object#protocols#repr(obj)
   if object#class#is_valid_class(a:obj)
-    return printf('<type %s>', string(a:obj.__name__))
+    return printf('<class %s>', string(a:obj.__name__))
   endif
   if maktaba#value#IsList(a:obj)
     return object#list#repr(a:obj)

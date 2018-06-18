@@ -69,6 +69,9 @@ call object#class('UnboundLocalError', s:NameError, s:)
 call object#class('OSError', s:Exception, s:)
 call object#class('BlockingIOError', s:OSError, s:)
 call object#class('ChildProcessError', s:OSError, s:)
+" Alias of OSError
+let s:IOError = s:OSError
+let s:EnvironmentError = s:OSError
 
 " Class: Derived from ConnectionError {{{5
 call object#class('ConnectionError', s:OSError, s:)
@@ -114,7 +117,7 @@ call object#class('UnicodeTranslateError', s:UnicodeError, s:)
 " Raise an exception.
 " >
 "   raise() -> Re-throw v:exception.
-"   raise(type, ...) -> throw type(...).
+"   raise(type, ...) -> throw str(type(...)).
 " <
 function! object#except#raise(...)
   if !a:0
@@ -192,11 +195,16 @@ function! object#except#KeyError(...)
 endfunction
 
 ""
+" @deprecated
 " @function IOError(...)
 " File not writable or readable. Operation on a closed file. Thrown by
-" file objects usually.
+" file objects usually. Use OSError instead.
 function! object#except#IOError(...)
   call object#except#throw_(s:IOError, a:000)
+endfunction
+
+function! object#except#OSError(...)
+  call object#except#throw_(s:OSError, a:000)
 endfunction
 
 " Helper to throw 'no such attribute'

@@ -200,10 +200,6 @@ endfunction
 " except.vim
 "
 
-function! object#BaseException(...) abort
-  return call('object#except#BaseException', a:000)
-endfunction
-
 function! object#Exception(...) abort
   return call('object#except#Exception', a:000)
 endfunction
@@ -236,13 +232,13 @@ function! object#KeyError(...) abort
   return call('object#except#KeyError', a:000)
 endfunction
 
+function! object#OSError(...) abort
+  return call('object#except#OSError', a:000)
+endfunction
+
 "
 " types.vim
 "
-
-function! object#NoneType(...) abort
-  return call('object#types#NoneType', a:000)
-endfunction
 
 function! object#object(...) abort
   return call('object#types#object', a:000)

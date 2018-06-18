@@ -49,7 +49,10 @@ call object#types#install(s:NoneType, 'NoneType', s:type, s:object, [s:NoneType,
 "
 for s:obj in [s:object, s:type]
   function! s:obj.__repr__()
-    return printf('<%s object>', string(self.__class__.__name__))
+    return printf('<%s object>', self.__class__.__name__)
+  endfunction
+  function! s:obj.__str__()
+    return printf('<%s object>', self.__class__.__name__)
   endfunction
   function! s:obj.__bool__()
     return 1
@@ -61,13 +64,18 @@ endfor
 "
 for s:obj in [s:NoneType, s:None]
   function! s:obj.__init__()
+    "  TODO: Add __new__ and type(None)() should return None itself.
+    "  Python3 never throws about this.
     throw object#TypeError('cannot create NoneType instance')
   endfunction
   function! s:obj.__repr__()
-    return ''
+    return 'None'
   endfunction
   function! s:obj.__bool__()
     return 0
+  endfunction
+  function! s:obj.__str__()
+    return 'None'
   endfunction
 endfor
 
@@ -100,13 +108,6 @@ endfunction
 " Return the type class
 function! object#types#type_()
   return s:type
-endfunction
-
-""
-" @function NoneType()
-" Return the NoneType class
-function! object#types#NoneType()
-  return s:NoneType
 endfunction
 
 ""

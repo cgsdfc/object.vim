@@ -479,3 +479,9 @@ function! object#class#find_class(needle, haystack)
   endwhile
   return -1
 endfunction
+
+" An unchecked version of class() supposed to work faster
+" with the large Exception hierarchy.
+function! object#class#builtin_class(name, base, scope)
+
+endfunction

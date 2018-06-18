@@ -4,8 +4,8 @@
 Before;
 let object = object#object_()
 let type = object#type_()
-let NoneType = object#NoneType()
 let None = object#None()
+let NoneType = object#type(None)
 let tops = [ object, type, NoneType ]
 
 
@@ -22,10 +22,9 @@ for x in tops
 endfor
 
 
-Execute(repr() works with top classes);
+Execute(__repr__ of class objects);
 for x in tops
-  Log object#repr(x)
-  Assert object#repr(x) =~# "<type '.*'>"
+  Assert object#repr(x) =~# "<class '.*'>"
 endfor
 
 Execute (MRO for top classes);
@@ -37,7 +36,8 @@ AssertEqual NoneType.__mro__, [NoneType, type, object]
 Execute(Special object: None);
 Assert None.__class__ is# NoneType
 AssertEqual 0, object#bool(None), 'None is false'
-AssertEqual '', object#repr(None), 'None is nothing'
+AssertEqual 'None', object#repr(None)
+AssertEqual 'None', object#str(None)
 AssertThrows call object#new(g:NoneType)
 
 Log g:vader_exception
@@ -45,5 +45,8 @@ Assert g:vader_exception =~# 'TypeError'
 Log object#dir(None)
 
 
-Execute(bool() with plain object);
-Assert object#bool(object#object())
+Execute(Plain object instance);
+let obj = object#object()
+AssertEqual 1, object#bool(obj)
+AssertEqual object#str(obj), '<object object>'
+AssertEqual object#str(obj), object#repr(obj)
