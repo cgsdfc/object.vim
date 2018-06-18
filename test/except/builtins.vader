@@ -2,8 +2,8 @@
 " Test Exceptions
 Before;
 let builtins = object#except#builtins()
-let BaseException = builtins['BaseException']
-let Exception = builtins['Exception']
+let BaseException = builtins.BaseException
+let Exception = builtins.Exception
 
 
 Execute(BaseException);
@@ -34,6 +34,7 @@ Assert g:vader_exception =~# 'Exception'
 
 Execute(Frequently used raisers);
 let raisers = [
+      \ 'Exception',
       \ 'TypeError',
       \ 'AttributeError',
       \ 'ValueError',

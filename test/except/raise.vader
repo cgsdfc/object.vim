@@ -2,8 +2,8 @@
 
 Before;
 " Create a customized exception.
-let BaseException = object#except#Exception_()
-call object#class('MyError', BaseException, g:)
+let Exception = object#except#Exception_()
+call object#class('MyError', Exception, g:)
 
 Execute(No args: reraise);
 function! TestReraise()
