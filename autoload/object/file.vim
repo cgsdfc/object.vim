@@ -4,7 +4,7 @@
 " Features:
 "   * Lazy reading and writing.
 "   * Line-oriented I/O.
-"   * Handle errors with IOError.
+"   * Handle errors with OSError.
 "   * Mode string syntax like 'a', 'w' or '+', 'b'.
 "
 " Limitations:
@@ -75,17 +75,17 @@ endfunction
 " Initialize a file object with {name} and {mode}.
 " @throws WrongType if {mode} is not a String.
 " @throws ValueError is {mode} string is invalid.
-" @throws IOError if the file is not readable or writable.
+" @throws OSError if the file is not readable or writable.
 function! s:file.__init__(name, mode)
   let name = maktaba#ensure#IsString(a:name)
   let mode = maktaba#ensure#IsString(a:mode)
   if mode !~# s:valid_mode
-    throw object#ValueError('invalid mode ''%s''', mode)
+    call object#ValueError('invalid mode ''%s''', mode)
   endif
 
   if mode =~# s:readable
     if !filereadable(name)
-      throw object#IOError('file not readable: ''%s''', name)
+      call object#OSError('file not readable: ''%s''', name)
     endif
     let self._rflags = object#file#read_flags(mode)
   endif
@@ -96,7 +96,7 @@ function! s:file.__init__(name, mode)
       try
         call writefile([], name)
       catch /E482/
-        throw object#IOError('file not writable: ''%s''', name)
+        call object#OSError('file not writable: ''%s''', name)
       endtry
     endif
     let self._wflags = object#file#write_flags(mode)
@@ -227,7 +227,7 @@ endfunction
 ""
 " @dict file
 " Flush the written data.
-" @throws IOError if |writefile()| fails.
+" @throws OSError if |writefile()| fails.
 function! s:file.flush()
   call self._check_closed()
   if self.mode !~# s:writable
@@ -236,7 +236,7 @@ function! s:file.flush()
   try
     call writefile(self._wbuf, self.name, self._wflags)
   catch /E482/
-    throw object#IOError('cannot create file ''%s''', self.name)
+    call object#OSError('cannot create file ''%s''', self.name)
   endtry
 endfunction
 
@@ -287,7 +287,7 @@ endfunction
 
 function! s:file._check_closed()
   if self.closed
-    throw object#IOError('I/O operation on closed file')
+    call object#OSError('I/O operation on closed file')
   endif
 endfunction
 
@@ -295,10 +295,10 @@ endfunction
 function! s:file._check_writable()
   call self._check_closed()
   if self.mode !~# s:writable
-    throw object#IOError('file not open for writing')
+    call object#OSError('file not open for writing')
   endif
   if !filewritable(self.name)
-    throw object#IOError('file not writable: ''%s''', self.name)
+    call object#OSError('file not writable: ''%s''', self.name)
   endif
 endfunction
 
@@ -306,10 +306,10 @@ endfunction
 function! s:file._check_readable()
   call self._check_closed()
   if self.mode !~# s:readable
-    throw object#IOError('file not open for reading')
+    call object#OSError('file not open for reading')
   endif
   if !filereadable(self.name)
-    throw object#IOError('file not readable: ''%s''', self.name)
+    call object#OSError('file not readable: ''%s''', self.name)
   endif
   if has_key(self, '_rbuf')
     return
@@ -317,9 +317,9 @@ function! s:file._check_readable()
   try
     let lines = readfile(self.name, self._rflags)
   catch /E484/
-    throw object#IOError('cannot open file ''%s''', self.name)
+    call object#OSError('cannot open file ''%s''', self.name)
   catch /E485/
-    throw object#IOError('cannot read file ''%s''', self.name)
+    call object#OSError('cannot read file ''%s''', self.name)
   endtry
   let self._rbuf = object#iter(lines)
 endfunction

@@ -59,16 +59,16 @@ AssertEqual f.readlines(), []
 " Throwing behaviours
 "
 
-Execute(open()'ing an unreadable file throws IOError);
+Execute(open()'ing an unreadable file throws OSError);
 " chmod -r lipsum.txt
 let t = files[0]
 Assert maktaba#path#Exists(t)
 call setfperm(t, '-w-------')
 AssertThrows call object#open(g:t, 'r')
-Assert g:vader_exception =~# 'IOError'
+Assert g:vader_exception =~# 'OSError'
 
 
-Execute(After open()'ed successfully, read() family throw IOError if f becomes unreadable);
+Execute(After open()'ed successfully, read() family throw OSError if f becomes unreadable);
 let t = files[0]
 Assert filereadable(t)
 
@@ -81,7 +81,7 @@ Assert !filereadable(t)
 
 for x in read_family
   AssertThrows call g:f[g:x]()
-  Assert g:vader_exception =~# 'IOError'
+  Assert g:vader_exception =~# 'OSError'
   Log g:vader_exception
 endfor
 
@@ -92,16 +92,16 @@ call delete(t)
 
 for x in read_family
   AssertThrows call g:f[g:x]()
-  Assert g:vader_exception =~# 'IOError'
+  Assert g:vader_exception =~# 'OSError'
 endfor
 
 
-Execute(Throws IOError if read operations are not supported by the mode);
+Execute(Throws OSError if read operations are not supported by the mode);
 let f = object#open(files[0], 'w')
 for x in read_family
   AssertThrows call g:f[g:x]()
   Log g:vader_exception
-  Assert g:vader_exception =~# 'IOError'
+  Assert g:vader_exception =~# 'OSError'
 endfor
 
 

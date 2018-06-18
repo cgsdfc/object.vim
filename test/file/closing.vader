@@ -5,7 +5,7 @@ Before;
 let file = tempname()
 call writefile([], file)
 let file_ = object#file_()
-let closed_exception = 'IOError.*closed'
+let closed_exception = 'OSError.*closed'
 let content = 'Test Content'
 
 
@@ -53,14 +53,14 @@ call f.close()
 AssertEqual readfile(f.name)[0], content
 
 
-Execute(Throws IOError when flush fails);
+Execute(Throws OSError when flush fails);
 let f=object#open(file, 'w')
 call f.writeline(content)
 call setfperm(f.name, 'r--------')
 
 AssertThrows call g:f.close()
 Log g:vader_exception
-Assert g:vader_exception =~# 'IOError'
+Assert g:vader_exception =~# 'OSError'
 
 
 Execute(If close() or flush() is omitted, the file stays unmodified);

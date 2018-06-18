@@ -82,7 +82,7 @@ AssertThrows call g:f.writelines(1)
 Assert g:vader_exception =~# 'TypeError'
 
 
-Execute(Although open()'ed writable, f.write() and friends throw IOError if f becomes unwritable);
+Execute(Although open()'ed writable, f.write() and friends throw OSError if f becomes unwritable);
 let t = files[0]
 Assert filewritable(t)
 
@@ -91,16 +91,16 @@ call setfperm(t, 'r--------')
 
 for x in write_family
   AssertThrows call g:f[g:x]('aaa')
-  Assert g:vader_exception =~# 'IOError'
+  Assert g:vader_exception =~# 'OSError'
 endfor
 
 
-Execute(Throws IOError if write operations are not supported by the mode);
+Execute(Throws OSError if write operations are not supported by the mode);
 let f = object#open(files[0])
 for x in write_family
   AssertThrows call g:f[g:x]('')
   Log g:vader_exception
-  Assert g:vader_exception =~# 'IOError'
+  Assert g:vader_exception =~# 'OSError'
 endfor
 
 
