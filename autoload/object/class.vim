@@ -497,5 +497,4 @@ function! object#class#builtin_class(name, base, scope)
     call extend(cls, filter(copy(x), 'maktaba#value#IsFuncref(v:val)'), 'keep')
   endfor
   let a:scope[a:name] = cls
-  return cls
 endfunction

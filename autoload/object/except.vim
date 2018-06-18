@@ -27,107 +27,115 @@ function! s:BaseException.__str__()
   return call('printf', self.args)
 endfunction
 
-"" Class: Derived from BaseException {{{2
-call object#class#builtin_class('KeyboardInterrupt', s:BaseException, s:)
-call object#class#builtin_class('SystemExit', s:BaseException, s:)
-call object#class#builtin_class('GeneratorExit', s:BaseException, s:)
+" Eagerly Bootstrap
 call object#class#builtin_class('Exception', s:BaseException, s:)
-
-"" Class: Derived from Exception {{{3
 call object#class#builtin_class('StopIteration', s:Exception, s:)
-call object#class#builtin_class('StopAsyncIteration', s:Exception, s:)
-call object#class#builtin_class('ArithmeticError', s:Exception, s:)
-
-" Class: Derived from ArithmeticError {{{4
-call object#class#builtin_class('FloatingPointError', s:ArithmeticError, s:)
-call object#class#builtin_class('OverflowError', s:ArithmeticError, s:)
-call object#class#builtin_class('ZeroDivisionError', s:ArithmeticError, s:)
-" }}}
-
-call object#class#builtin_class('AssertionError', s:Exception, s:)
+call object#class#builtin_class('OSError', s:Exception, s:)
+call object#class#builtin_class('TypeError', s:Exception, s:)
+call object#class#builtin_class('ValueError', s:Exception, s:)
 call object#class#builtin_class('AttributeError', s:Exception, s:)
-call object#class#builtin_class('BufferError', s:Exception, s:)
-call object#class#builtin_class('EOFError', s:Exception, s:)
-
-" Class: Derived from ImportError {{{4
-call object#class#builtin_class('ImportError', s:Exception, s:)
-call object#class#builtin_class('ModuleNotFoundError', s:ImportError, s:)
-" }}}
-
-" Class: Derived from LookupError {{{4
 call object#class#builtin_class('LookupError', s:Exception, s:)
 call object#class#builtin_class('IndexError', s:LookupError, s:)
 call object#class#builtin_class('KeyError', s:LookupError, s:)
-" }}}
 
-call object#class#builtin_class('MemoryError', s:Exception, s:)
+" On-demand Bootstrap
+function! object#except#lazy_bootstrap()
+  " Class: Derived from BaseException {{{2
+  call object#class#builtin_class('KeyboardInterrupt', s:BaseException, s:)
+  call object#class#builtin_class('SystemExit', s:BaseException, s:)
+  call object#class#builtin_class('GeneratorExit', s:BaseException, s:)
 
-" Class: Derived from NameError {{{4
-call object#class#builtin_class('NameError', s:Exception, s:)
-call object#class#builtin_class('UnboundLocalError', s:NameError, s:)
-" }}}
+  " Class: Derived from Exception {{{3
+  call object#class#builtin_class('StopAsyncIteration', s:Exception, s:)
+  call object#class#builtin_class('ArithmeticError', s:Exception, s:)
 
-" Class: Derived from OSError {{{4
-call object#class#builtin_class('OSError', s:Exception, s:)
-call object#class#builtin_class('BlockingIOError', s:OSError, s:)
-call object#class#builtin_class('ChildProcessError', s:OSError, s:)
-" Alias of OSError
-let s:IOError = s:OSError
-let s:EnvironmentError = s:OSError
+  " Class: Derived from ArithmeticError {{{4
+  call object#class#builtin_class('FloatingPointError', s:ArithmeticError, s:)
+  call object#class#builtin_class('OverflowError', s:ArithmeticError, s:)
+  call object#class#builtin_class('ZeroDivisionError', s:ArithmeticError, s:)
+  " }}}
 
-" Class: Derived from ConnectionError {{{5
-call object#class#builtin_class('ConnectionError', s:OSError, s:)
-call object#class#builtin_class('BrokenPipeError', s:ConnectionError, s:)
-call object#class#builtin_class('ConnectionAbortedError', s:ConnectionError, s:)
-call object#class#builtin_class('ConnectionRefusedError', s:ConnectionError, s:)
-call object#class#builtin_class('ConnectionResetError', s:ConnectionError, s:)
-" }}}5
+  call object#class#builtin_class('AssertionError', s:Exception, s:)
+  call object#class#builtin_class('BufferError', s:Exception, s:)
+  call object#class#builtin_class('EOFError', s:Exception, s:)
 
-" Class: Other subclass#builtin_classes of OSError
-call object#class#builtin_class('FileExistsError', s:OSError, s:)
-call object#class#builtin_class('FileNotFoundError', s:OSError, s:)
-call object#class#builtin_class('InterruptedError', s:OSError, s:)
-call object#class#builtin_class('IsADirectoryError', s:OSError, s:)
-call object#class#builtin_class('NotADirectoryError', s:OSError, s:)
-call object#class#builtin_class('PermissionError', s:OSError, s:)
-call object#class#builtin_class('ProcessLookupError', s:OSError, s:)
-call object#class#builtin_class('TimeoutError', s:OSError, s:)
-" }}}4
+  " Class: Derived from ImportError {{{4
+  call object#class#builtin_class('ImportError', s:Exception, s:)
+  call object#class#builtin_class('ModuleNotFoundError', s:ImportError, s:)
+  " }}}
 
-" Class: Derived from RuntimeError {{{4
-call object#class#builtin_class('RuntimeError', s:Exception, s:)
-call object#class#builtin_class('NotImplementedError', s:RuntimeError, s:)
-call object#class#builtin_class('RecursionError', s:RuntimeError, s:)
-" }}}4
+  " Class: Derived from LookupError {{{4
+  " }}}
 
-call object#class#builtin_class('SyntaxError', s:Exception, s:)
-call object#class#builtin_class('SystemError', s:Exception, s:)
-call object#class#builtin_class('TypeError', s:Exception, s:)
+  call object#class#builtin_class('MemoryError', s:Exception, s:)
 
-" Class: Derived from ValueError {{{4
-call object#class#builtin_class('ValueError', s:Exception, s:)
-call object#class#builtin_class('UnicodeError', s:ValueError, s:)
-call object#class#builtin_class('UnicodeEncodeError', s:UnicodeError, s:)
-call object#class#builtin_class('UnicodeDecodeError', s:UnicodeError, s:)
-call object#class#builtin_class('UnicodeTranslateError', s:UnicodeError, s:)
-" }}}4
+  " Class: Derived from NameError {{{4
+  call object#class#builtin_class('NameError', s:Exception, s:)
+  call object#class#builtin_class('UnboundLocalError', s:NameError, s:)
+  " }}}
 
-" Class: Derived from Warning {{{4
-call object#class#builtin_class('Warning', s:Exception, s:)
-call object#class#builtin_class('DeprecationWarning', s:Warning, s:)
-call object#class#builtin_class('PendingDeprecationWarning', s:Warning, s:)
-call object#class#builtin_class('RuntimeWarning', s:Warning, s:)
-call object#class#builtin_class('SyntaxWarning', s:Warning, s:)
-call object#class#builtin_class('UserWarning', s:Warning, s:)
-call object#class#builtin_class('FutureWarning', s:Warning, s:)
-call object#class#builtin_class('ImportWarning', s:Warning, s:)
-call object#class#builtin_class('UnicodeWarning', s:Warning, s:)
-call object#class#builtin_class('ResourceWarning', s:Warning, s:)
-" }}}4
+  " Class: Derived from OSError {{{4
+  call object#class#builtin_class('BlockingIOError', s:OSError, s:)
+  call object#class#builtin_class('ChildProcessError', s:OSError, s:)
+  " Alias of OSError
+  let s:IOError = s:OSError
+  let s:EnvironmentError = s:OSError
 
-"}}}1
+  " Class: Derived from ConnectionError {{{5
+  call object#class#builtin_class('ConnectionError', s:OSError, s:)
+  call object#class#builtin_class('BrokenPipeError', s:ConnectionError, s:)
+  call object#class#builtin_class('ConnectionAbortedError', s:ConnectionError, s:)
+  call object#class#builtin_class('ConnectionRefusedError', s:ConnectionError, s:)
+  call object#class#builtin_class('ConnectionResetError', s:ConnectionError, s:)
+  " }}}5
+
+  " Class: Other subclass#builtin_classes of OSError
+  call object#class#builtin_class('FileExistsError', s:OSError, s:)
+  call object#class#builtin_class('FileNotFoundError', s:OSError, s:)
+  call object#class#builtin_class('InterruptedError', s:OSError, s:)
+  call object#class#builtin_class('IsADirectoryError', s:OSError, s:)
+  call object#class#builtin_class('NotADirectoryError', s:OSError, s:)
+  call object#class#builtin_class('PermissionError', s:OSError, s:)
+  call object#class#builtin_class('ProcessLookupError', s:OSError, s:)
+  call object#class#builtin_class('TimeoutError', s:OSError, s:)
+  " }}}4
+
+  " Class: Derived from RuntimeError {{{4
+  call object#class#builtin_class('RuntimeError', s:Exception, s:)
+  call object#class#builtin_class('NotImplementedError', s:RuntimeError, s:)
+  call object#class#builtin_class('RecursionError', s:RuntimeError, s:)
+  " }}}4
+
+  call object#class#builtin_class('SyntaxError', s:Exception, s:)
+  call object#class#builtin_class('SystemError', s:Exception, s:)
+
+  " Class: Derived from ValueError {{{4
+  call object#class#builtin_class('UnicodeError', s:ValueError, s:)
+  call object#class#builtin_class('UnicodeEncodeError', s:UnicodeError, s:)
+  call object#class#builtin_class('UnicodeDecodeError', s:UnicodeError, s:)
+  call object#class#builtin_class('UnicodeTranslateError', s:UnicodeError, s:)
+  " }}}4
+
+  " Class: Derived from Warning {{{4
+  call object#class#builtin_class('Warning', s:Exception, s:)
+  call object#class#builtin_class('DeprecationWarning', s:Warning, s:)
+  call object#class#builtin_class('PendingDeprecationWarning', s:Warning, s:)
+  call object#class#builtin_class('RuntimeWarning', s:Warning, s:)
+  call object#class#builtin_class('SyntaxWarning', s:Warning, s:)
+  call object#class#builtin_class('UserWarning', s:Warning, s:)
+  call object#class#builtin_class('FutureWarning', s:Warning, s:)
+  call object#class#builtin_class('ImportWarning', s:Warning, s:)
+  call object#class#builtin_class('UnicodeWarning', s:Warning, s:)
+  call object#class#builtin_class('ResourceWarning', s:Warning, s:)
+  " }}}4
+
+  "}}}1
+endfunction
 
 function! object#except#builtins()
+  if !exists('s:KeyboardInterrupt')
+    call object#except#lazy_bootstrap()
+  endif
   return s:
 endfunction
 
@@ -222,14 +230,7 @@ function! object#except#KeyError(...)
 endfunction
 
 ""
-" @deprecated
-" @function IOError(...)
-" File not writable or readable. Operation on a closed file. Thrown by
-" file objects usually. Use OSError instead.
-function! object#except#IOError(...)
-  call object#except#throw_(s:IOError, a:000)
-endfunction
-
+" @function OSError(...)
 function! object#except#OSError(...)
   call object#except#throw_(s:OSError, a:000)
 endfunction

@@ -224,10 +224,6 @@ function! object#AttributeError(...) abort
   return call('object#except#AttributeError', a:000)
 endfunction
 
-function! object#IOError(...) abort
-  return call('object#except#IOError', a:000)
-endfunction
-
 function! object#IndexError(...) abort
   return call('object#except#IndexError', a:000)
 endfunction

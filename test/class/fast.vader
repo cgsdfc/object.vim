@@ -9,5 +9,6 @@ Before;
 let Base = object#class('Base')
 
 Execute(Create exactly the same as class());
-AssertEqual object#class#builtin_class('X', Base, g:), object#class('X', Base)
+call object#class#builtin_class('X', Base, g:)
 Assert has_key(g:, 'X'), 'Bind name to scope'
+AssertEqual X, object#class('X', Base)
