@@ -334,22 +334,22 @@ endfunction
 " Ensure that {x} is one valid class or a list of
 " non-duplicate classes.
 function! object#class#ensure_bases(x)
-  let base = maktaba#ensure#IsList(a:x)
-  let N = len(base)
+  let bases = maktaba#ensure#IsList(a:x)
+  let N = len(bases)
   let i = 0
   while i < N-1
     let j = i + 1
     while j < N
       call object#class#ensure_class(bases[i])
-      if base[i] isnot# base[j]
+      if bases[i] isnot# bases[j]
         let j += 1
         continue
       endif
-      call object#TypeError('duplicate base class %s', string(base[i].__name__))
+      call object#TypeError('duplicate base class %s', string(bases[i].__name__))
     endwhile
     let i += 1
   endwhile
-  return base
+  return bases
 endfunction
 
 "
@@ -484,5 +484,18 @@ endfunction
 " An unchecked version of class() supposed to work faster
 " with the large Exception hierarchy.
 function! object#class#builtin_class(name, base, scope)
-
+  let bases = [a:base]
+  let cls = {
+        \ '__name__': a:name,
+        \ '__class__': s:type_class,
+        \ '__base__': a:base,
+        \ '__bases__': bases,
+        \}
+  let cls.__mro__ = [cls] + a:base.__mro__
+  for x in a:base.__mro__
+    " TODO: Check for staticmethod/classmethod
+    call extend(cls, filter(copy(x), 'maktaba#value#IsFuncref(v:val)'), 'keep')
+  endfor
+  let a:scope[a:name] = cls
+  return cls
 endfunction

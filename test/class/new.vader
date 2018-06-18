@@ -8,7 +8,7 @@ let X = object#class('X')
 Execute(New cls can be instantiated with new() with default __init__ and __repr__);
 let x = object#new(X)
 Assert x.__class__ is# X
-AssertEqual object#repr(x), "<'X' object>"
+AssertEqual object#repr(x), "<X object>"
 
 Execute(Hook into __init__ and __repr__);
 function! X.__init__(name, size)

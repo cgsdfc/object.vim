@@ -23,10 +23,10 @@ AssertThrows call object#class(1)
 Assert g:vader_exception =~# 'WrongType'
 Log g:vader_exception
 
-Execute(Throws WrongType if bases is neither a List nor a class);
+Execute(Throws TypeError if bases is neither a List nor a class);
 AssertThrows call object#class('Man', 2)
-Assert g:vader_exception =~# 'WrongType'
 Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
 
 Execute(Throws TypeError if bases is not valid classes);
 for x in [ {}, [1, 2, 3], ]
@@ -55,7 +55,7 @@ for x in [ "object#class('Man')",  "object#class('Man', [])" ]
 endfor
 
 Execute(New cls should work with repr());
-AssertEqual object#repr(X), "<type 'X'>"
+AssertEqual object#repr(X), "<class 'X'>"
 
 Execute(New cls has expected instance relationship);
 Assert X.__class__ is# type

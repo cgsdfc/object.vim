@@ -1,0 +1,13 @@
+" vim: ft=vim
+" Test the _fast_ version of class() that is used to create built-in types.
+" The prices of speed is:
+" - Not validate the arguments at all.
+" - Only handle _single_ inheritance.
+" - Do not support optional arguments.
+
+Before;
+let Base = object#class('Base')
+
+Execute(Create exactly the same as class());
+AssertEqual object#class#builtin_class('X', Base, g:), object#class('X', Base)
+Assert has_key(g:, 'X'), 'Bind name to scope'

@@ -1,6 +1,7 @@
-Include (Class): class/class.vader
-Include (Method): class/method.vader
-Include (New): class/new.vader
-Include (MRO): class/mro.vader
-Include (IsXXX): class/isxxx.vader
-Include (Type): class/type.vader
+Include(Class): class/class.vader
+Include(Method): class/method.vader
+Include(New): class/new.vader
+Include(MRO): class/mro.vader
+Include(IsXXX): class/isxxx.vader
+Include(Type): class/type.vader
+Include(Fast Class): class/fast.vader
