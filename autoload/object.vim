@@ -200,6 +200,10 @@ endfunction
 " except.vim
 "
 
+function! object#raise(...) abort
+  return call('object#except#raise', a:000)
+endfunction
+
 function! object#Exception(...) abort
   return call('object#except#Exception', a:000)
 endfunction
@@ -254,10 +258,6 @@ endfunction
 
 function! object#None(...) abort
   return call('object#types#None', a:000)
-endfunction
-
-function! object#bool(...) abort
-  return call('object#types#bool', a:000)
 endfunction
 
 "
@@ -426,4 +426,11 @@ endfunction
 
 function! object#abs(...) abort
   return call('object#int#abs', a:000)
+endfunction
+
+"
+" bool.vim
+"
+function! object#bool(...) abort
+  return call('object#bool#bool', a:000)
 endfunction

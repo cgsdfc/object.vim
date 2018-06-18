@@ -1,0 +1,54 @@
+" vim: ft=vim
+
+Before;
+" Create a customized exception.
+let BaseException = object#except#Exception_()
+call object#class('MyError', BaseException, g:)
+
+Execute(No args: reraise);
+function! TestReraise()
+  try
+    throw 'Exception'
+  catch
+    call object#raise()
+  endtry
+endfunction
+
+AssertThrows call TestReraise()
+Assert g:vader_exception =~# 'Exception'
+
+Execute(No args, no pending: RuntimeError);
+AssertThrows call object#raise()
+Assert g:vader_exception =~# 'RuntimeError'
+Log g:vader_exception
+
+
+Execute(Only one arg: pure error name);
+AssertThrows call object#raise(g:MyError)
+Log g:vader_exception
+Assert g:vader_exception =~# 'MyError'
+
+
+Execute(Throw TypeError if !issubclass(except, BaseException));
+let bad = [
+      \ 1,
+      \ 'Exception',
+      \ object#class('X'),
+      \]
+
+for x in bad
+  AssertThrows call object#raise(g:x)
+  Assert g:vader_exception =~# 'TypeError'
+endfor
+
+
+Execute(Two args: error name with message);
+AssertThrows call object#raise(g:MyError, 'Ops')
+Log g:vader_exception
+Assert g:vader_exception =~# 'MyError: Ops'
+
+Execute(More than 2 args: formatted error message);
+AssertThrows call object#raise(g:MyError, 'Invalid address %x', 0xffffffff)
+Log g:vader_exception
+Assert g:vader_exception =~# 'MyError:.*'
+

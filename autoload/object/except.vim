@@ -6,6 +6,8 @@
 let s:BaseException = object#class('BaseException')
 
 function! s:BaseException.__init__(...)
+  " Note: a:000 cannot be modified so it is effectively a tuple.
+  " args is supposed to be RO so no copy() here.
   let self.args = a:000
 endfunction
 
@@ -102,15 +104,32 @@ call object#class('SyntaxError', s:Exception, s:)
 call object#class('SystemError', s:Exception, s:)
 call object#class('TypeError', s:Exception, s:)
 
-"" Class: Derived from ValueError {{{4
+" Class: Derived from ValueError {{{4
 call object#class('ValueError', s:Exception, s:)
 call object#class('UnicodeError', s:ValueError, s:)
 call object#class('UnicodeEncodeError', s:UnicodeError, s:)
 call object#class('UnicodeDecodeError', s:UnicodeError, s:)
 call object#class('UnicodeTranslateError', s:UnicodeError, s:)
 " }}}4
-" There is no Warning now :)
+
+" Class: Derived from Warning {{{4
+call object#class('Warning', s:Exception, s:)
+call object#class('DeprecationWarning', s:Warning, s:)
+call object#class('PendingDeprecationWarning', s:Warning, s:)
+call object#class('RuntimeWarning', s:Warning, s:)
+call object#class('SyntaxWarning', s:Warning, s:)
+call object#class('UserWarning', s:Warning, s:)
+call object#class('FutureWarning', s:Warning, s:)
+call object#class('ImportWarning', s:Warning, s:)
+call object#class('UnicodeWarning', s:Warning, s:)
+call object#class('ResourceWarning', s:Warning, s:)
+" }}}4
+
 "}}}1
+
+function! object#except#builtins()
+  return s:
+endfunction
 
 ""
 " @function raise(...)
@@ -142,6 +161,14 @@ endfunction
 
 function! object#except#throw(except, ...)
   return object#except#throw_(a:except, a:000)
+endfunction
+
+function! object#except#BaseException_()
+  return s:BaseException
+endfunction
+
+function! object#except#Exception_()
+  return s:Exception
 endfunction
 
 ""
