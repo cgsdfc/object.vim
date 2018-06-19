@@ -5,8 +5,8 @@ let s:bool = object#class('bool', object#int_())
 function! s:bool.__new__(cls, ...)
   let val = call('object#bool', a:000)
   if !exists('s:True')
-    let s:True = object#super(s:bool, a:cls).__new__(val) 
-    let s:False = object#super(s:bool, a:cls).__new__(!val) 
+    let s:True = object#super(s:bool, a:cls).__new__(val)
+    let s:False = object#super(s:bool, a:cls).__new__(!val)
   endif
   return val? s:True : s:False
 endfunction

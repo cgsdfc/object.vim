@@ -6,10 +6,14 @@
 " the corresponding methods with double underscores names.
 
 " VARIABLE: Some names ignored by dir().
+" NOTE: Python3 says some names will be missing, which will be
+" different from release to release.
+" We only filter some common patterns like __mro__.
 let s:dir_ignored = ['__mro__', '__bases__', '__base__', '__name__',]
 
 " FUNCTION: Attribute getting, setting, testing and listing. {{{1
-function! object#protocol#CheckAttrName(func, name)
+" FUNCTION: CheckAttrName() {{{2
+function! object#protocols#CheckAttrName(func, name)
   if object#builtin#IsString(a:name)
     return a:name
   endif
@@ -17,6 +21,7 @@ function! object#protocol#CheckAttrName(func, name)
         \ a:func, object#builtin#TypeName(a:name))
 endfunction
 
+" FUNCTION: getattr() {{{2
 ""
 " @function getattr(...)
 " Get the attribute {name} from {obj}.
@@ -75,6 +80,7 @@ function! object#protocols#dict_lookup(obj, key)
   return Val
 endfunction
 
+" FUNCTION: setattr() {{{2
 ""
 " @function setattr(...)
 " Set the {name} attribute of {obj} to {val}.
@@ -96,6 +102,7 @@ function! object#protocols#setattr(obj, name, val)
   endif
 endfunction
 
+" FUNCTION: hasattr() {{{2
 ""
 " @function hasattr(...)
 " Test whether {obj} has attribute {name}.
@@ -114,6 +121,7 @@ function! object#protocols#hasattr(obj, name)
   return 1
 endfunction
 
+" FUNCTION: dir() {{{2
 ""
 " @function dir(...)
 " Return a |List| of names of all attributes from {obj}. If
@@ -129,17 +137,11 @@ function! object#protocols#dir(obj)
   endif
 
   " TODO: differentiate module, class and object.
+  " TODO: When we have classmethod/staticmethod, do something here.
   let dict = copy(obj)
-  let cls = has_key(obj, '__mro__') ? obj : obj.__class__
-  if obj isnot cls
-    call extend(dict, cls, 'keep')
+  if has_key(obj, '__mro__')
+    call extend(dict, obj.__class__, 'keep')
   endif
-  for x in cls.__bases__
-    call extend(dict, x, 'keep')
-  endfor
-  " NOTE: Python3 says some names will be missing, which will be
-  " different from release to release.
-  " We only filter some common patterns like __mro__.
   return sort(keys(filter(dict, 'index(s:dir_ignored, v:key)<0')))
 endfunction
 "}}}1
@@ -152,39 +154,40 @@ endfunction
 "   repr(obj) -> String
 " <
 function! object#protocols#repr(obj)
-  let obj = object#builtin#CheckObj('repr', 1, a:obj)
-  if has_key(obj, '__mro__')
-    " TODO: In terms of metaclass, we should use:
-    " obj.__class__.__repr__
-    return printf("<class '%s'>", obj.__name__)
+  if object#builtin#IsList(a:obj)
+    return object#list#repr(a:obj)
   endif
 
-  if object#builtin#IsList(obj)
-    return object#list#repr(obj)
+  if object#builtin#IsFuncref(a:obj)
+    return object#callable#repr(a:obj)
   endif
 
-  " TODO: When obj is a Funcref, we can detect its dict
-  " to find whether it is a bound-method, unbound-method
-  " or plain function. The string(obj.__init__) is too ugly
-  " to accept.
+  if object#builtin#IsDict(a:obj)
+    if has_key(a:obj, '__mro__')
+      " TODO: In terms of metaclass, we should use:
+      " obj.__class__.__repr__
+      return printf("<class '%s'>", a:obj.__name__)
+    endif
 
-  if object#builtin#IsDict(obj)
-    if has_key(obj, '__repr__')
-      let string = object#builtin#CallProtocolMethodVarargs(obj.__repr__)
+    if has_key(a:obj, '__repr__')
+      let string = object#builtin#CallProtocolMethodVarargs(
+            \ a:obj.__repr__)
       if object#builtin#IsString(string)
         return string
       endif
       call object#TypeError('__repr__ returned non-string (type %s)',
             \ object#builtin#TypeName(string))
     else
-      return object#dict#repr(obj)
+      return object#dict#repr(a:obj)
     endif
   endif
   " Number, Float, String, Job and Channel, and Special.
-  return string(obj)
+  return string(a:obj)
 endfunction
+" }}}1
 
 " FUNCTION: Sequence protocols: len(), in() {{{1
+" FUNCTION: len() {{{2
 ""
 " @function len(...)
 " Return the length of {obj}.
@@ -206,11 +209,14 @@ function! object#protocols#len(obj)
     if has_key(a:obj, '__len__')
       let number = object#builtin#CallProtocolMethodVarargs(
             \ a:obj.__len__)
-      if object#builtin#IsNumber(number)
-        return number
+      if !object#builtin#IsNumber(number)
+        call object#TypeError("'%s' object cannot be interpreted as an integer",
+              \ object#builtin#TypeName(number))
       endif
-      call object#TypeError("'%s' object cannot be interpreted as an integer",
-            \ object#builtin#TypeName(number))
+      if number < 0
+        call object#ValueError("__len__() should return >= 0")
+      endif
+      return number
     else
       return len(a:obj)
     endif
@@ -219,6 +225,7 @@ function! object#protocols#len(obj)
         \ object#builtin#TypeName(a:obj))
 endfunction
 
+" FUNCTION: in() {{{2
 ""
 " @function in(...)
 " Test whether {needle} is in {haystack}.
@@ -229,9 +236,6 @@ endfunction
 "   in(needle, obj) -> bool(obj.__contains__(needle)).
 " <
 function! object#protocols#in(needle, haystack)
-  " XXX: operator.contains(haystack, needle).
-  " We are inverted.
-  " Change the order or use object#in(needle, haystack).
   if object#builtin#IsList(a:haystack)
     return object#list#contains(a:haystack, a:needle)
   endif
@@ -259,11 +263,14 @@ function! object#protocols#in(needle, haystack)
         return 0
       endtry
     else " Plain dict.
+      " NOTE: We don't ensure a:needle is a String.
+      " Just let automatic conversion happen.
       return has_key(a:haystack, a:needle)
     endif
   endif
   call object#TypeError("argument of type '%s' is not iterable",
         \ object#builtin#TypeName(a:haystack))
 endfunction
+" }}}1
 
 " vim: set sw=2 sts=2 et fdm=marker:
