@@ -7,6 +7,16 @@ let s:islower = '\v\C^\l+$'
 let s:isspace = '\v\C^\s+$'
 let s:isupper = '\v\C^\u+$'
 
+" TODO: Unicode handling.
+function! object#str#len(X)
+
+endfunction
+
+" TODO: Unicode handling.
+function! object#str#contains(haystack, needle)
+  return 1
+endfunction
+
 function! object#str#str(...)
   call object#util#ensure_argc(1, a:0)
   if !a:0
@@ -75,7 +85,7 @@ function! s:str.__len__()
 endfunction
 
 function! s:str.__contains__(S)
-  return object#contains(a:S, self._str)
+  return object#str#contains(a:S, self._str)
 endfunction
 
 function! s:str.__iter__()

@@ -1,3 +1,5 @@
+" TODO: Read [Truth Value Testing](https://docs.python.org/3/library/stdtypes.html#id12)
+" to be more Python3.
 let s:bool = object#class('bool', object#int_())
 
 function! s:bool.__new__(cls, ...)

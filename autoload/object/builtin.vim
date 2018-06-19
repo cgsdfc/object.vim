@@ -38,7 +38,7 @@ function! object#builtin#CheckX(func, nr, X, code)
         \ s:typenames[type], s:typenames[a:code])
 endfunction
 
-function! object#builtin#CheckInt(func, nr, X)
+function! object#builtin#CheckNumber(func, nr, X)
   return object#builtin#CheckX(a:func, a:nr, a:X, s:Number)
 endfunction
 
@@ -58,7 +58,7 @@ function! object#builtin#CheckDict(func, nr, X)
   return object#builtin#CheckX(a:func, a:nr, a:X, s:Dict)
 endfunction
 
-function! object#builtin#CheckFunc(func, nr, X)
+function! object#builtin#CheckFuncref(func, nr, X)
   return object#builtin#CheckX(a:func, a:nr, a:X, s:Funcref)
 endfunction
 
@@ -82,15 +82,21 @@ endfunction
 
 " FUNCTION: IsXXX() {{{1
 function! object#builtin#IsBool(X)
+  " TODO: True and False object is bool.
   return type(a:X) == s:Boolean || a:X is 0 || a:X is 1
 endfunction
 
-function! object#builtin#IsInt(X)
+function! object#builtin#IsNumber(X)
   return type(a:X) == s:Number
 endfunction
 
 function! object#builtin#IsFloat(X)
   return type(a:X) == s:Float
+endfunction
+
+function! object#builtin#IsNumeric(X)
+  len type = type(a:X) 
+  return  type == s:Number || type == s:Float
 endfunction
 
 function! object#builtin#IsList(X)
@@ -105,7 +111,7 @@ function! object#builtin#IsString(X)
   return type(a:X) == s:String
 endfunction
 
-function! object#builtin#IsFunc(X)
+function! object#builtin#IsFuncref(X)
   return type(a:X) == s:Funcref
 endfunction
 

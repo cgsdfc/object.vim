@@ -4,6 +4,10 @@
 
 let s:list = object#class('list')
 
+function! object#list#contains(haystack, needle)
+  " TODO:
+endfunction
+
 ""
 " @function _list(...)
 " Create a list object.
@@ -90,7 +94,7 @@ endfunction
 " @dict list
 " Test whether {item} is in list.
 function! s:list.__contains__(Item)
-  return object#contains(self._list, a:Item)
+  return object#list#contains(a:Item, self._list)
 endfunction
 
 ""

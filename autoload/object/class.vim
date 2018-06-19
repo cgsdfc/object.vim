@@ -211,6 +211,10 @@ function! object#class#class(name, ...)
   let argc = object#util#ensure_argc(2, a:0)
   if a:0 == 2
     let scope = maktaba#ensure#IsDict(a:2)
+    " TODO: Don't create a class twice if scope is given.
+    " if has_key(scope, a:name)
+    "   return
+    " endif
   endif
 
   " Figure out the bases list

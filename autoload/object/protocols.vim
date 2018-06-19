@@ -5,6 +5,7 @@
 " that has well defined behaviours for built-in types and can be overriden by
 " the corresponding methods with double underscores names.
 
+" VARIABLE: Some names ignored by dir().
 let s:dir_ignored = ['__mro__', '__bases__', '__base__', '__name__',]
 
 " FUNCTION: Attribute getting, setting, testing and listing. {{{1
@@ -141,34 +142,49 @@ function! object#protocols#dir(obj)
   " We only filter some common patterns like __mro__.
   return sort(keys(filter(dict, 'index(s:dir_ignored, v:key)<0')))
 endfunction
-
 "}}}1
 
+" FUNCTION: repr() {{{1
 ""
 " @function repr(...)
-" Generate string representation for {obj}.
+" Generate string representation for {obj}. Fail back on |string()|.
 " >
 "   repr(obj) -> String
 " <
-" Fail back on |string()|.
 function! object#protocols#repr(obj)
-  if object#class#is_valid_class(a:obj)
-    return printf('<class %s>', string(a:obj.__name__))
+  let obj = object#builtin#CheckObj('repr', 1, a:obj)
+  if has_key(obj, '__mro__')
+    " TODO: In terms of metaclass, we should use:
+    " obj.__class__.__repr__
+    return printf("<class '%s'>", obj.__name__)
   endif
-  if maktaba#value#IsList(a:obj)
-    return object#list#repr(a:obj)
+
+  if object#builtin#IsList(obj)
+    return object#list#repr(obj)
   endif
-  if maktaba#value#IsDict(a:obj)
-    if has_key(a:obj, '__repr__')
-      return maktaba#ensure#IsString(object#protocols#call(a:obj.__repr__))
+
+  " TODO: When obj is a Funcref, we can detect its dict
+  " to find whether it is a bound-method, unbound-method
+  " or plain function. The string(obj.__init__) is too ugly
+  " to accept.
+
+  if object#builtin#IsDict(obj)
+    if has_key(obj, '__repr__')
+      let string = object#builtin#CallProtocolMethodVarargs(obj.__repr__)
+      if object#builtin#IsString(string)
+        return string
+      endif
+      call object#TypeError('__repr__ returned non-string (type %s)',
+            \ object#builtin#TypeName(string))
     else
-      return object#dict#repr(a:obj)
+      return object#dict#repr(obj)
     endif
   endif
-  return string(a:obj)
+  " Number, Float, String, Job and Channel, and Special.
+  return string(obj)
 endfunction
 
-" FUNCTION: Sequence protocols: len(), contains() {{{1
+" FUNCTION: Sequence protocols: len(), in() {{{1
 ""
 " @function len(...)
 " Return the length of {obj}.
@@ -177,40 +193,77 @@ endfunction
 "   len(obj) -> obj.__len__()
 " <
 function! object#protocols#len(obj)
-  if maktaba#value#IsString(a:obj) || maktaba#value#IsList(a:obj)
+  if object#builtin#IsString(a:obj)
+    " TODO: Unicode handling.
+    return object#str#len(a:obj)
+  endif
+
+  if object#builtin#IsList(a:obj)
     return len(a:obj)
   endif
-  if maktaba#value#IsDict(a:obj)
+
+  if object#builtin#IsDict(a:obj)
     if has_key(a:obj, '__len__')
-      return maktaba#ensure#IsNumber(object#protocols#call(a:obj.__len__))
+      let number = object#builtin#CallProtocolMethodVarargs(
+            \ a:obj.__len__)
+      if object#builtin#IsNumber(number)
+        return number
+      endif
+      call object#TypeError("'%s' object cannot be interpreted as an integer",
+            \ object#builtin#TypeName(number))
     else
       return len(a:obj)
     endif
   endif
-  call object#except#not_avail('len', a:obj)
+  call object#TypeError("object of type '%s' has no len()",
+        \ object#builtin#TypeName(a:obj))
 endfunction
 
 ""
-" @function contains(...)
-" Test whether {item} is in {obj}.
+" @function in(...)
+" Test whether {needle} is in {haystack}.
 " >
-"   contains(item, obj) -> item in obj.
+"   in(key, dict) -> has_key(dict, key).
+"   in(sub, string) -> sub in string.
+"   in(needle, iterable) -> needle in list(iterable).
+"   in(needle, obj) -> bool(obj.__contains__(needle)).
 " <
-function! object#protocols#contains(item, obj)
-  if maktaba#value#IsList(a:obj)
-    return index(a:obj, a:item) >= 0
+function! object#protocols#in(needle, haystack)
+  " XXX: operator.contains(haystack, needle).
+  " We are inverted.
+  " Change the order or use object#in(needle, haystack).
+  if object#builtin#IsList(a:haystack)
+    return object#list#contains(a:haystack, a:needle)
   endif
-  if maktaba#value#IsString(a:obj)
-    return stridx(a:obj, maktaba#ensure#IsString(a:item)) >= 0
+
+  if object#builtin#IsString(a:haystack)
+    return object#str#contains(a:haystack, a:needle)
   endif
-  if maktaba#value#IsDict(a:obj)
-    if has_key(a:obj, '__contains__')
-      return maktaba#ensure#IsBool(
-            \ object#protocols#call(a:obj.__contains__, a:item))
-    else
-      return has_key(a:obj, maktaba#ensure#IsString(a:item))
+
+  if object#builtin#IsDict(a:haystack)
+    if has_key(a:haystack, '__contains__')
+      let answer = object#builtin#CallProtocolMethodVarargs(
+            \ a:haystack.__contains__(a:needle))
+      " NOTE: return value of __contains__() is a bool context.
+      return object#bool(answer)
+    elseif has_key(a:haystack, '__iter__')
+      let iter = object#iter(a:haystack)
+      try
+        while 1
+          " TODO: use object#eq()
+          if maktaba#value#IsEqual(a:needle, object#next(iter))
+            return 1
+          endif
+        endwhile
+      catch 'StopIteration'
+        return 0
+      endtry
+    else " Plain dict.
+      return has_key(a:haystack, a:needle)
     endif
   endif
-  call object#except#not_avail('contains', a:obj)
+  call object#TypeError("argument of type '%s' is not iterable",
+        \ object#builtin#TypeName(a:haystack))
 endfunction
+
 " vim: set sw=2 sts=2 et fdm=marker:
