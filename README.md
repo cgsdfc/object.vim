@@ -99,6 +99,14 @@ echo object#hash(function('tr'))
 233815837
 ```
 
+- Class-based exceptions.
+```vim
+let except = object#except#builtins()
+call object#class('MyException', except.Exception, g:)
+call object#raise(MyException)
+E605: Exception not caught: MyException:
+```
+
 # Features
 * Shallow namespace `object#`.
 * Multiple inheritance powered by C3 linearization.
@@ -141,12 +149,11 @@ and as such it can be installed with a variety of plugin managers:
 
 # License
 
-MIT License. Copyright (c) 2018-2019 cgsdfc.
+MIT License. Copyright (c) 2018 cgsdfc.
 
 [1]: https://github.com/google/vim-maktaba
 [2]: https://github.com/junegunn/vader.vim
 [3]: https://github.com/google/vimdoc
-
 [4]: https://github.com/Shougo/neobundle.vim
 [5]: https://github.com/VundleVim/Vundle.vim
 [6]: https://github.com/junegunn/vim-plug
