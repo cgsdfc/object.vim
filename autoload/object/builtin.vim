@@ -153,6 +153,8 @@ function! object#builtin#CallProtocolMethod(X, args)
     call object#TypeError(v:exception)
   catch /E699/ " args > 20
     call object#TypeError('maximum number of arguments exceeded')
+  catch /E121/ " Undefined variables.
+    call object#NameError(v:exception)
   endtry
   return Val
 endfunction

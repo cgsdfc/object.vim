@@ -37,6 +37,7 @@ call object#class#builtin_class('AttributeError', s:Exception, s:)
 call object#class#builtin_class('LookupError', s:Exception, s:)
 call object#class#builtin_class('IndexError', s:LookupError, s:)
 call object#class#builtin_class('KeyError', s:LookupError, s:)
+call object#class#builtin_class('NameError', s:Exception, s:)
 
 " On-demand Bootstrap
 function! object#except#lazy_bootstrap()
@@ -70,7 +71,6 @@ function! object#except#lazy_bootstrap()
   call object#class#builtin_class('MemoryError', s:Exception, s:)
 
   " Class: Derived from NameError {{{4
-  call object#class#builtin_class('NameError', s:Exception, s:)
   call object#class#builtin_class('UnboundLocalError', s:NameError, s:)
   " }}}
 
@@ -129,8 +129,8 @@ function! object#except#lazy_bootstrap()
   call object#class#builtin_class('ResourceWarning', s:Warning, s:)
   " }}}4
 
-  "}}}1
 endfunction
+"}}}1
 
 function! object#except#builtins()
   if !exists('s:KeyboardInterrupt')
@@ -233,6 +233,12 @@ endfunction
 " @function OSError(...)
 function! object#except#OSError(...)
   call object#except#throw_(s:OSError, a:000)
+endfunction
+
+""
+" @function NameError(...)
+function! object#except#NameError(...)
+  call object#except#throw_(s:NameError, a:000)
 endfunction
 
 " Helper to throw 'no such attribute'

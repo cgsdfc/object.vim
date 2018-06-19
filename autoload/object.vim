@@ -120,9 +120,7 @@
 "
 
 
-"
-" class.vim
-"
+" MODULE: class.vim {{{1
 
 function! object#class(...) abort
   return call('object#class#class', a:000)
@@ -147,10 +145,9 @@ endfunction
 function! object#issubclass(...) abort
   return call('object#class#issubclass', a:000)
 endfunction
+" }}}1
 
-"
-" protocols.vim
-"
+" MODULE: protocols.vim {{{1
 
 function! object#dir(...) abort
   return call('object#protocols#dir', a:000)
@@ -179,10 +176,9 @@ endfunction
 function! object#in(...) abort
   return call('object#protocols#in', a:000)
 endfunction
+" }}}1
 
-"
-" mapping.vim
-"
+" MODULE: mapping.vim {{{1
 
 function! object#hash(...) abort
   return call('object#mapping#hash', a:000)
@@ -195,10 +191,9 @@ endfunction
 function! object#setitem(...) abort
   return call('object#mapping#setitem', a:000)
 endfunction
+" }}}1
 
-"
-" except.vim
-"
+" MODULE: except.vim: raise() and Exception Hierarchy {{{1
 
 function! object#raise(...) abort
   return call('object#except#raise', a:000)
@@ -236,9 +231,12 @@ function! object#OSError(...) abort
   return call('object#except#OSError', a:000)
 endfunction
 
-"
-" types.vim
-"
+function! object#NameError(...) abort
+  return call('object#except#NameError', a:000)
+endfunction
+" }}}1
+
+" MODULE: types.vim {{{1
 
 function! object#object(...) abort
   return call('object#types#object', a:000)
@@ -255,10 +253,9 @@ endfunction
 function! object#None(...) abort
   return call('object#types#None', a:000)
 endfunction
+" }}}1
 
-"
-" iter.vim
-"
+" MODULE: iter.vim {{{1
 
 function! object#iter(...) abort
   return call('object#iter#iter', a:000)
@@ -295,10 +292,9 @@ endfunction
 function! object#filter(...) abort
   return call('object#iter#filter', a:000)
 endfunction
+" }}}1
 
-"
-" file.vim
-"
+" MODULE: file.vim {{{1
 
 function! object#open(...) abort
   return call('object#file#open', a:000)
@@ -307,10 +303,9 @@ endfunction
 function! object#file_(...) abort
   return call('object#file#file_', a:000)
 endfunction
+" }}}1
 
-"
-" lambda.vim
-"
+" MODULE: lambda.vim {{{1
 
 function! object#lambda(...) abort
   return call('object#lambda#lambda', a:000)
@@ -327,10 +322,9 @@ endfunction
 function! object#for(...) abort
   return call('object#lambda#for', a:000)
 endfunction
+" }}}1
 
-"
-" super.vim
-"
+" MODULE: super.vim {{{1
 
 function! object#super(...) abort
   return call('object#super#super', a:000)
@@ -339,9 +333,9 @@ endfunction
 function! object#super_(...) abort
   return call('object#super#super_', a:000)
 endfunction
+" }}}1
 
-"
-" list.vim
+" MODULE: list.vim {{{1
 "
 function! object#list_(...) abort
   return call('object#list#list_', a:000)
@@ -354,9 +348,9 @@ endfunction
 function! object#_list(...) abort
   return call('object#list#_list', a:000)
 endfunction
+" }}}1
 
-"
-" dict.vim
+" MODULE: dict.vim {{{1
 "
 function! object#dict_(...) abort
   return call('object#dict#dict_', a:000)
@@ -369,9 +363,9 @@ endfunction
 function! object#_dict(...) abort
   return call('object#dict#_dict', a:000)
 endfunction
+" }}}1
 
-"
-" str.vim
+" MODULE: str.vim {{{1
 "
 function! object#str(...) abort
   return call('object#str#str', a:000)
@@ -392,10 +386,9 @@ endfunction
 function! object#ord(...) abort
   return call('object#str#ord', a:000)
 endfunction
+" }}}1
 
-"
-" int.vim
-"
+" MODULE: int.vim {{{1
 function! object#int(...) abort
   return call('object#int#int', a:000)
 endfunction
@@ -423,10 +416,12 @@ endfunction
 function! object#abs(...) abort
   return call('object#int#abs', a:000)
 endfunction
+" }}}1
 
-"
-" bool.vim
-"
+" MODULE: bool.vim {{{1
 function! object#bool(...) abort
   return call('object#bool#bool', a:000)
 endfunction
+" }}}1
+
+" vim: set sw=2 sts=2 et fdm=marker:
