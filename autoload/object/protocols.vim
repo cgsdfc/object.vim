@@ -5,11 +5,22 @@
 " that has well defined behaviours for built-in types and can be overriden by
 " the corresponding methods with double underscores names.
 
-"
-" Call a __protocol__ function {X} (ensure {X} is a Funcref)
-"
+" Call a protocol methods. Translate Vim error to Python-style error.
+" Since X is meant to be user-defined functions, some error thrown by
+" built-in functions are not caught.
 function! object#protocols#call(X, ...)
-  return call(maktaba#ensure#IsFuncref(a:X), a:000)
+  try
+    let Val = call(a:X, a:000)
+  catch /E117/
+    call object#TypeError("'%s' object is not callable",
+          \ object#types#name(a:X))
+  catch /E118\|E119/
+    " Too many or not enough args.
+    call object#TypeError(v:exception)
+  catch /E699/
+    call object#TypeError('maximum number of arguments exceeded')
+  endtry
+  return Val
 endfunction
 
 ""
