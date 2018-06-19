@@ -34,7 +34,7 @@ function! object#builtin#CheckX(func, nr, X, code)
   if type == a:code
     return a:X
   endif
-  call object#TypeError('%s argument %d must be %s, not %s',
+  call object#TypeError('%s() argument %d must be %s, not %s',
         \ s:typenames[type], s:typenames[a:code])
 endfunction
 
@@ -67,7 +67,17 @@ function! object#builtin#CheckBool(func, nr, X)
   if type == s:Boolean || a:X is 0 || a:X is 1
     return a:X
   endif
-  call object#TypeError('%s argument %d must be bool, not %s', s:typenames[type])
+  call object#TypeError('%s() argument %d must be bool, not %s',
+        \ a:func, s:typenames[type])
+endfunction
+
+function! object#builtin#CheckObj(func, nr, X)
+  let type = type(a:X)
+  if type == s:Dict && has_key(a:X, '__class__')
+    return a:X
+  endif
+  call object#TypeError('%s() argument %d must be object, not %s',
+        \ a:func, s:typenames[type])
 endfunction
 
 " FUNCTION: IsXXX() {{{1
@@ -99,10 +109,15 @@ function! object#builtin#IsFunc(X)
   return type(a:X) == s:Funcref
 endfunction
 
+function! object#builtin#IsObj(X)
+  return type(a:X) == s:Dict && has_key(a:X, '__class__')
+endfunction
+
 " FUNCTION: Others {{{1
-function! object#builtin#TakeAtMost(func, atmost, actual)
+function! object#builtin#TakeAtMostOptional(func, atmost, actual)
   if a:atmost < a:actual
-    call object#TypeError('%s takes at most %d arguments (%d given)', a:func, a:atmost, a:actual)
+    call object#TypeError('%s() takes at most %d optional arguments (%d given)',
+          \  a:func, a:atmost, a:actual)
   endif
 endfunction
 
@@ -113,4 +128,31 @@ function! object#builtin#TypeName(X)
   endif
   return s:typename[type(a:X)]
 endfunction
+
+" FUNCTION: Call a protocol methods. {{{1
+" Translate Vim error to Python-style error.
+" Since X is meant to be user-defined functions, some error thrown by
+" built-in functions are not caught.
+" >
+"   call object#builtin#CallProtocolMethod(obj.__init__, a:000)
+"   return object#builtin#CallProtocolMethodVarargs(obj.__len__)
+" <
+function! object#builtin#CallProtocolMethod(X, args)
+  try
+    let Val = call(a:X, a:args)
+  catch /E117/
+    call object#TypeError("'%s' object is not callable",
+          \ object#builtin#TypeName(a:X))
+  catch /E118\|E119/ " Too many or not enough args.
+    call object#TypeError(v:exception)
+  catch /E699/ " args > 20
+    call object#TypeError('maximum number of arguments exceeded')
+  endtry
+  return Val
+endfunction
+
+function! object#builtin#CallProtocolMethodVarargs(X, ...)
+  return object#builtin#CallProtocolMethod(a:X, a:000)
+endfunction
+
 " vim: set sw=2 sts=2 et fdm=marker:

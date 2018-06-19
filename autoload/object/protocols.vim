@@ -5,22 +5,15 @@
 " that has well defined behaviours for built-in types and can be overriden by
 " the corresponding methods with double underscores names.
 
-" Call a protocol methods. Translate Vim error to Python-style error.
-" Since X is meant to be user-defined functions, some error thrown by
-" built-in functions are not caught.
-function! object#protocols#call(X, ...)
-  try
-    let Val = call(a:X, a:000)
-  catch /E117/
-    call object#TypeError("'%s' object is not callable",
-          \ object#types#name(a:X))
-  catch /E118\|E119/
-    " Too many or not enough args.
-    call object#TypeError(v:exception)
-  catch /E699/
-    call object#TypeError('maximum number of arguments exceeded')
-  endtry
-  return Val
+let s:dir_ignored = ['__mro__', '__bases__', '__base__', '__name__',]
+
+" FUNCTION: Attribute getting, setting, testing and listing. {{{1
+function! object#protocol#CheckAttrName(func, name)
+  if object#builtin#IsString(a:name)
+    return a:name
+  endif
+  call object#TypeError("%s(): attribute name must be string, not '%s'",
+        \ a:func, object#builtin#TypeName(a:name))
 endfunction
 
 ""
@@ -37,18 +30,19 @@ endfunction
 " 3. If 2 fails, and if [default] is given, it will be returned.
 "   Otherwise, the latest `AttributeError` is thrown.
 function! object#protocols#getattr(obj, name, ...)
-  call object#util#ensure_argc(1, a:0)
-  let obj = maktaba#ensure#IsDict(a:obj)
-  let name = maktaba#ensure#IsString(a:name)
+  call object#builtin#TakeAtMostOptional('getattr', 1, a:0)
+  let obj = object#builtin#CheckObj('getattr', 1, a:obj)
+  let name = object#protocol#CheckAttrName('getattr', a:name)
+
   let getter = has_key(obj, '__getattribute__') ?
-        \ 'object#protocols#call(obj.__getattribute__, name)'
+        \ 'object#builtin#CallProtocolMethodVarargs(obj.__getattribute__, name)'
         \ : 'object#protocols#dict_lookup(obj, name)'
   try
     let Val = eval(getter)
   catch /AttributeError/
     if has_key(obj, '__getattr__')
       try
-        let Val = object#protocols#call(obj.__getattr__, name)
+        let Val = object#builtin#CallProtocolMethodVarargs(obj.__getattr__, name)
       catch /AttributeError/
         if a:0 == 1
           let Val = a:1
@@ -65,11 +59,19 @@ function! object#protocols#getattr(obj, name, ...)
   return Val
 endfunction
 
-function! object#protocols#dict_lookup(d, key)
-  if has_key(a:d, a:key)
-    return a:d[a:key]
-  endif
-  throw object#AttributeError('object has no attribute %s', string(a:key))
+function! object#protocols#dict_lookup(obj, key)
+  try
+    let Val = a:obj[a:key]
+  catch /E716/
+    if has_key(a:obj, '__mro__')
+      call object#AttributeError("type object %s has no attribute '%s'",
+            \ a:obj.__name__,  a:key)
+    else
+      call object#AttributeError("'%s' object has no attribute '%s'",
+            \ object#builtin#TypeName(a:obj),  a:key)
+    endif
+  endtry
+  return Val
 endfunction
 
 ""
@@ -80,10 +82,14 @@ endfunction
 "   setattr(obj, name, val) -> obj.__setattr__(name, val)
 " <
 function! object#protocols#setattr(obj, name, val)
-  let obj = maktaba#ensure#IsDict(a:obj)
-  let name = maktaba#ensure#IsString(a:name)
+  let obj = object#builtin#CheckObj('setattr', 1, a:obj)
+  let name = object#protocol#CheckAttrName('setattr', a:name)
+
+  " NOTE: Currently, special attrs not not lookuped through
+  " getattr().
   if has_key(obj, '__setattr__')
-    call object#protocols#call(obj.__setattr__, name, a:val)
+    call object#builtin#CallProtocolMethodVarargs(obj.__setattr__,
+          \  name, a:val)
   else
     let obj[name] = a:val
   endif
@@ -98,16 +104,45 @@ endfunction
 " @throws WrongType if {name} is not a String.
 " @throws WrongType if {obj} is not a Dict.
 function! object#protocols#hasattr(obj, name)
-  if !maktaba#value#IsString(a:name)
-    call object#TypeError('hasattr(): attribute name must be string')
-  endif
+  let name = object#protocol#CheckAttrName('hasattr', a:name)
   try
-    call object#getattr(a:obj, a:name)
+    call object#getattr(a:obj, name)
   catch
     return 0
   endtry
   return 1
 endfunction
+
+""
+" @function dir(...)
+" Return a |List| of names of all attributes from {obj}. If
+" {obj} defines __dir__(), it is called instead.
+" >
+"   dir(obj) -> list of attribute names.
+" <
+function! object#protocols#dir(obj)
+  let obj = object#builtin#CheckObj('dir', 1, a:obj)
+  if has_key(obj, '__dir__')
+    let names = object#builtin#CallProtocolMethodVarargs(obj.__dir__)
+    return sort(object#list(names))
+  endif
+
+  " TODO: differentiate module, class and object.
+  let dict = copy(obj)
+  let cls = has_key(obj, '__mro__') ? obj : obj.__class__
+  if obj isnot cls
+    call extend(dict, cls, 'keep')
+  endif
+  for x in cls.__bases__
+    call extend(dict, x, 'keep')
+  endfor
+  " NOTE: Python3 says some names will be missing, which will be
+  " different from release to release.
+  " We only filter some common patterns like __mro__.
+  return sort(keys(filter(dict, 'index(s:dir_ignored, v:key)<0')))
+endfunction
+
+"}}}1
 
 ""
 " @function repr(...)
@@ -133,6 +168,7 @@ function! object#protocols#repr(obj)
   return string(a:obj)
 endfunction
 
+" FUNCTION: Sequence protocols: len(), contains() {{{1
 ""
 " @function len(...)
 " Return the length of {obj}.
@@ -152,21 +188,6 @@ function! object#protocols#len(obj)
     endif
   endif
   call object#except#not_avail('len', a:obj)
-endfunction
-
-""
-" @function dir(...)
-" Return a |List| of names of all attributes from {obj}. If
-" {obj} defines __dir__(), it is called instead.
-" >
-"   dir(obj) -> a list of names of attributes of obj.
-" <
-function! object#protocols#dir(obj)
-  let obj = maktaba#ensure#IsDict(a:obj)
-  if !has_key(obj, '__dir__')
-    return keys(obj)
-  endif
-  return maktaba#ensure#IsList(object#protocols#call(obj.__dir__))
 endfunction
 
 ""
@@ -192,3 +213,4 @@ function! object#protocols#contains(item, obj)
   endif
   call object#except#not_avail('contains', a:obj)
 endfunction
+" vim: set sw=2 sts=2 et fdm=marker:
