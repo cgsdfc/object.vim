@@ -2,18 +2,52 @@
 
 Before;
 
-Execute(CheckX);
-AssertThrows call object#builtin#CheckX('MyFun', 0, 'wrong', type(0))
-Log g:vader_exception
+let Testers = [
+      \ 'IsNumber',
+      \ 'IsBool',
+      \ 'IsObj',
+      \ 'IsFloat',
+      \ 'IsList',
+      \ 'IsDict',
+      \ 'IsString',
+      \ 'IsFuncref',
+      \ ]
+
+for func in Testers
+  let {func} = function(printf('object#builtin#%s', func))
+endfor
 
 Execute(Number);
-AssertEqual 1, object#builtin#CheckNumber('MyFun', 0, 1)
-AssertThrows call object#builtin#CheckNumber('MyFun', 0, '')
+Assert IsNumber(1)
+Assert !IsNumber('')
 
 Execute(Bool);
-Assert 1, object#builtin#CheckBool('MyFun', 0, 1)
-AssertEqual v:false, object#builtin#CheckBool('MyFun', 0, v:false)
-AssertThrows call object#builtin#CheckBool('MyFun', 0, 3)
+Assert IsBool(1)
+Assert IsBool(v:false)
+Assert !IsBool(3)
 
 Execute(Dict);
-AssertEqual {}, object#builtin#CheckDict('MyFun', 0, {})
+Assert IsDict({})
+Assert !IsDict('')
+
+Execute(List);
+Assert IsList([])
+Assert !IsList('')
+
+Execute(Float);
+Assert IsFloat(1.0)
+Assert !IsFloat(1)
+
+Execute(Obj);
+let obj = object#object()
+Assert IsObj(obj)
+Assert !IsObj({})
+
+Execute(String);
+Assert IsString('')
+Assert !IsString(1)
+
+
+Execute(Funcref);
+Assert IsFuncref(function('tr'))
+Assert !IsFuncref('tr')

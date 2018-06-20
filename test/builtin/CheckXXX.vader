@@ -1,0 +1,57 @@
+" vim: ft=vim
+
+Before;
+" Mock away the func and nr.
+function! MockedCheckXXX(func)
+  return function(a:func, ['Mocked', 0])
+endfunction
+
+let Checkers = [
+      \ 'CheckNumber',
+      \ 'CheckBool',
+      \ 'CheckObj',
+      \ 'CheckFloat',
+      \ 'CheckList',
+      \ 'CheckDict',
+      \ 'CheckString',
+      \ 'CheckFuncref',
+      \ ]
+
+for chk in Checkers
+  let {chk} = MockedCheckXXX(printf('object#builtin#%s', chk))
+endfor
+
+Execute(Number);
+AssertEqual 1, CheckNumber(1)
+AssertThrows call CheckNumber('')
+
+Execute(Bool);
+AssertEqual 1, CheckBool(1)
+AssertEqual v:false, CheckBool(v:false)
+AssertThrows call CheckBool(3)
+
+Execute(Dict);
+AssertEqual {}, CheckDict({})
+AssertThrows call CheckDict('')
+
+Execute(List);
+AssertEqual [], CheckList([])
+AssertThrows call CheckList('')
+
+Execute(Float);
+AssertEqual 1.0, CheckFloat(1.0)
+AssertThrows call CheckFloat(1)
+
+Execute(Obj);
+let obj = object#object()
+AssertEqual obj, CheckObj(obj)
+AssertThrows call CheckObj({})
+
+Execute(String);
+AssertEqual '', CheckString('')
+AssertThrows call CheckString(1)
+
+
+Execute(Funcref);
+AssertEqual function('tr'), CheckFuncref(function('tr'))
+AssertThrows call CheckFuncref('tr')
