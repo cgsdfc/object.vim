@@ -2,4 +2,5 @@ Include(IsXXX): builtin/IsXXX.vader
 Include(CheckXXX): builtin/CheckXXX.vader
 Include(TypeName.vader): builtin/TypeName.vader
 Include(Call): builtin/Call.vader
+Include(ReOrderVimError): builtin/ReOrderVimError.vader
 " vim: ft=vim

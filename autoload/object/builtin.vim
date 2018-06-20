@@ -135,17 +135,26 @@ endfunction
 "   return object#builtin#Call(obj.__len__)
 " <
 function! object#builtin#Call_(X, args)
+  " Should we need a catch-all to throw something like:
+  " 'Unrecognized Vim Error'? No, not at all.
+  " - If it is a user exception, just let it go.
+  " - If it is an unrecognized exception, just let it out, it
+  "   will be added here after all.
+  " We use Exxx to recognize VimError, but what if we end up
+  " match what we produced since for user's benefits we enclose
+  " the error code in it?
+  " We should match a unique pattern that only Vim should throw.
   if !object#builtin#IsFuncref(a:X)
     call object#TypeError("'%s' object is not callable",
           \ object#builtin#TypeName(a:X))
   endif
   try
     let Val = call(a:X, a:args)
-  catch /E118\|E119/
+  catch /E118:\|E119:/
     " E118: Too many or not enough args.
     " E119: Too many or not enough args.
     call object#TypeError(object#builtin#ReOrderVimError(v:exception))
-  catch /E117\|E121/
+  catch /E117:\|E121:/
     " E117: Unknown function.
     " E121: Undefined variables.
     " NOTE: Unknown function can also be caused by
@@ -154,7 +163,7 @@ function! object#builtin#Call_(X, args)
     " However, the word "Unknown" makes it very like
     " an undefined name.
     call object#NameError(object#builtin#ReOrderVimError(v:exception))
-  catch /E488/
+  catch /E488:/
     " E488: Trailing characters
     call object#SyntaxError(object#builtin#ReOrderVimError(v:exception))
   endtry
@@ -176,7 +185,7 @@ endfunction
 " - When it is run in the prompt (interactively), the `Vim(xxx)`
 "   disappear.
 " - When run in a script, we have the full `Vim(xxx): E111: xxxx`.
-"
+" TODO: Is there a better name for it? It sounds very like an exception.
 function! object#builtin#ReOrderVimError(error)
   let list = matchlist(a:error, '\V\C\^\.\*\(E\d\+\): \(\.\+\)\$')
   if empty(list)

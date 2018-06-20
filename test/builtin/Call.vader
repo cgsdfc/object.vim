@@ -7,6 +7,26 @@
 Execute(Basic);
 AssertEqual object#builtin#Call(function('printf'), '%s', 'str'), 'str'
 
+Execute(User exception);
+function! F()
+  throw 'MyError'
+endfunction
+
+AssertThrows call object#builtin#Call(function('F'))
+Assert g:vader_exception =~# 'MyError'
+
+Execute(Recursive call);
+AssertEqual object#builtin#Call(
+      \ function('object#builtin#Call'), function('len'), ''), 0
+
+AssertThrows call object#builtin#Call(
+      \ function('object#builtin#Call'), function('len'), 1, 2)
+Log g:vader_exception
+
+AssertThrows call object#builtin#Call(
+      \ function('object#builtin#Call'), function('len'))
+Log g:vader_exception
+
 " SyntaxError {{{1
 Execute(Tailing characters);
 function! F()
