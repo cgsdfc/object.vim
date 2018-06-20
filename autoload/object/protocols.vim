@@ -38,7 +38,7 @@ endfunction
 function! object#protocols#getattr(obj, name, ...)
   call object#builtin#TakeAtMostOptional('getattr', 1, a:0)
   let obj = object#builtin#CheckObj('getattr', 1, a:obj)
-  let name = object#protocol#CheckAttrName('getattr', a:name)
+  let name = object#protocols#CheckAttrName('getattr', a:name)
 
   let getter = has_key(obj, '__getattribute__') ?
         \ 'object#builtin#CallProtocolMethodVarargs(obj.__getattribute__, name)'
@@ -90,7 +90,7 @@ endfunction
 " <
 function! object#protocols#setattr(obj, name, val)
   let obj = object#builtin#CheckObj('setattr', 1, a:obj)
-  let name = object#protocol#CheckAttrName('setattr', a:name)
+  let name = object#protocols#CheckAttrName('setattr', a:name)
 
   " NOTE: Currently, special attrs not not lookuped through
   " getattr().
@@ -112,7 +112,7 @@ endfunction
 " @throws WrongType if {name} is not a String.
 " @throws WrongType if {obj} is not a Dict.
 function! object#protocols#hasattr(obj, name)
-  let name = object#protocol#CheckAttrName('hasattr', a:name)
+  let name = object#protocols#CheckAttrName('hasattr', a:name)
   try
     call object#getattr(a:obj, name)
   catch

@@ -15,27 +15,16 @@ let s:typenames = [
       \ 'channel',
       \]
 
-let [
-      \ s:Number,
-      \ s:String,
-      \ s:Funcref,
-      \ s:List,
-      \ s:Dict,
-      \ s:Float,
-      \ s:Boolean,
-      \ s:None,
-      \ s:Job,
-      \ s:Channel,
-      \] = range(10)
+let [ s:Number, s:String, s:Funcref, s:List, s:Dict, s:Float, s:Boolean, s:None, s:Job, s:Channel ] = range(10)
 
 " FUNCTION: CheckXXX() {{{1
-function! object#builtin#CheckX(func, nr, X, code)
-  let type = type(a:X)
-  if type == a:code
+function! object#builtin#CheckX(func, nr, X, expected)
+  let actual = type(a:X)
+  if actual == a:expected
     return a:X
   endif
   call object#TypeError('%s() argument %d must be %s, not %s',
-        \ s:typenames[type], s:typenames[a:code])
+        \ a:func, a:nr, s:typenames[a:expected], s:typenames[actual])
 endfunction
 
 function! object#builtin#CheckNumber(func, nr, X)
@@ -63,21 +52,21 @@ function! object#builtin#CheckFuncref(func, nr, X)
 endfunction
 
 function! object#builtin#CheckBool(func, nr, X)
-  let type = type(a:X)
-  if type == s:Boolean || a:X is 0 || a:X is 1
+  let actual = type(a:X)
+  if actual == s:Boolean || a:X is 0 || a:X is 1
     return a:X
   endif
   call object#TypeError('%s() argument %d must be bool, not %s',
-        \ a:func, s:typenames[type])
+        \ a:func, a:nr, s:typenames[actual])
 endfunction
 
 function! object#builtin#CheckObj(func, nr, X)
-  let type = type(a:X)
-  if type == s:Dict && has_key(a:X, '__class__')
+  let actual = type(a:X)
+  if actual == s:Dict && has_key(a:X, '__class__')
     return a:X
   endif
   call object#TypeError('%s() argument %d must be object, not %s',
-        \ a:func, s:typenames[type])
+        \ a:func, a:nr, s:typenames[actual])
 endfunction
 
 " FUNCTION: IsXXX() {{{1
@@ -95,7 +84,7 @@ function! object#builtin#IsFloat(X)
 endfunction
 
 function! object#builtin#IsNumeric(X)
-  len type = type(a:X) 
+  len type = type(a:X)
   return  type == s:Number || type == s:Float
 endfunction
 
@@ -132,7 +121,7 @@ function! object#builtin#TypeName(X)
   if object#builtin#IsDict(a:X) && has_key(a:X, '__class__')
     return a:X.__class__.__name__
   endif
-  return s:typename[type(a:X)]
+  return s:typenames[type(a:X)]
 endfunction
 
 " FUNCTION: Call a protocol methods. {{{1
@@ -151,8 +140,6 @@ function! object#builtin#CallProtocolMethod(X, args)
           \ object#builtin#TypeName(a:X))
   catch /E118\|E119/ " Too many or not enough args.
     call object#TypeError(v:exception)
-  catch /E699/ " args > 20
-    call object#TypeError('maximum number of arguments exceeded')
   catch /E121/ " Undefined variables.
     call object#NameError(v:exception)
   endtry
