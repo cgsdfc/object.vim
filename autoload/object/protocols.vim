@@ -201,7 +201,6 @@ endfunction
 " <
 function! object#protocols#len(obj)
   if object#builtin#IsString(a:obj)
-    " TODO: Unicode handling.
     return object#str#len(a:obj)
   endif
 
@@ -210,6 +209,10 @@ function! object#protocols#len(obj)
   endif
 
   if object#builtin#IsDict(a:obj)
+    if !has_key(a:obj, '__class__')
+      " Plain dict
+      return len(a:obj)
+    endif
     if has_key(a:obj, '__len__')
       let number = object#builtin#Call(a:obj.__len__)
       if !object#builtin#IsNumber(number)
@@ -220,8 +223,6 @@ function! object#protocols#len(obj)
         call object#ValueError("__len__() should return >= 0")
       endif
       return number
-    else
-      return len(a:obj)
     endif
   endif
   call object#TypeError("object of type '%s' has no len()",

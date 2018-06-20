@@ -9,7 +9,7 @@ let s:isupper = '\v\C^\u+$'
 
 " TODO: Unicode handling.
 function! object#str#len(X)
-
+  return strchars(a:X)
 endfunction
 
 " TODO: Unicode handling.

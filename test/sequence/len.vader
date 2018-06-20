@@ -1,53 +1,54 @@
 " vim: ft=vim
 " Test len()
+Before;
+let X = object#class('X')
 
-Execute(Use __len__() if available);
-let cls = {}
-function! cls.__len__()
-  return 12
+
+Execute(Check no len());
+AssertThrows call object#len(1)
+Assert g:vader_exception =~# 'TypeError'
+AssertThrows call object#len(function('empty'))
+Assert g:vader_exception =~# 'TypeError'
+AssertThrows call object#len(object#object())
+Assert g:vader_exception =~# 'TypeError'
+AssertThrows call object#len(object#type_())
+Assert g:vader_exception =~# 'TypeError'
+
+
+Execute(Check non-int);
+function! X.__len__()
+  return 1.2
 endfunction
 
-AssertEqual 12, object#len(cls)
+AssertThrows call object#len(object#new(g:X))
+Assert g:vader_exception =~# 'TypeError'
 
 
-Execute(Use len() of Vim if obj is a Collection or String);
-let input = [
-      \ range(10),
-      \ '123',
-      \ { 'a': 1, 'b': 2, 'c': 3},
-      \ ]
-
-for x in input
-  AssertEqual len(x), object#len(x)
-endfor
-
-
-Execute(Throw TypeError if the len of obj cannot be determined);
-let input = [
-      \ 1,
-      \ function('empty'),
-      \ ]
-
-if object#util#has_special_variables()
-  call extend(input, [v:false, v:true, v:none, v:null,])
-endif
-
-if has('float')
-  call add(input, 1.0)
-endif
-
-for X in input
-  AssertThrows call object#len(g:X)
-  Log g:vader_exception
-  Assert g:vader_exception =~# 'TypeError'
-endfor
-
-
-Execute(Throw WrongType if __len__() returns non-number);
-let cls = {}
-function! cls.__len__()
-  return 'bad'
+Execute(Check non-negative);
+function! X.__len__()
+  return -1
 endfunction
 
-AssertThrows call object#len(g:cls)
-Assert g:vader_exception =~# 'WrongType'
+AssertThrows call object#len(object#new(g:X))
+Assert g:vader_exception =~# 'ValueError'
+
+
+Execute(On str);
+AssertEqual object#len('Hello'), 5
+AssertEqual object#len('你好'), 2
+AssertEqual object#len('ハロー'), 3
+
+Execute(On dict);
+AssertEqual object#len({}), 0
+AssertEqual object#len({'foo': 'bar'}), 1
+
+Execute(On list);
+AssertEqual object#len([]), 0
+AssertEqual object#len(range(3)), 3
+
+Execute(On object);
+function! X.__len__()
+  return 0
+endfunction
+AssertEqual object#len(object#new(X)), 0
+
