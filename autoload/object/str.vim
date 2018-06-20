@@ -9,6 +9,10 @@ let s:isupper = '\v\C^\u+$'
 " }}}1
 
 " FUNCTION: len(), contains(), iter(), str() {{{1
+function! object#str#iter(str)
+  return object#new(s:str_iterator, a:str)
+endfunction
+
 function! object#str#_str(...)
   return object#new_(s:str, a:000)
 endfunction
@@ -31,21 +35,21 @@ function! object#str#contains(haystack, needle)
 endfunction
 
 function! object#str#str(...)
-  call object#util#ensure_argc(1, a:0)
+  call object#builtin#TakeAtMostOptional('str', 1, a:0)
   if !a:0
     return ''
   endif
-  if maktaba#value#IsString(a:1)
+  if object#builtin#IsString(a:1)
     return a:1
   endif
-  if maktaba#value#IsList(a:1)
+  if object#builtin#IsList(a:1)
     return object#list#repr(a:1)
   endif
   if object#hasattr(a:1, '__str__')
-    return maktaba#ensure#IsString(
-          \ object#protocols#call(a:1.__str__))
+    return object#builtin#CheckString(
+          \ object#builtin#Call(a:1.__str__))
   endif
-  if maktaba#value#IsDict(a:1)
+  if object#builtin#IsDict(a:1)
     return object#dict#repr(a:1)
   endif
   return string(a:1)
@@ -57,9 +61,9 @@ function! object#str#ord_args(nargs, args)
   if a:nargs == 0
     call object#TypeError('ord() takes at least 1 argument (0 given)')
   endif
-  call maktaba#ensure#IsString(a:args[1])
+  call object#builtin#CheckString(a:args[1])
   if a:nargs == 2
-    call maktaba#ensure#IsBool(a:args[2])
+    call object#builtin#CheckBool(a:args[2])
   endif
   return a:args
 endfunction
@@ -68,9 +72,9 @@ function! object#str#chr_args(nargs, args)
   if a:nargs == 0
     call object#TypeError('chr() takes at least 1 argument (0 given)')
   endif
-  call maktaba#ensure#IsNumber(a:args[1])
+  call object#builtin#CheckNumber(a:args[1])
   if a:nargs == 2
-    call maktaba#ensure#IsBool(a:args[2])
+    call object#builtin#CheckBool(a:args[2])
   endif
   return a:args
 endfunction
@@ -156,12 +160,12 @@ function! s:str.lower()
 endfunction
 
 function! s:str.split(...)
-  call object#util#ensure_argc(2, a:0)
+  call object#builtin#TakeAtMostOptional('split', 2, a:0)
   if a:0 == 1
-    call maktaba#ensure#IsString(a:1)
+    call object#builtin#CheckString(a:1)
   endif
   if a:0 == 2
-    call maktaba#ensure#IsBool(a:2)
+    call object#builtin#CheckBool(a:2)
   endif
   return call('split', [self._str] + a:000)
 endfunction
@@ -171,17 +175,17 @@ function! s:str.join(iterable)
 endfunction
 
 function! s:str.strip(...)
-  call object#util#ensure_argc(1, a:0)
+  call object#builtin#TakeAtMostOptional('strip', 1, a:0)
   return call('maktaba#string#Strip', [self._str] + a:000)
 endfunction
 
 function! s:str.lstrip(...)
-  call object#util#ensure_argc(1, a:0)
+  call object#builtin#TakeAtMostOptional('lstrip', 1, a:0)
   return call('maktaba#string#StripLeading', [self._str] + a:000)
 endfunction
 
 function! s:str.rstrip(...)
-  call object#util#ensure_argc(1, a:0)
+  call object#builtin#TakeAtMostOptional('rstrip', 1, a:0)
   return call('maktaba#string#StripTrailing', [self._str] + a:000)
 endfunction
 
@@ -194,11 +198,11 @@ function! s:str.endswith(suffix)
 endfunction
 
 function! s:str.find(sub, ...)
-  call object#util#ensure_argc(2, a:0)
-  let start = a:0 ? maktaba#ensure#IsNumber(a:1):0
-  let end = a:0 > 1 ? maktaba#ensure#IsNumber(a:2):
+  call object#builtin#TakeAtMostOptional('find', 2, a:0)
+  let start = a:0 ? object#builtin#CheckNumber(a:1):0
+  let end = a:0 > 1 ? object#builtin#CheckNumber(a:2):
         \ object#len(self)-1
-  return stridx(self._str[start:end], maktaba#ensure#IsString(a:sub))
+  return stridx(self._str[start:end], object#builtin#CheckString(a:sub))
 endfunction
 
 function! s:str.isalnum()
@@ -229,8 +233,8 @@ function! object#str#just_args(func, nargs, args)
   if a:nargs == 0
     call object#TypeError('%s() takes at least 1 argument', a:func)
   endif
-  let width = maktaba#ensure#IsNumber(a:args[0])
-  return [width, a:nargs == 2 ? maktaba#ensure#IsString(a:args[1]) : ' ']
+  let width = object#builtin#CheckNumber(a:args[0])
+  return [width, a:nargs == 2 ? object#builtin#CheckString(a:args[1]) : ' ']
 endfunction
 
 function! s:str.ljust(...)
@@ -264,7 +268,7 @@ function! s:str.capitalize()
 endfunction
 
 function! s:str.count(sub)
-  let sub = maktaba#ensure#IsString(a:sub)
+  let sub = object#builtin#CheckString(a:sub)
   let [total, i] = [0, 0]
   let [len, slen] = [object#len(self), len(sub)]
   while i + slen < len

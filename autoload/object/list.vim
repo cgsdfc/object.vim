@@ -1,8 +1,6 @@
-""
-" @dict list
-" A wrapper class of built-in |List|.
-
 " FUNCTION: {{{1 contains(), iter(), repr(), list()
+
+" FUNCTION: list() family {{{2
 ""
 " @function _list(...)
 " Create a list object.
@@ -27,16 +25,13 @@ endfunction
 "   list(list object) -> a copy of the underlying list.
 " <
 function! object#list#list(...)
-  call object#util#ensure_argc(1, a:0)
+  call object#builtin#TakeAtMostOptional('list', 1, a:0)
   if !a:0
     return []
   endif
 
-  if maktaba#value#IsList(a:1)
+  if object#builtin#IsList(a:1)
     return copy(a:1)
-  endif
-  if object#isinstance(a:1, s:list)
-    return copy(a:1._list)
   endif
 
   let iter = object#iter(a:1)
@@ -49,19 +44,27 @@ function! object#list#list(...)
     return list
   endtry
 endfunction
+" }}}2
+
+" FUNCTION: contains() {{{2
 function! object#list#contains(haystack, needle)
   " TODO: object#eq
   return index(a:haystack, a:needle) >= 0
 endfunction
+" }}}2
 
+" FUNCTION: iter() {{{2
 function! object#list#iter(list)
   return object#new(s:list, a:list)
 endfunction
+" }}}2
 
+" FUNCTION: repr() {{{2
 " Return representation of a plain |List|.
 function! object#list#repr(list)
   return printf('[%s]', join(map(copy(a:list), 'object#repr(v:val)'), ', '))
 endfunction
+" }}}2
 
 " }}}1
 
@@ -91,10 +94,19 @@ endfunction
 " }}}1
 
 " CLASS: list {{{1
-let s:list = object#class('list')
+let s:object = object#object_()
+call object#class#builtin_class('list', s:object, s:)
 
 " PROTOCOL: {{{2
 ""
+" TODO: use __new__ to create the list so that subclass
+" won't need to call super(). And delete __init__
+" function! s:list.__new__(cls, ...)
+"   let obj = call(s:object.__new__, a:000, a:cls)
+"   let obj._list = call('object#list', a:000)
+"   return obj
+" endfunction
+
 " @dict list
 " Initialize a list.
 function! s:list.__init__(...)
@@ -105,7 +117,7 @@ endfunction
 " @dict list
 " Representation of a list.
 function! s:list.__repr__()
-  return object#list#repr(self._list)
+  return object#repr(self._list)
 endfunction
 
 ""
@@ -118,29 +130,29 @@ endfunction
 ""
 " @dict list
 " Get an item from the list.
-function! s:list.__getitem__(Idx)
-  return object#getitem(self._list, a:Idx)
+function! s:list.__getitem__(key)
+  return object#getitem(self._list, a:key)
 endfunction
 
 ""
 " @dict list
 " Set value for a list item.
-function! s:list.__setitem__(Idx, Val)
-  return object#setitem(self._list, a:Idx, a:Val)
+function! s:list.__setitem__(key, val)
+  return object#setitem(self._list, a:key, a:val)
 endfunction
 
 ""
 " @dict list
 " Test whether {item} is in list.
-function! s:list.__contains__(Item)
-  return object#list#contains(a:Item, self._list)
+function! s:list.__contains__(needle)
+  return object#in(a:needle, self._list)
 endfunction
 
 ""
 " @dict list
 " Return an iterator over the list.
 function! s:list.__iter__()
-  return object#list#iter(self._list)
+  return object#iter(self._list)
 endfunction
 
 ""
@@ -187,7 +199,7 @@ endfunction
 " @throws ValueError if the {value} is not present.
 function! s:list.index(Value, ...)
   " TODO: use object#equal()
-  call object#util#ensure_argc(1, a:0)
+  call object#builtin#TakeAtMostOptional('index()', 1, a:0)
   let start = a:0 >= 1 ? maktaba#ensure#IsNumber(a:1) : 0
   return index(self._list, a:Value, start)
 endfunction
@@ -204,12 +216,12 @@ endfunction
 " Remove and return the item at [index] @default index=last.
 " @throws IndexError if the list is empty or [index] is out of range.
 function! s:list.pop(...)
-  call object#util#ensure_argc(1, a:0)
+  call object#builtin#TakeAtMostOptional('pop', 1, a:0)
   let idx = a:0 ? maktaba#ensure#IsNumber(a:1) : object#len(self) - 1
   try
     return remove(self._list, idx)
   catch /E684/
-    throw object#IndexError('list index out of range: %d', idx)
+    call object#IndexError('list index out of range: %d', idx)
   endtry
 endfunction
 
@@ -221,7 +233,7 @@ function! s:list.remove(Val)
   " TODO: use object#equal()
   let idx = index(self._list, a:Val)
   if idx < 0
-    throw object#ValueError('value not in list')
+    call object#ValueError('value not in list')
   endif
   call remove(self._list, idx)
 endfunction
@@ -240,7 +252,8 @@ endfunction
 " of elements.
 function! s:list.sort(...)
   " TODO: use object#cmp()
-  call object#util#ensure_argc(1, a:0)
+  call object#builtin#TakeAtMostOptional(1, a:0)
+  " TODO: callable.vim
   let Order = a:0 == 1? maktaba#ensure#IsFuncref(a:1):
         \ function('object#cmp')
   call sort(self._list, Order)

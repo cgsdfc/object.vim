@@ -1,4 +1,0 @@
-Include(Test len()): sequence/len.vader
-Include(Test repr()): sequence/repr.vader
-Include(Test in()): sequence/in.vader
-" vim: ft=vim

@@ -101,8 +101,8 @@ endfunction
 
 " TODO: generalize to detect X has a specific protocol
 function! object#iter#IsIterable(X)
-  if object#builtin#IsObj(a:obj) && has_key(a:obj, '__iter__')
-        \ && object#builtin#IsFuncref(a:obj.__iter__)
+  return object#builtin#IsObj(a:X) && has_key(a:X, '__iter__')
+        \ && object#builtin#IsFuncref(a:X.__iter__)
 endfunction
 
 function! object#iter#IsIterator(X)

@@ -108,6 +108,10 @@ function! object#builtin#IsObj(X)
   return type(a:X) == s:Dict && has_key(a:X, '__class__')
 endfunction
 
+function! object#builtin#IsClass(X)
+  return object#builtin#IsObj(a:X) && has_key(a:X, '__mro__')
+endfunction
+
 " FUNCTION: Others {{{1
 function! object#builtin#TakeAtMostOptional(func, atmost, actual)
   if a:atmost < a:actual

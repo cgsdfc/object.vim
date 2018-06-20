@@ -110,8 +110,8 @@ let s:specifiers = {
 
 " Ensure that the given base and literal under that base are valid.
 function! object#int#ensure_literal(nargs, args)
-  let lit = maktaba#ensure#IsString(a:args[0])
-  let base = a:nargs == 2 ? maktaba#ensure#IsNumber(a:args[1]): 10
+  let lit = object#builtin#CheckString(a:args[0])
+  let base = a:nargs == 2 ? object#builtin#CheckNumber(a:args[1]): 10
 
   if !has_key(s:valid_literals, base)
     throw object#ValueError('int() base must be one of 2, 8, 10, 16, not %d', base)
@@ -135,22 +135,22 @@ endfunction
 " <
 " Valid bases are 2, 8, 10, 16 as accepted by |str2nr()|.
 function! object#int#int(...)
-  call object#util#ensure_argc(2, a:0)
+  call object#builtin#TakeAtMostOptional('int', 2, a:0)
   if !a:0
     return 0
   endif
-  if maktaba#value#IsString(a:1)
+  if object#builtin#IsString(a:1)
     return call('str2nr', object#int#ensure_literal(a:0, a:000))
   endif
   if a:0 != 1
     throw object#TypeError('int() cannot convert %s with explicit base %d',
-          \ object#types#name(a:1), maktaba#ensure#IsNumber(a:2))
+          \ object#types#name(a:1), object#builtin#CheckNumber(a:2))
   endif
-  if maktaba#value#IsNumeric(a:1)
+  if object#builtin#IsNumeric(a:1)
     return float2nr(a:1)
   endif
   if object#hasattr(a:1, '__int__')
-    return maktaba#ensure#IsNumber(object#protocols#call(a:1.__int__))
+    return object#builtin#CheckNumber(object#protocols#call(a:1.__int__))
   endif
   throw object#TypeError('int() argument must be a string or a numeric, not %s',
         \ object#types#name(a:1))
@@ -158,7 +158,7 @@ endfunction
 
 " Replacement when '%b' is missing.
 function! object#int#convert_binary(int)
-  let int = maktaba#ensure#IsNumber(a:int)
+  let int = object#builtin#CheckNumber(a:int)
   if int is# 0
     return '0b0'
   endif
@@ -172,7 +172,7 @@ function! object#int#convert_binary(int)
 endfunction
 
 function! object#int#convert_printf(int, base)
-  let int = maktaba#ensure#IsNumber(a:int)
+  let int = object#builtin#CheckNumber(a:int)
   let sign = int < 0 ? '-' : ''
   let fmt = '%s%s'.s:specifiers[a:base]
   return printf(fmt, sign, s:prefixes[a:base], abs(int))
@@ -221,11 +221,11 @@ endfunction
 "   abs(obj) -> obj.__abs__()
 " <
 function! object#int#abs(num)
-  if maktaba#value#IsNumeric(a:num)
+  if object#builtin#IsNumeric(a:num)
     return abs(a:num)
   endif
   if object#hasattr(a:num, '__abs__')
-    return maktaba#ensure#IsNumeric(object#protocols#call(a:num.__abs__))
+    return object#builtin#CheckNumeric(object#protocols#call(a:num.__abs__))
   endif
   throw object#TypeError('bad operand type for abs(): %s', object#types#name(a:num))
 endfunction

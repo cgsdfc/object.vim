@@ -1,3 +1,4 @@
+" DOCUMENT: class {{{1
 ""
 " @section Class, class
 " This module provides functions for the creation and manipulation
@@ -171,6 +172,9 @@
 "   let formatter = useful#Formatter()
 " <
 
+" {{{1
+
+" TODO: refactor this file!
 " TODO: classmethod feature.
 " let s:MyClass.__classmethods__ = [...]
 " Then when new() is called, we can filter out those names in
@@ -188,11 +192,14 @@
 " But it is somehow too repeated?
 " Note: the point here is to mark some methods using book-keeping
 " inside the class object.
+
+" VARIABLE: class object, type and None object {{{1
 let s:object_class = object#object_()
 let s:type_class = object#type_()
 let s:None = object#None()
 
 let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__', '__mro__']
+" }}}1
 
 ""
 " @function class(...)
@@ -208,22 +215,27 @@ let s:special_attrs = ['__class__', '__base__', '__name__', '__bases__', '__mro_
 " If no [bases] are given or [bases] is an empty |List|,
 " the new class will subclass `object`.
 function! object#class#class(name, ...)
-  let argc = object#util#ensure_argc(2, a:0)
+  call object#builtin#TakeAtMostOptional('class', 2, a:0)
+  if !object#builtin#IsString(a:name)
+    call object#SyntaxError('class name must be string')
+  endif
   if a:0 == 2
-    let scope = maktaba#ensure#IsDict(a:2)
-    " TODO: Don't create a class twice if scope is given.
-    " if has_key(scope, a:name)
-    "   return
-    " endif
+    let scope = object#builtin#CheckDict('class', 3, a:2)
+    if has_key(scope, a:name)
+      return
+    endif
   endif
 
   " Figure out the bases list
-  if !argc
-    let bases = []
-  elseif maktaba#value#IsDict(a:1)
-    let bases = [a:1]
-  else
+  " TODO: call __new__ of metaclass of base.
+  if !a:0
+    let bases = [s:object_class]
+  elseif object#builtin#IsList(a:1)
+    let bases = copy(a:1)
+  elseif object#builtin#IsClass(a:1)
     let bases = a:1
+  else
+    call object#TypeError('bases must be class(es)')
   endif
 
   let cls = {
@@ -253,7 +265,7 @@ endfunction
 "   new_(cls, args) -> a new instance of cls
 " <
 function! object#class#new_(cls, args)
-  let args = maktaba#ensure#IsList(a:args)
+  let args = object#builtin#CheckList('new', 2, a:args)
   let cls = object#class#ensure_class(a:cls)
   let obj = {
         \ '__class__': cls,
@@ -316,7 +328,7 @@ endfunction
 " Every valid object is a |Dict| with a __class__ attribute.
 "
 function! object#class#is_valid_object(x)
-  return maktaba#value#IsDict(a:x) && has_key(a:x, '__class__')
+  return object#builtin#IsDict(a:x) && has_key(a:x, '__class__')
 endfunction
 
 "
@@ -324,7 +336,7 @@ endfunction
 "
 function! object#class#is_method(Key, Val)
   let Key = object#util#ensure_identifier(a:Key)
-  return index(s:special_attrs, Key) < 0 && maktaba#value#IsFuncref(a:Val)
+  return index(s:special_attrs, Key) < 0 && object#builtin#IsFuncref(a:Val)
 endfunction
 
 "
@@ -338,7 +350,6 @@ endfunction
 " Ensure that {x} is one valid class or a list of
 " non-duplicate classes.
 function! object#class#ensure_bases(x)
-  let bases = maktaba#ensure#IsList(a:x)
   let N = len(bases)
   let i = 0
   while i < N-1
@@ -360,7 +371,7 @@ endfunction
 " Initialize a class with {name}, {bases} and a {dict} of attributes.
 "
 function! object#class#type_init(cls, name, bases, dict)
-  let dict = maktaba#ensure#IsDict(a:dict)
+  let dict = object#builtin#CheckDict('type', 4, a:dict)
   call object#class#class_init(a:cls, a:name, a:bases)
   call extend(a:cls, object#class#methods(dict), 'force')
 endfunction
@@ -498,7 +509,9 @@ function! object#class#builtin_class(name, base, scope)
   let cls.__mro__ = [cls] + a:base.__mro__
   for x in a:base.__mro__
     " TODO: Check for staticmethod/classmethod
-    call extend(cls, filter(copy(x), 'maktaba#value#IsFuncref(v:val)'), 'keep')
+    call extend(cls, filter(copy(x), 'object#builtin#IsFuncref(v:val)'), 'keep')
   endfor
   let a:scope[a:name] = cls
 endfunction
+
+" vim: set sw=2 sts=2 et fdm=marker:

@@ -65,7 +65,7 @@ let s:file = object#class('file')
 " Add a 'b' to the [mode] for binary files. See |readfile()| and |writefile()|.
 " Add a '+' to the [mode] to allow simultaneous reading and writing.
 function! object#file#open(name, ...)
-  call object#util#ensure_argc(1, a:0)
+  call object#builtin#TakeAtMostOptional('open', 1, a:0)
   let mode = a:0 ? a:1 : 'r'
   return object#new(s:file, a:name, mode)
 endfunction
@@ -77,8 +77,8 @@ endfunction
 " @throws ValueError is {mode} string is invalid.
 " @throws OSError if the file is not readable or writable.
 function! s:file.__init__(name, mode)
-  let name = maktaba#ensure#IsString(a:name)
-  let mode = maktaba#ensure#IsString(a:mode)
+  let name = object#builtin#CheckString(a:name)
+  let mode = object#builtin#CheckString(a:mode)
   if mode !~# s:valid_mode
     call object#ValueError('invalid mode ''%s''', mode)
   endif
@@ -192,7 +192,7 @@ endfunction
 " right after this line as if it is done with writeline().
 function! s:file.write(str)
   call self._check_writable()
-  let str = maktaba#ensure#IsString(a:str)
+  let str = object#builtin#CheckString(a:str)
   if empty(self._wbuf)
     call add(self._wbuf, str)
   else
@@ -205,7 +205,7 @@ endfunction
 " Write a {line} to the file.
 function! s:file.writeline(line)
   call self._check_writable()
-  call add(self._wbuf, maktaba#ensure#IsString(a:line))
+  call add(self._wbuf, object#builtin#CheckString(a:line))
 endfunction
 
 ""
@@ -217,7 +217,7 @@ function! s:file.writelines(iter)
   let iter = object#iter(a:iter)
   try
     while 1
-      call add(self._wbuf, maktaba#ensure#IsString(object#next(iter)))
+      call add(self._wbuf, object#builtin#CheckString(object#next(iter)))
     endwhile
   catch /StopIteration/
     return

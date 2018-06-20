@@ -129,17 +129,17 @@ else
 endif
 
 function! object#mapping#hash_(obj)
-  if maktaba#value#IsNumber(a:obj)
+  if object#builtin#IsNumber(a:obj)
     return object#mapping#unsigned(a:obj)
   endif
-  if maktaba#value#IsString(a:obj)
+  if object#builtin#IsString(a:obj)
     return object#mapping#strhash(a:obj)
   endif
-  if maktaba#value#IsFuncref(a:obj)
+  if object#builtin#IsFuncref(a:obj)
     return object#mapping#strhash(string(a:obj))
   endif
   if object#protocols#hasattr(a:obj, '__hash__')
-    return maktaba#ensure#IsNumber(object#protocols#call(a:obj.__hash__))
+    return object#builtin#CheckNumber(object#builtin#Call(a:obj.__hash__))
   endif
   call object#except#not_avail('hash', a:obj)
 endfunction
@@ -162,29 +162,29 @@ endfunction
 " @throws IndexError if {key} is out of range for |String| or |List|.
 " @throws KeyError if {key} is not present in the |Dict|.
 function! object#mapping#getitem(obj, key)
-  if maktaba#value#IsList(a:obj)
+  if object#builtin#IsList(a:obj)
     try
-      let val = a:obj[maktaba#ensure#IsNumber(a:key)]
+      let val = a:obj[object#builtin#CheckNumber(a:key)]
     catch /E684/
       throw object#IndexError('list index out of range: %d', a:key)
     endtry
     return val
   endif
 
-  if maktaba#value#IsString(a:obj)
-    let val = a:obj[maktaba#ensure#IsNumber(a:key)]
+  if object#builtin#IsString(a:obj)
+    let val = a:obj[object#builtin#CheckNumber(a:key)]
     if val isnot# ''
       return val
     endif
     throw object#IndexError('string index out of range: %d', a:key)
   endif
 
-  if maktaba#value#IsDict(a:obj)
+  if object#builtin#IsDict(a:obj)
     if has_key(a:obj, '__getitem__')
-      return object#protocols#call(a:obj.__getitem__, a:key)
+      return object#builtin#Call(a:obj.__getitem__, a:key)
     endif
     try
-      let val = a:obj[maktaba#ensure#IsString(a:key)]
+      let val = a:obj[object#builtin#CheckString(a:key)]
     catch /E716/
       throw object#KeyError('key not present in dictionary: %s', string(a:key))
     endtry
@@ -204,20 +204,20 @@ endfunction
 " subscription version of |let| will be uesd.
 " Otherwise, __setitem__ of {obj} will be used.
 function! object#mapping#setitem(obj, key, val)
-  if maktaba#value#IsList(a:obj)
+  if object#builtin#IsList(a:obj)
     try
-      let a:obj[maktaba#ensure#IsNumber(a:key)] = a:val
+      let a:obj[object#builtin#CheckNumber(a:key)] = a:val
       return
     catch /E684/
       throw object#IndexError('list index out of range: %d', a:key)
     endtry
   endif
 
-  if maktaba#value#IsDict(a:obj)
+  if object#builtin#IsDict(a:obj)
     if has_key(a:obj, '__setitem__')
-      call object#protocols#call(a:obj.__setitem__, a:key, a:val)
+      call object#builtin#Call(a:obj.__setitem__, a:key, a:val)
     else
-      let a:obj[maktaba#ensure#IsString(a:key)] = a:val
+      let a:obj[object#builtin#CheckString(a:key)] = a:val
     endif
     return
   endif

@@ -149,34 +149,34 @@ function! object#issubclass(...) abort
 endfunction
 " }}}1
 
-" MODULE: protocols.vim {{{1
+" MODULE: protocol.vim {{{1
 
 function! object#dir(...) abort
-  return call('object#protocols#dir', a:000)
+  return call('object#protocol#attr#dir', a:000)
 endfunction
 
 function! object#getattr(...) abort
-  return call('object#protocols#getattr', a:000)
+  return call('object#protocol#attr#getattr', a:000)
 endfunction
 
 function! object#setattr(...) abort
-  return call('object#protocols#setattr', a:000)
+  return call('object#protocol#attr#setattr', a:000)
 endfunction
 
 function! object#hasattr(...) abort
-  return call('object#protocols#hasattr', a:000)
+  return call('object#protocol#attr#hasattr', a:000)
 endfunction
 
 function! object#repr(...) abort
-  return call('object#protocols#repr', a:000)
+  return call('object#protocol#repr', a:000)
 endfunction
 
 function! object#len(...) abort
-  return call('object#protocols#len', a:000)
+  return call('object#protocol#seqn#len', a:000)
 endfunction
 
 function! object#in(...) abort
-  return call('object#protocols#in', a:000)
+  return call('object#protocol#seqn#in', a:000)
 endfunction
 " }}}1
 

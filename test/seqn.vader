@@ -1,0 +1,3 @@
+Include(Test len()): seqn/len.vader
+Include(Test in()): seqn/in.vader
+" vim: ft=vim
