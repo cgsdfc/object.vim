@@ -1,21 +1,54 @@
-"
 " vim: ft=vim
 " Test hasattr()
 "
+Before;
+let X = object#class('X')
 
-Execute(Returns 1 when object is a Dict and it has that attribute);
-let obj = { 'count' : 22, 'line' : 100, 'pos' : 10 }
-Assert object#hasattr(obj, 'count')
-Assert object#hasattr(obj, 'line')
-Assert object#hasattr(obj, 'pos')
+Execute(Basic);
+function! X.__init__()
+  let self.initialized = 1
+endfunction
 
-Execute(Return 0 when object is not a Dict or does not have that attribute);
-Assert !object#hasattr([], 'length')
-Assert !object#hasattr('', 'toupper')
-Assert !object#hasattr(30, 'digits')
-Assert !object#hasattr({'gender' : 'male'}, 'age')
+let obj = object#new(X)
+for key in keys(obj)
+  Assert object#hasattr(obj, key)
+endfor
+Assert !object#hasattr(obj, 'finalized')
 
-Execute(Throw TypeError with non-String name);
-AssertThrows call object#hasattr({}, 1)
+for key in keys(X)
+  Assert object#hasattr(X, key)
+endfor
+Assert !object#hasattr(X, 'finalized')
+
+
+Execute(False if AttributeError thrown);
+function! X.__getattribute__(key)
+  call object#AttributeError()
+endfunction
+
+let obj = object#new(X)
+Assert !object#hasattr(obj, 'name')
+
+
+Execute(Non-AttributeError is not caught);
+function! X.__getattribute__(key)
+  call object#OSError()
+endfunction
+
+let obj = object#new(X)
+AssertThrows call object#hasattr(g:obj, 'name')
 Log g:vader_exception
-Assert g:vader_exception =~# 'TypeError'
+Assert g:vader_exception =~# 'OSError'
+
+
+Execute(Check argument type);
+let wrong_types = [
+      \ [ object#new(X), 1 ],
+      \ [ {}, 'name' ],
+      \ [ 'str', 1 ]
+      \ ]
+
+for args in wrong_types
+  AssertThrows call call('object#hasattr', g:args)
+  Assert g:vader_exception =~# 'TypeError'
+endfor

@@ -65,7 +65,7 @@ function! object#builtin#CheckObj(func, nr, X)
   if actual == s:Dict && has_key(a:X, '__class__')
     return a:X
   endif
-  call object#TypeError('%s() argument %d must be object, not %s',
+  call object#TypeError('%s() argument %d must be object, not built-in %s',
         \ a:func, a:nr, s:typenames[actual])
 endfunction
 

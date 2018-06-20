@@ -40,19 +40,12 @@ function! object#protocols#getattr(obj, name, ...)
   let obj = object#builtin#CheckObj('getattr', 1, a:obj)
   let name = object#protocols#CheckAttrName('getattr', a:name)
 
-  " TODO: put this inside try with an `if` to see if it runs faster:
-  " try
-  "   if has_key(obj, '__getattribute__')
-  "     let Val = ...
-  "   else
-  "     let Val = ...
-  "   endif
-  " catch
-  let getter = has_key(obj, '__getattribute__') ?
-        \ 'object#builtin#CallProtocolMethodVarargs(obj.__getattribute__, name)'
-        \ : 'object#protocols#dict_lookup(obj, name)'
   try
-    let Val = eval(getter)
+    if has_key(obj, '__getattribute__')
+      let Val = object#builtin#CallProtocolMethodVarargs(obj.__getattribute__, name)
+    else
+      let Val = object#protocols#dict_lookup(obj, name)
+    endif
   catch /AttributeError/
     if has_key(obj, '__getattr__')
       try
@@ -122,10 +115,12 @@ endfunction
 " @throws WrongType if {name} is not a String.
 " @throws WrongType if {obj} is not a Dict.
 function! object#protocols#hasattr(obj, name)
+  let obj = object#builtin#CheckObj('hasattr', 1, a:obj)
   let name = object#protocols#CheckAttrName('hasattr', a:name)
   try
-    call object#getattr(a:obj, name)
-  catch
+    call object#getattr(obj, name)
+    " NOTE: Only AttributeError is concerned.
+  catch 'AttributeError'
     return 0
   endtry
   return 1
