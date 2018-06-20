@@ -4,6 +4,16 @@
 Before;
 let X = object#class('X')
 
+Execute(Basic);
+for attr in keys(X)
+  AssertEqual object#getattr(X, attr), X[attr]
+endfor
+
+AssertThrows call object#getattr(g:X, 'Ops')
+Log g:vader_exception
+Assert g:vader_exception =~# 'AttributeError'
+
+
 Execute(Check argument type);
 " Non-obj
 AssertThrows call object#getattr(1, 'name')

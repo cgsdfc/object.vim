@@ -1,40 +1,56 @@
 " vim: ft=vim
 " Test setattr()
+" TODO: setup __setattr__ for built-in types and test them here.
 
-Execute(Set attribute with a Dict);
-let bar = {}
-call object#setattr(bar, 'weight', 10)
-AssertEqual bar.weight, 10
-call object#setattr(bar, 'weight', 'heavy')
-AssertEqual bar.weight, 'heavy'
+Before;
+let X = object#class('X')
+let obj = object#new(X)
 
 
-Execute(Throw WrongType when obj is not a Dict or name is not a String);
-let wrong_types = [[ 'str', 'attr'], [ {}, 1 ], [ 'str', 1 ]]
+Execute(Basic);
+call object#setattr(obj, 'foo', 'bar')
+AssertEqual obj.foo, 'bar'
 
-for [obj, name] in wrong_types
-  AssertThrows call object#setattr(g:obj, g:name, 1)
-  Assert g:vader_exception =~# 'WrongType'
+
+Execute(Check argument type);
+let wrong_types = [
+      \ [ obj, 1, 'val' ],
+      \ [ {}, 'name', 'val' ],
+      \ [ 'str', 1, 'val' ]
+      \ ]
+
+for args in wrong_types
+  AssertThrows call call('object#setattr', g:args)
+  Assert g:vader_exception =~# 'TypeError'
 endfor
 
 
 Execute(Hook into __setattr__());
-let cls = { 'speed' : 100, 'duration' : 10 }
-function! cls.__setattr__(name, val)
+
+function! X.__init__()
+  let self.speed = 100
+  let self.duration = 10
+endfunction
+
+function! X.__setattr__(name, val)
   if a:name is# 'speed'
-    throw 'speed is readonly'
+    call object#AttributeError('readonly')
   endif
-  if a:name is# 'duration' && a:val >= 0
+  if a:name is# 'duration'
+    if a:val < 0
+      call object#ValueError('invalid duration: %d', a:val)
+    endif
     " Only accept positive duration
     let self.duration = a:val
   endif
 endfunction
 
-AssertThrows call object#setattr(g:cls, 'speed', 20)
-Assert g:vader_exception is# 'speed is readonly'
+let var = object#new(X)
+AssertThrows call object#setattr(g:var, 'speed', 20)
+Assert g:vader_exception =~# 'AttributeError'
 
-call object#setattr(cls, 'duration', -1)
-AssertEqual cls.duration, 10
+AssertThrows call object#setattr(g:var, 'duration', -1)
+Assert g:vader_exception =~# 'ValueError'
 
-call object#setattr(cls, 'duration', 20)
-AssertEqual cls.duration, 20
+call object#setattr(var, 'duration', 20)
+AssertEqual var.duration, 20

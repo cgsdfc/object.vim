@@ -40,6 +40,14 @@ function! object#protocols#getattr(obj, name, ...)
   let obj = object#builtin#CheckObj('getattr', 1, a:obj)
   let name = object#protocols#CheckAttrName('getattr', a:name)
 
+  " TODO: put this inside try with an `if` to see if it runs faster:
+  " try
+  "   if has_key(obj, '__getattribute__')
+  "     let Val = ...
+  "   else
+  "     let Val = ...
+  "   endif
+  " catch
   let getter = has_key(obj, '__getattribute__') ?
         \ 'object#builtin#CallProtocolMethodVarargs(obj.__getattribute__, name)'
         \ : 'object#protocols#dict_lookup(obj, name)'
@@ -89,6 +97,8 @@ endfunction
 "   setattr(obj, name, val) -> obj.__setattr__(name, val)
 " <
 function! object#protocols#setattr(obj, name, val)
+  " TODO: __setattr__ for class to validate val.
+  " Use metaclass's __setattr__ for a class.
   let obj = object#builtin#CheckObj('setattr', 1, a:obj)
   let name = object#protocols#CheckAttrName('setattr', a:name)
 
