@@ -1,0 +1,27 @@
+" vim: ft=vim
+" Test dir()
+" As dir() is mainly for intereactive use to inspect
+" the attributes of objects, we won't test so strict
+" about what should be included/excluded.
+
+Before;
+let X = object#class('X')
+function! X.__init__()
+  let self.initialized = 1
+endfunction
+
+function! X.Initialzed()
+  return self.initialized
+endfunction
+
+
+Execute(On different kinds of object);
+Log 'dir(cls):'
+Log object#dir(X)
+Log 'dir(obj):'
+Log object#dir(object#new(X))
+
+Execute(Check non-obj);
+AssertThrows call object#dir([])
+Assert g:vader_exception =~# 'TypeError'
+

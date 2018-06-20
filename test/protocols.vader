@@ -1,8 +1,0 @@
-" vim: ft=vim
-Include(Test getattr()): protocols/getattr.vader
-Include(Test setattr()): protocols/setattr.vader
-Include(Test hasattr()): protocols/hasattr.vader
-Include(Test len()): protocols/len.vader
-Include(Test dir()): protocols/dir.vader
-Include(Test repr()): protocols/repr.vader
-Include(Test contains()): protocols/contains.vader

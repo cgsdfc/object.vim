@@ -143,6 +143,7 @@ function! object#protocols#dir(obj)
 
   " TODO: differentiate module, class and object.
   " TODO: When we have classmethod/staticmethod, do something here.
+  " TODO: dir() returns keys of current module (#7)
   let dict = copy(obj)
   if has_key(obj, '__mro__')
     call extend(dict, obj.__class__, 'keep')
