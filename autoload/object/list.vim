@@ -6,6 +6,7 @@ let s:list = object#class('list')
 
 function! object#list#contains(haystack, needle)
   " TODO:
+  return index(a:haystack, a:needle) >= 0
 endfunction
 
 ""

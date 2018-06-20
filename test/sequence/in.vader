@@ -1,0 +1,85 @@
+" TYPE: str {{{1
+Execute(On str);
+Assert object#in('this', 'this is a string')
+Assert object#in('这', '这是一个字符串')
+Assert object#in('これは', 'これは文字列です')
+
+
+Execute(Check non-str left operand);
+AssertThrows call object#in(1, '')
+Assert g:vader_exception =~# 'TypeError'
+
+
+Execute(Corner case: empty string);
+Assert object#in('', 'haystack')
+Assert object#in('', '')
+Assert !object#in('needle', '')
+" }}}
+
+
+" TYPE: iterable {{{1
+Execute(On iterable);
+Assert object#in(1, object#iter(range(2)))
+Assert object#in('t', object#iter('this'))
+
+
+Execute(Check non-iterable);
+AssertThrows call object#in(1, 1)
+Assert g:vader_exception =~# 'TypeError'
+AssertThrows call object#in(1, object#object())
+Assert g:vader_exception =~# 'TypeError'
+AssertThrows call object#in(1, object#object_())
+Assert g:vader_exception =~# 'TypeError'
+" }}}
+
+
+" TYPE: list {{{1
+" Since the implementation of list.contains currently does not
+" use compare module, the comparison done here is not tested very rigitly.
+
+Execute(Builtins in list);
+Assert object#in(1, range(10))
+Assert object#in('a', split(repeat('a ', 2)))
+
+Assert !object#in('a', range(10))
+
+
+Execute(Obj in list);
+let obj = object#object()
+Assert object#in(obj, [obj])
+Assert !object#in(1, [obj])
+
+" }}}
+
+
+" TYPE: dict {{{1
+Execute(On dict);
+let haystack = {'foo': 'bar'}
+
+Assert object#in('foo', haystack)
+Assert !object#in('bar', haystack)
+
+
+Execute(Automatic string conversion);
+let haystack = {}
+let haystack[1] = 1
+Assert object#in(1, haystack)
+
+
+" }}}1
+
+" TODO:
+Execute(__contains__);
+let X = object#class('X')
+function! X.__contains__(Key)
+  return 1
+endfunction
+
+let x = object#new(X)
+for i in range(10)
+  Assert object#in(i, x)
+endfor
+
+
+" vim: ft=vim
+" vim: set sw=2 sts=2 et fdm=marker:

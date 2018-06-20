@@ -7,14 +7,17 @@ let s:islower = '\v\C^\l+$'
 let s:isspace = '\v\C^\s+$'
 let s:isupper = '\v\C^\u+$'
 
-" TODO: Unicode handling.
 function! object#str#len(X)
   return strchars(a:X)
 endfunction
 
-" TODO: Unicode handling.
 function! object#str#contains(haystack, needle)
-  return 1
+  if object#builtin#IsString(a:needle)
+    return stridx(a:haystack, a:needle) >= 0
+  endif
+  call object#TypeError(
+        \ "'in <string>' requires string as left operand, not %s",
+        \ object#builtin#TypeName(a:needle))
 endfunction
 
 function! object#str#str(...)

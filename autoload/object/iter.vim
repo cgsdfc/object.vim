@@ -32,18 +32,23 @@
 " Limitations:
 "   * No generator and yield() supported.
 
-let s:list_iter = object#class('list_iter')
-let s:str_iter = object#class('str_iter')
+" TODO: move these to str.vim and list.vim
+let s:list_iterator = object#class('list_iterator')
+let s:str_iterator = object#class('str_iterator')
 let s:enumerate = object#class('enumerate')
 let s:zip = object#class('zip')
 
-function! s:list_iter.__init__(list)
+function! s:list_iterator.__init__(list)
   let self.idx = 0
   let self.list = a:list
 endfunction
 
+function! s:list_iterator.__iter__()
+  return self
+endfunction
+
 " When the list index goes out of range, Vim throws E684.
-function! s:list_iter.next()
+function! s:list_iterator.__next__()
   try
     let Item = self.list[self.idx]
   catch /E684/
@@ -53,14 +58,14 @@ function! s:list_iter.next()
   return Item
 endfunction
 
-function! s:str_iter.__init__(str)
+function! s:str_iterator.__init__(str)
   let self.idx = 0
   let self.str = a:str
 endfunction
 
 " When the index to a string goes out of range, Vim
 " returns an empty string, which is an indicator of StopIteration.
-function! s:str_iter.next()
+function! s:str_iterator.__next__()
   let Item = self.str[self.idx]
   if Item isnot# ''
     let self.idx += 1
@@ -69,12 +74,16 @@ function! s:str_iter.next()
   throw object#StopIteration()
 endfunction
 
+function! s:str_iterator.__iter__()
+  return self
+endfunction
+
 function! s:enumerate.__init__(iter, start)
   let self.iter = a:iter
   let self.idx = a:start
 endfunction
 
-function! s:enumerate.next()
+function! s:enumerate.__next__()
   let Item = [self.idx, object#next(self.iter)]
   let self.idx += 1
   return Item
@@ -84,35 +93,50 @@ function! s:zip.__init__(iters)
   let self.iters = a:iters
 endfunction
 
-function! s:zip.next()
+function! s:zip.__next__()
   return map(copy(self.iters), 'object#next(v:val)')
+endfunction
+
+function! object#iter#contains(haystack, needle)
+  let iter = object#iter(a:haystack)
+  try
+    while 1
+      " TODO: use object#eq()
+      if maktaba#value#IsEqual(a:needle, object#next(iter))
+        return 1
+      endif
+    endwhile
+  catch 'StopIteration'
+    return 0
+  endtry
 endfunction
 
 ""
 " @function iter(...)
 " Return an iterator from {obj}.
 " >
-"   iter(List) -> list_iter
-"   iter(String) -> str_iter
+"   iter(List) -> list_iterator
+"   iter(String) -> str_iterator
 "   iter(iterator) -> returned as it
 "   iter(obj) -> obj.__iter__()
 " <
 function! object#iter#iter(obj)
-  " If obj already an iter.
-  if object#hasattr(a:obj, 'next')
-    return a:obj
-  endif
-
   " Handle built-in iters.
   if maktaba#value#IsList(a:obj)
-    return object#new(s:list_iter, a:obj)
+    return object#new(s:list_iterator, a:obj)
   endif
   if maktaba#value#IsString(a:obj)
-    return object#new(s:str_iter, a:obj)
+    return object#new(s:str_iterator, a:obj)
   endif
 
-  if object#hasattr(a:obj, '__iter__')
-    return object#iter#extract(a:obj)
+  if object#builtin#IsDict(a:obj)
+    " If obj already an iter.
+    if has_key(a:obj, '__next__')
+      return a:obj
+    endif
+    if has_key(a:obj, '__iter__')
+      return object#iter#extract(a:obj)
+    endif
   endif
 
   call object#except#not_avail('iter', a:obj)
@@ -129,7 +153,7 @@ function! object#iter#next(obj)
   "   - next() is performance critical.
   "   - next() is usually used in couple with iter(),
   "     which does all necessary checkings already.
-  return a:obj.next()
+  return a:obj.__next__()
 endfunction
 
 ""
@@ -254,7 +278,7 @@ endfunction
 " iter, i.e., has next() method.
 function! object#iter#extract(obj)
   let X = object#protocols#call(a:obj.__iter__)
-  if object#hasattr(X, 'next') && maktaba#value#IsFuncref(X.next)
+  if has_key(X, '__next__') && maktaba#value#IsFuncref(X.__next__)
     return X
   endif
   throw object#TypeError('__iter__() returns non-iter')

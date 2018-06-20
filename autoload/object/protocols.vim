@@ -249,31 +249,30 @@ function! object#protocols#in(needle, haystack)
   endif
 
   if object#builtin#IsDict(a:haystack)
-    if has_key(a:haystack, '__contains__')
-      let answer = object#builtin#Call(a:haystack.__contains__(a:needle))
-      " NOTE: return value of __contains__() is a bool context.
-      return object#bool(answer)
-    elseif has_key(a:haystack, '__iter__')
-      let iter = object#iter(a:haystack)
-      try
-        while 1
-          " TODO: use object#eq()
-          if maktaba#value#IsEqual(a:needle, object#next(iter))
-            return 1
-          endif
-        endwhile
-      catch 'StopIteration'
-        return 0
-      endtry
-    else " Plain dict.
+    if !has_key(a:haystack, '__class__')
       " NOTE: We don't ensure a:needle is a String.
       " Just let automatic conversion happen.
       return has_key(a:haystack, a:needle)
     endif
+    if has_key(a:haystack, '__contains__')
+      " NOTE: return value of __contains__() is a bool context.
+      return object#bool(
+            \ object#builtin#Call(a:haystack.__contains__, a:needle))
+    endif
+    if has_key(a:haystack, '__iter__')
+      return object#iter#contains(a:haystack, a:needle)
+    endif
   endif
+
   call object#TypeError("argument of type '%s' is not iterable",
         \ object#builtin#TypeName(a:haystack))
 endfunction
 " }}}1
+
+" Deprecated
+" Call a __protocol__ function {X} (ensure {X} is a Funcref)
+function! object#protocols#call(X, ...)
+  return call(maktaba#ensure#IsFuncref(a:X), a:000)
+endfunction
 
 " vim: set sw=2 sts=2 et fdm=marker:
