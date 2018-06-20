@@ -36,7 +36,8 @@
 " }}}1
 " TODO: add range()
 " CLASS: enumerate {{{1
-let s:enumerate = object#class('enumerate')
+let s:object = object#object_()
+call object#class#builtin_class('enumerate', s:object, s:)
 
 function! s:enumerate.__init__(iter, start)
   let self.iter = a:iter
@@ -51,7 +52,8 @@ endfunction
 " }}}1
 
 " CLASS: zip {{{1
-let s:zip = object#class('zip')
+call object#class#builtin_class('zip', s:object, s:)
+
 function! s:zip.__init__(seqs)
   let self.seqs = a:seqs
 endfunction
@@ -245,6 +247,7 @@ endfunction
 
 " FUNCTION: map(), filter() {{{1
 " TODO: allow Funcref here (callable module).
+" map object
 ""
 " @function map(...)
 " Tranform the iterable with lambda (String).

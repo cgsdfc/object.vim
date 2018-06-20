@@ -1,3 +1,4 @@
+let s:object = object#object_()
 
 " VARIABLE: patterns used in str.isalnum() e.g. {{{1
 let s:isalnum = '\v\C^\w+$'
@@ -89,7 +90,7 @@ endfunction
 " }}}1
 
 " CLASS: str_iterator {{{1
-let s:str_iterator = object#class('str_iterator')
+call object#class#builtin_class('str_iterator', s:object, s:)
 
 function! s:str_iterator.__init__(str)
   let self.idx = 0
@@ -114,7 +115,7 @@ endfunction
 " }}}1
 
 " CLASS: str {{{1
-let s:str = object#class('str')
+call object#class#builtin_class('str', s:object, s:)
 
 " PROTOCOL: {{{2
 function! s:str.__init__(...)

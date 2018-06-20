@@ -1,3 +1,5 @@
+let s:object = object#object_()
+
 " FUNCTION: {{{1 contains(), iter(), repr(), list()
 
 " FUNCTION: list() family {{{2
@@ -69,7 +71,7 @@ endfunction
 " }}}1
 
 " CLASS: list_iterator {{{1
-let s:list_iterator = object#class('list_iterator')
+call object#class#builtin_class('list_iterator', s:object, s:)
 
 function! s:list_iterator.__init__(list)
   let self.idx = 0
@@ -94,7 +96,6 @@ endfunction
 " }}}1
 
 " CLASS: list {{{1
-let s:object = object#object_()
 call object#class#builtin_class('list', s:object, s:)
 
 " PROTOCOL: {{{2

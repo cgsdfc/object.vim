@@ -150,34 +150,38 @@ endfunction
 " }}}1
 
 " MODULE: protocol.vim {{{1
-
-function! object#dir(...) abort
-  return call('object#protocol#attr#dir', a:000)
-endfunction
-
-function! object#getattr(...) abort
-  return call('object#protocol#attr#getattr', a:000)
-endfunction
-
-function! object#setattr(...) abort
-  return call('object#protocol#attr#setattr', a:000)
-endfunction
-
-function! object#hasattr(...) abort
-  return call('object#protocol#attr#hasattr', a:000)
-endfunction
-
 function! object#repr(...) abort
   return call('object#protocol#repr', a:000)
 endfunction
+" }}}1
 
+" MODULE: attr.vim Attribute Protocols {{{1
+function! object#dir(...) abort
+  return call('object#attr#dir', a:000)
+endfunction
+
+function! object#getattr(...) abort
+  return call('object#attr#getattr', a:000)
+endfunction
+
+function! object#setattr(...) abort
+  return call('object#attr#setattr', a:000)
+endfunction
+
+function! object#hasattr(...) abort
+  return call('object#attr#hasattr', a:000)
+endfunction
+" }}}1
+
+" MODULE: seqn.vim Sequence Protocols {{{1
 function! object#len(...) abort
-  return call('object#protocol#seqn#len', a:000)
+  return call('object#seqn#len', a:000)
 endfunction
 
 function! object#in(...) abort
-  return call('object#protocol#seqn#in', a:000)
+  return call('object#seqn#in', a:000)
 endfunction
+" }}}1
 " }}}1
 
 " MODULE: mapping.vim {{{1

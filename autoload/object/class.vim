@@ -229,13 +229,11 @@ function! object#class#class(name, ...)
   " Figure out the bases list
   " TODO: call __new__ of metaclass of base.
   if !a:0
-    let bases = [s:object_class]
-  elseif object#builtin#IsList(a:1)
-    let bases = copy(a:1)
-  elseif object#builtin#IsClass(a:1)
-    let bases = a:1
+    let bases = []
+  elseif object#builtin#IsDict(a:1)
+    let bases = [a:1]
   else
-    call object#TypeError('bases must be class(es)')
+    let bases = a:1
   endif
 
   let cls = {
@@ -349,7 +347,9 @@ endfunction
 
 " Ensure that {x} is one valid class or a list of
 " non-duplicate classes.
-function! object#class#ensure_bases(x)
+function! object#class#ensure_bases(bases)
+  call object#builtin#CheckList('ensure_bases', 1, a:bases)
+  let bases = a:bases
   let N = len(bases)
   let i = 0
   while i < N-1

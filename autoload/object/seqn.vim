@@ -7,7 +7,7 @@
 "   len(String, List or Dict) -> len(obj)
 "   len(obj) -> obj.__len__()
 " <
-function! object#protocol#seqn#len(obj)
+function! object#seqn#len(obj)
   if object#builtin#IsString(a:obj)
     return object#str#len(a:obj)
   endif
@@ -47,7 +47,7 @@ endfunction
 "   in(needle, iterable) -> needle in list(iterable).
 "   in(needle, obj) -> bool(obj.__contains__(needle)).
 " <
-function! object#protocol#seqn#in(needle, haystack)
+function! object#seqn#in(needle, haystack)
   if object#builtin#IsList(a:haystack)
     return object#list#contains(a:haystack, a:needle)
   endif
@@ -77,11 +77,11 @@ function! object#protocol#seqn#in(needle, haystack)
 endfunction
 " }}}2
 
-function! object#protocol#seqn#reversed(iterable)
+function! object#seqn#reversed(iterable)
 
 endfunction
 
-function! object#protocol#seqn#sorted(iterable, ...)
+function! object#seqn#sorted(iterable, ...)
 
 endfunction
 " }}}1
