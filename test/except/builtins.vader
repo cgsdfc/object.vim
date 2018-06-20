@@ -11,7 +11,6 @@ let e = object#new(BaseException)
 Log object#dir(e)
 AssertEqual e.args, []
 AssertThrows call add(g:e.args, 1)
-AssertEqual 1, object#bool(e), 'exception is truthy'
 AssertEqual object#repr(e), 'BaseException([])'
 AssertEqual object#str(e), ''
 

@@ -1,11 +1,21 @@
-let s:str = object#class('str')
 
+" VARIABLE: patterns used in str.isalnum() e.g. {{{1
 let s:isalnum = '\v\C^\w+$'
 let s:isalpha = '\v\C^\a+$'
 let s:isdigit = '\v\C^\d+$'
 let s:islower = '\v\C^\l+$'
 let s:isspace = '\v\C^\s+$'
 let s:isupper = '\v\C^\u+$'
+" }}}1
+
+" FUNCTION: len(), contains(), iter(), str() {{{1
+function! object#str#_str(...)
+  return object#new_(s:str, a:000)
+endfunction
+
+function! object#str#str_()
+  return s:str
+endfunction
 
 function! object#str#len(X)
   return strchars(a:X)
@@ -40,10 +50,12 @@ function! object#str#str(...)
   endif
   return string(a:1)
 endfunction
+" }}}1
 
+" FUNCTION: ord(), chr() {{{1
 function! object#str#ord_args(nargs, args)
   if a:nargs == 0
-    throw object#TypeError('ord() takes at least 1 argument (0 given)')
+    call object#TypeError('ord() takes at least 1 argument (0 given)')
   endif
   call maktaba#ensure#IsString(a:args[1])
   if a:nargs == 2
@@ -54,7 +66,7 @@ endfunction
 
 function! object#str#chr_args(nargs, args)
   if a:nargs == 0
-    throw object#TypeError('chr() takes at least 1 argument (0 given)')
+    call object#TypeError('chr() takes at least 1 argument (0 given)')
   endif
   call maktaba#ensure#IsNumber(a:args[1])
   if a:nargs == 2
@@ -70,15 +82,37 @@ endfunction
 function! object#str#ord(...)
   return call('char2nr', object#str#ord_args(a:0, a:000))
 endfunction
+" }}}1
 
-function! object#str#_str(...)
-  return object#new_(s:str, a:000)
+" CLASS: str_iterator {{{1
+let s:str_iterator = object#class('str_iterator')
+
+function! s:str_iterator.__init__(str)
+  let self.idx = 0
+  let self.str = a:str
 endfunction
 
-function! object#str#str_()
-  return s:str
+" When the index to a string goes out of range, Vim
+" returns an empty string, which is an indicator of StopIteration.
+function! s:str_iterator.__next__()
+  let Item = self.str[self.idx]
+  if Item isnot# ''
+    let self.idx += 1
+    return Item
+  endif
+  call object#StopIteration()
 endfunction
 
+function! s:str_iterator.__iter__()
+  return self
+endfunction
+
+" }}}1
+
+" CLASS: str {{{1
+let s:str = object#class('str')
+
+" PROTOCOL: {{{2
 function! s:str.__init__(...)
   let self._str = call('object#str', a:000)
 endfunction
@@ -88,7 +122,7 @@ function! s:str.__len__()
 endfunction
 
 function! s:str.__contains__(S)
-  return object#str#contains(a:S, self._str)
+  return object#contains(a:S, self._str)
 endfunction
 
 function! s:str.__iter__()
@@ -110,7 +144,9 @@ endfunction
 function! s:str.__getitem__(Index)
   return object#getitem(a:Index)
 endfunction
+" }}}2
 
+" METHOD: {{{2
 function! s:str.upper()
   return toupper(self._str)
 endfunction
@@ -191,7 +227,7 @@ endfunction
 
 function! object#str#just_args(func, nargs, args)
   if a:nargs == 0
-    throw object#TypeError('%s() takes at least 1 argument', a:func)
+    call object#TypeError('%s() takes at least 1 argument', a:func)
   endif
   let width = maktaba#ensure#IsNumber(a:args[0])
   return [width, a:nargs == 2 ? maktaba#ensure#IsString(a:args[1]) : ' ']
@@ -247,5 +283,7 @@ function! s:str.index(...)
   if idx >= 0
     return idx
   endif
-  throw object#ValueError('substring not found')
+  call object#ValueError('substring not found')
 endfunction
+" }}}2
+" vim: set sw=2 sts=2 et fdm=marker:

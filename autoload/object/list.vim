@@ -2,13 +2,7 @@
 " @dict list
 " A wrapper class of built-in |List|.
 
-let s:list = object#class('list')
-
-function! object#list#contains(haystack, needle)
-  " TODO:
-  return index(a:haystack, a:needle) >= 0
-endfunction
-
+" FUNCTION: {{{1 contains(), iter(), repr(), list()
 ""
 " @function _list(...)
 " Create a list object.
@@ -55,7 +49,51 @@ function! object#list#list(...)
     return list
   endtry
 endfunction
+function! object#list#contains(haystack, needle)
+  " TODO: object#eq
+  return index(a:haystack, a:needle) >= 0
+endfunction
 
+function! object#list#iter(list)
+  return object#new(s:list, a:list)
+endfunction
+
+" Return representation of a plain |List|.
+function! object#list#repr(list)
+  return printf('[%s]', join(map(copy(a:list), 'object#repr(v:val)'), ', '))
+endfunction
+
+" }}}1
+
+" CLASS: list_iterator {{{1
+let s:list_iterator = object#class('list_iterator')
+
+function! s:list_iterator.__init__(list)
+  let self.idx = 0
+  let self.list = a:list
+endfunction
+
+function! s:list_iterator.__iter__()
+  return self
+endfunction
+
+" When the list index goes out of range, Vim throws E684.
+function! s:list_iterator.__next__()
+  try
+    let Item = self.list[self.idx]
+  catch /E684/
+    call object#StopIteration()
+  endtry
+  let self.idx += 1
+  return Item
+endfunction
+
+" }}}1
+
+" CLASS: list {{{1
+let s:list = object#class('list')
+
+" PROTOCOL: {{{2
 ""
 " @dict list
 " Initialize a list.
@@ -102,7 +140,7 @@ endfunction
 " @dict list
 " Return an iterator over the list.
 function! s:list.__iter__()
-  return object#iter(self._list)
+  return object#list#iter(self._list)
 endfunction
 
 ""
@@ -111,7 +149,9 @@ endfunction
 function! s:list.__len__()
   return object#len(self._list)
 endfunction
+" }}}2
 
+" METHOD: {{{2
 ""
 " @dict list
 " Add an item to the end of the list.
@@ -205,8 +245,7 @@ function! s:list.sort(...)
         \ function('object#cmp')
   call sort(self._list, Order)
 endfunction
+" }}}2
 
-" Return representation of a plain |List|.
-function! object#list#repr(list)
-  return printf('[%s]', join(map(copy(a:list), 'object#repr(v:val)'), ', '))
-endfunction
+" }}}1
+" vim: set sw=2 sts=2 et fdm=marker:

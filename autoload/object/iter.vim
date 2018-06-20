@@ -1,3 +1,4 @@
+" DOCUMENT: {{{1
 ""
 " @section Iterator, iter
 " Iterator protocol.
@@ -32,51 +33,10 @@
 " Limitations:
 "   * No generator and yield() supported.
 
-" TODO: move these to str.vim and list.vim
-let s:list_iterator = object#class('list_iterator')
-let s:str_iterator = object#class('str_iterator')
+" }}}1
+" TODO: add range()
+" CLASS: enumerate {{{1
 let s:enumerate = object#class('enumerate')
-let s:zip = object#class('zip')
-
-function! s:list_iterator.__init__(list)
-  let self.idx = 0
-  let self.list = a:list
-endfunction
-
-function! s:list_iterator.__iter__()
-  return self
-endfunction
-
-" When the list index goes out of range, Vim throws E684.
-function! s:list_iterator.__next__()
-  try
-    let Item = self.list[self.idx]
-  catch /E684/
-    throw object#StopIteration()
-  endtry
-  let self.idx += 1
-  return Item
-endfunction
-
-function! s:str_iterator.__init__(str)
-  let self.idx = 0
-  let self.str = a:str
-endfunction
-
-" When the index to a string goes out of range, Vim
-" returns an empty string, which is an indicator of StopIteration.
-function! s:str_iterator.__next__()
-  let Item = self.str[self.idx]
-  if Item isnot# ''
-    let self.idx += 1
-    return Item
-  endif
-  throw object#StopIteration()
-endfunction
-
-function! s:str_iterator.__iter__()
-  return self
-endfunction
 
 function! s:enumerate.__init__(iter, start)
   let self.iter = a:iter
@@ -84,17 +44,98 @@ function! s:enumerate.__init__(iter, start)
 endfunction
 
 function! s:enumerate.__next__()
-  let Item = [self.idx, object#next(self.iter)]
+  let next = [self.idx, object#next(self.iter)]
   let self.idx += 1
-  return Item
+  return next
+endfunction
+" }}}1
+
+" CLASS: zip {{{1
+let s:zip = object#class('zip')
+function! s:zip.__init__(seqs)
+  let self.seqs = a:seqs
 endfunction
 
-function! s:zip.__init__(iters)
-  let self.iters = a:iters
+function! s:zip.__iter__()
+  return self
 endfunction
 
 function! s:zip.__next__()
-  return map(copy(self.iters), 'object#next(v:val)')
+  if empty(self.seqs)
+    call object#StopIteration()
+  endif
+  return map(copy(self.seqs), 'object#next(v:val)')
+endfunction
+
+" }}}1
+
+" FUNCTION: iter(), next() contains() {{{1
+""
+" @function iter(...)
+" Return an iterator from {obj}.
+" >
+"   iter(List) -> list_iterator
+"   iter(String) -> str_iterator
+"   iter(iterator) -> returned as it
+"   iter(obj) -> obj.__iter__()
+" <
+function! object#iter#iter(obj)
+  if object#builtin#IsList(a:obj)
+    return object#list#iter(a:obj)
+  endif
+
+  if object#builtin#IsString(a:obj)
+    return object#str#iter(a:obj)
+  endif
+
+  if object#iter#IsIterable(a:obj)
+    let iter = object#builtin#Call(a:obj.__iter__)
+    if object#iter#IsIterator(iter)
+      return iter
+    endif
+    call object#TypeError("iter() returned non-iterator of type '%s'",
+          \ object#builtin#TypeName(a:obj))
+  endif
+  call object#iter#ThrowNotIterable(a:obj)
+endfunction
+
+" TODO: generalize to detect X has a specific protocol
+function! object#iter#IsIterable(X)
+  if object#builtin#IsObj(a:obj) && has_key(a:obj, '__iter__')
+        \ && object#builtin#IsFuncref(a:obj.__iter__)
+endfunction
+
+function! object#iter#IsIterator(X)
+  return object#builtin#IsObj(a:X) && has_key(a:X, '__next__')
+        \ && object#builtin#IsFuncref(a:X.__next__)
+endfunction
+
+function! object#iter#ThrowNotIterable(obj)
+  call object#TypeError("'%s' object is not iterable",
+        \ object#builtin#TypeName(a:obj))
+endfunction
+
+""
+" @function next(...)
+" Retrieve the next item from an iterator.
+" >
+"   next(iter) -> next item from iter
+" <
+function! object#iter#next(obj, ...)
+  call object#builtin#TakeAtMostOptional('next', 1, a:0)
+  if !object#iter#IsIterator(a:obj)
+    call object#TypeError("'%s' object is not an iterator",
+        \ object#builtin#TypeName(a:obj))
+  endif
+  try
+    let Val = object#builtin#Call(a:obj.__next__)
+  catch 'StopIteration'
+    if a:0 == 1
+      return a:1
+    endif
+    throw v:exception
+  endtry
+  return Val
 endfunction
 
 function! object#iter#contains(haystack, needle)
@@ -110,52 +151,10 @@ function! object#iter#contains(haystack, needle)
     return 0
   endtry
 endfunction
+" }}}1
 
-""
-" @function iter(...)
-" Return an iterator from {obj}.
-" >
-"   iter(List) -> list_iterator
-"   iter(String) -> str_iterator
-"   iter(iterator) -> returned as it
-"   iter(obj) -> obj.__iter__()
-" <
-function! object#iter#iter(obj)
-  " Handle built-in iters.
-  if maktaba#value#IsList(a:obj)
-    return object#new(s:list_iterator, a:obj)
-  endif
-  if maktaba#value#IsString(a:obj)
-    return object#new(s:str_iterator, a:obj)
-  endif
-
-  if object#builtin#IsDict(a:obj)
-    " If obj already an iter.
-    if has_key(a:obj, '__next__')
-      return a:obj
-    endif
-    if has_key(a:obj, '__iter__')
-      return object#iter#extract(a:obj)
-    endif
-  endif
-
-  call object#except#not_avail('iter', a:obj)
-endfunction
-
-""
-" @function next(...)
-" Retrieve the next item from an iterator.
-" >
-"   next(iter) -> next item from iter
-" <
-function! object#iter#next(obj)
-  " Note: We check **nothing** here. Rationales:
-  "   - next() is performance critical.
-  "   - next() is usually used in couple with iter(),
-  "     which does all necessary checkings already.
-  return a:obj.__next__()
-endfunction
-
+" FUNCTION: any(), all(), sum() {{{1
+" TODO: bool()!
 ""
 " @function any(...)
 " If any of the items is True.
@@ -197,18 +196,27 @@ function! object#iter#all(iter)
 endfunction
 
 ""
-" @function enumerate(...)
-" Return an iterator for index, value of {iter}.
+" @function sum(...)
+" Return the sum of items from {iter} plus [start], which defaults to 0.
 " >
-"   enumerate(iterable, start=0) -> [start, item_0], ..., [N, item_N]
+"   sum(iter, start=0) -> start + the sum of items.
 " <
-function! object#iter#enumerate(iter, ...)
-  call object#util#ensure_argc(1, a:0)
+" Items must be numeric.
+function! object#iter#sum(iter, ...)
+  call object#builtin#TakeAtMostOptional('sum', 1, a:0)
   let iter = object#iter(a:iter)
-  let start =  a:0 ? maktaba#ensure#IsNumber(a:1) : 0
-  return object#new(s:enumerate, iter, start)
+  let start = a:0 ? object#builtin#CheckNumeric(a:1) : 0
+  try
+    while 1
+      let start += object#builtin#CheckNumeric(object#next(iter))
+    endwhile
+  catch /StopIteration/
+    return start
+  endtry
 endfunction
+" }}}1
 
+" FUNCTION: zip(), enumerate() {{{1
 ""
 " @function zip(...)
 " Return an iterator that zips a list of sequences.
@@ -216,15 +224,27 @@ endfunction
 "   zip(iter[,*iters]) -> [seq1[0], seq2[0], ...], ...
 " <
 " The iterator stops at the shortest sequence.
-function! object#iter#zip(iter, ...)
-  let iter = object#iter(a:iter)
-  if !a:0
-    return iter
-  endif
-  let iters = insert(map(copy(a:000), 'object#iter(v:val)'), iter)
-  return object#new(s:zip, iters)
+function! object#iter#zip(...)
+  let seqs = map(copy(a:000), 'object#iter(v:val)')
+  return object#new(s:zip, seqs)
 endfunction
 
+""
+" @function enumerate(...)
+" Return an iterator for index, value of {iter}.
+" >
+"   enumerate(iterable, start=0) -> [start, item_0], ..., [N, item_N]
+" <
+function! object#iter#enumerate(iter, ...)
+  call object#builtin#TakeAtMostOptional('enumerate', 1, a:0)
+  let iter = object#iter(a:iter)
+  let start =  a:0 ? object#builtin#CheckNumber(a:1) : 0
+  return object#new(s:enumerate, iter, start)
+endfunction
+" }}}1
+
+" FUNCTION: map(), filter() {{{1
+" TODO: allow Funcref here (callable module).
 ""
 " @function map(...)
 " Tranform the iterable with lambda (String).
@@ -232,7 +252,7 @@ endfunction
 "   map(iter, lambda) -> a new list mapped from iter
 " <
 function! object#iter#map(iter, lambda)
-  return map(object#list(a:iter), maktaba#ensure#IsString(a:lambda))
+  return map(object#list(a:iter), object#builtin#CheckString(a:lambda))
 endfunction
 
 ""
@@ -244,42 +264,12 @@ endfunction
 " <
 " Truthness is tested by `bool()`.
 function! object#iter#filter(iter, ...)
-  call object#util#ensure_argc(1, a:0)
-  if !a:0
-    return filter(object#list(a:iter), 'object#bool(v:val)')
-  endif
-  return filter(object#list(a:iter),
-        \ printf('object#bool(%s)', maktaba#ensure#IsString(a:1)))
+  call object#builtin#TakeAtMostOptional('filter', 1, a:0)
+  let core = a:0 ? printf('%s(v:val)', object#builtin#CheckString(a:1)):
+        \ 'v:val'
+  return filter(object#list(a:iter), 'object#bool('.core.')')
 endfunction
 
-""
-" @function sum(...)
-" Return the sum of items from {iter} plus [start], which defaults to 0.
-" >
-"   sum(iter, start=0) -> start + the sum of items.
-" <
-" Items must be numeric.
-function! object#iter#sum(iter, ...)
-  call object#util#ensure_argc(1, a:0)
-  let start = a:0 ? maktaba#ensure#IsNumeric(a:1) : 0
-  let iter = object#iter(a:iter)
-  try
-    while 1
-      let start += maktaba#ensure#IsNumeric(object#next(iter))
-    endwhile
-  catch /StopIteration/
-    return start
-  endtry
-endfunction
+" }}}1
 
-" TODO: add reduce()
-
-" Extract an iterator from {obj} and make sure it is a valid
-" iter, i.e., has next() method.
-function! object#iter#extract(obj)
-  let X = object#protocols#call(a:obj.__iter__)
-  if has_key(X, '__next__') && maktaba#value#IsFuncref(X.__next__)
-    return X
-  endif
-  throw object#TypeError('__iter__() returns non-iter')
-endfunction
+" vim: set sw=2 sts=2 et fdm=marker:

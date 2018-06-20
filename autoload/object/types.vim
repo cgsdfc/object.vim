@@ -54,9 +54,6 @@ for s:obj in [s:object, s:type]
   function! s:obj.__str__()
     return printf('<%s object>', self.__class__.__name__)
   endfunction
-  function! s:obj.__bool__()
-    return 1
-  endfunction
 endfor
 
 "
