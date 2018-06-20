@@ -42,14 +42,14 @@ function! object#protocols#getattr(obj, name, ...)
 
   try
     if has_key(obj, '__getattribute__')
-      let Val = object#builtin#CallProtocolMethodVarargs(obj.__getattribute__, name)
+      let Val = object#builtin#Call(obj.__getattribute__, name)
     else
       let Val = object#protocols#dict_lookup(obj, name)
     endif
   catch /AttributeError/
     if has_key(obj, '__getattr__')
       try
-        let Val = object#builtin#CallProtocolMethodVarargs(obj.__getattr__, name)
+        let Val = object#builtin#Call(obj.__getattr__, name)
       catch /AttributeError/
         if a:0 == 1
           let Val = a:1
@@ -98,8 +98,7 @@ function! object#protocols#setattr(obj, name, val)
   " NOTE: Currently, special attrs not not lookuped through
   " getattr().
   if has_key(obj, '__setattr__')
-    call object#builtin#CallProtocolMethodVarargs(obj.__setattr__,
-          \  name, a:val)
+    call object#builtin#Call(obj.__setattr__, name, a:val)
   else
     let obj[name] = a:val
   endif
@@ -137,7 +136,7 @@ endfunction
 function! object#protocols#dir(obj)
   let obj = object#builtin#CheckObj('dir', 1, a:obj)
   if has_key(obj, '__dir__')
-    let names = object#builtin#CallProtocolMethodVarargs(obj.__dir__)
+    let names = object#builtin#Call(obj.__dir__)
     return sort(object#list(names))
   endif
 
@@ -176,8 +175,7 @@ function! object#protocols#repr(obj)
     endif
 
     if has_key(a:obj, '__repr__')
-      let string = object#builtin#CallProtocolMethodVarargs(
-            \ a:obj.__repr__)
+      let string = object#builtin#Call(a:obj.__repr__)
       if object#builtin#IsString(string)
         return string
       endif
@@ -213,8 +211,7 @@ function! object#protocols#len(obj)
 
   if object#builtin#IsDict(a:obj)
     if has_key(a:obj, '__len__')
-      let number = object#builtin#CallProtocolMethodVarargs(
-            \ a:obj.__len__)
+      let number = object#builtin#Call(a:obj.__len__)
       if !object#builtin#IsNumber(number)
         call object#TypeError("'%s' object cannot be interpreted as an integer",
               \ object#builtin#TypeName(number))
@@ -252,8 +249,7 @@ function! object#protocols#in(needle, haystack)
 
   if object#builtin#IsDict(a:haystack)
     if has_key(a:haystack, '__contains__')
-      let answer = object#builtin#CallProtocolMethodVarargs(
-            \ a:haystack.__contains__(a:needle))
+      let answer = object#builtin#Call(a:haystack.__contains__(a:needle))
       " NOTE: return value of __contains__() is a bool context.
       return object#bool(answer)
     elseif has_key(a:haystack, '__iter__')

@@ -1,3 +1,4 @@
+" DOCUMENT: {{{1
 ""
 " @section Introduction, intro
 " @stylized object
@@ -119,6 +120,7 @@
 " and hopefully, useful for Vim plugin writers.
 "
 
+" }}}1
 
 " MODULE: class.vim {{{1
 
@@ -233,6 +235,10 @@ endfunction
 
 function! object#NameError(...) abort
   return call('object#except#NameError', a:000)
+endfunction
+
+function! object#SyntaxError(...) abort
+  return call('object#except#SyntaxError', a:000)
 endfunction
 " }}}1
 

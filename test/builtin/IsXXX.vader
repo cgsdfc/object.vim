@@ -1,0 +1,19 @@
+" vim: ft=vim
+
+Before;
+
+Execute(CheckX);
+AssertThrows call object#builtin#CheckX('MyFun', 0, 'wrong', type(0))
+Log g:vader_exception
+
+Execute(Number);
+AssertEqual 1, object#builtin#CheckNumber('MyFun', 0, 1)
+AssertThrows call object#builtin#CheckNumber('MyFun', 0, '')
+
+Execute(Bool);
+Assert 1, object#builtin#CheckBool('MyFun', 0, 1)
+AssertEqual v:false, object#builtin#CheckBool('MyFun', 0, v:false)
+AssertThrows call object#builtin#CheckBool('MyFun', 0, 3)
+
+Execute(Dict);
+AssertEqual {}, object#builtin#CheckDict('MyFun', 0, {})

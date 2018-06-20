@@ -124,30 +124,65 @@ function! object#builtin#TypeName(X)
   return s:typenames[type(a:X)]
 endfunction
 
-" FUNCTION: Call a protocol methods. {{{1
+function! object#builtin#Call(X, ...)
+  return object#builtin#Call_(a:X, a:000)
+endfunction
+
+" FUNCTION: Call a Funcref. {{{1
 " Translate Vim error to Python-style error.
-" Since X is meant to be user-defined functions, some error thrown by
-" built-in functions are not caught.
 " >
-"   call object#builtin#CallProtocolMethod(obj.__init__, a:000)
-"   return object#builtin#CallProtocolMethodVarargs(obj.__len__)
+"   call object#builtin#Call(function('empty'), [])
+"   return object#builtin#Call(obj.__len__)
 " <
-function! object#builtin#CallProtocolMethod(X, args)
-  try
-    let Val = call(a:X, a:args)
-  catch /E117/
+function! object#builtin#Call_(X, args)
+  if !object#builtin#IsFuncref(a:X)
     call object#TypeError("'%s' object is not callable",
           \ object#builtin#TypeName(a:X))
-  catch /E118\|E119/ " Too many or not enough args.
-    call object#TypeError(v:exception)
-  catch /E121/ " Undefined variables.
-    call object#NameError(v:exception)
+  endif
+  try
+    let Val = call(a:X, a:args)
+  catch /E118\|E119/
+    " E118: Too many or not enough args.
+    " E119: Too many or not enough args.
+    call object#TypeError(object#builtin#ReOrderVimError(v:exception))
+  catch /E117\|E121/
+    " E117: Unknown function.
+    " E121: Undefined variables.
+    " NOTE: Unknown function can also be caused by
+    " using something non-callable, which is actually
+    " TypeError.
+    " However, the word "Unknown" makes it very like
+    " an undefined name.
+    call object#NameError(object#builtin#ReOrderVimError(v:exception))
+  catch /E488/
+    " E488: Trailing characters
+    call object#SyntaxError(object#builtin#ReOrderVimError(v:exception))
   endtry
   return Val
 endfunction
 
-function! object#builtin#CallProtocolMethodVarargs(X, ...)
-  return object#builtin#CallProtocolMethod(a:X, a:000)
+" >
+"   Vim(let): E111: something bad happened
+"   becomes
+"   something bad happens (E111)
+" <
+" I don't think the let is any useful.
+" What is really useful is the complete line of code
+" that goes wrong, the filename and the line number.
+" A plain let gives you too little than nothing.
+"
+" The oddness of the format of v:exception:
+" - When it is `throw`, it is the string that was thrown.
+" - When it is run in the prompt (interactively), the `Vim(xxx)`
+"   disappear.
+" - When run in a script, we have the full `Vim(xxx): E111: xxxx`.
+"
+function! object#builtin#ReOrderVimError(error)
+  let list = matchlist(a:error, '\V\C\^\.\*\(E\d\+\): \(\.\+\)\$')
+  if empty(list)
+    return a:error
+  endif
+  return printf('%s (%s)', list[2], list[1])
 endfunction
 
 " vim: set sw=2 sts=2 et fdm=marker:

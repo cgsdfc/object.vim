@@ -1,0 +1,53 @@
+" String _is_ not callable!
+" The following test cases are grouped into the Python
+" exception they correspond to.
+" If you add a new catch in builtin.vim, you must add
+" a test case to _the_ group here.
+
+Execute(Basic);
+AssertEqual object#builtin#Call(function('printf'), '%s', 'str'), 'str'
+
+" SyntaxError {{{1
+Execute(Tailing characters);
+function! F()
+  let 1 = 2
+endfunction
+AssertThrows call object#builtin#Call(function('F'))
+Log g:vader_exception
+
+
+" NameError {{{1
+Execute(Undefined variable);
+function! F(name)
+  return name " a:name actually.
+endfunction
+AssertThrows call object#builtin#Call(function('F'), '')
+Log g:vader_exception
+
+Execute(Unknown function);
+function! F()
+  call print() " typo of printf
+endfunction
+AssertThrows call object#builtin#Call(function('F'))
+Log g:vader_exception
+
+
+" TypeError {{{1
+Execute(Not a Funcref);
+AssertThrows call object#builtin#Call('')
+Log g:vader_exception
+
+Execute(No enough arguments);
+function! TakeOneArg(arg)
+endfunction
+AssertThrows call object#builtin#Call(function('TakeOneArg'))
+Log g:vader_exception
+
+Execute(Too many arguments);
+function! TakeOneArg(arg)
+endfunction
+AssertThrows call object#builtin#Call(function('TakeOneArg'), 1, 2)
+Log g:vader_exception
+
+" vim: ft=vim
+" vim: set sw=2 sts=2 et fdm=marker:

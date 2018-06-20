@@ -1,0 +1,25 @@
+Execute(throw);
+try
+  throw 'bad'
+catch
+  Log v:exception
+  Log object#builtin#ReOrderVimError(v:exception)
+endtry
+
+Execute(let);
+try
+  let '' = 1
+catch
+  Log v:exception
+  Log object#builtin#ReOrderVimError(v:exception)
+endtry
+
+Execute(Argument);
+try
+  call printf('%s')
+catch
+  Log v:exception
+  Log object#builtin#ReOrderVimError(v:exception)
+endtry
+
+" vim: ft=vim

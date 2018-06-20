@@ -38,6 +38,7 @@ call object#class#builtin_class('LookupError', s:Exception, s:)
 call object#class#builtin_class('IndexError', s:LookupError, s:)
 call object#class#builtin_class('KeyError', s:LookupError, s:)
 call object#class#builtin_class('NameError', s:Exception, s:)
+call object#class#builtin_class('SyntaxError', s:Exception, s:)
 
 " On-demand Bootstrap
 function! object#except#lazy_bootstrap()
@@ -106,7 +107,6 @@ function! object#except#lazy_bootstrap()
   call object#class#builtin_class('RecursionError', s:RuntimeError, s:)
   " }}}4
 
-  call object#class#builtin_class('SyntaxError', s:Exception, s:)
   call object#class#builtin_class('SystemError', s:Exception, s:)
 
   " Class: Derived from ValueError {{{4
@@ -184,6 +184,13 @@ endfunction
 " Generic exception.
 function! object#except#Exception(...)
   call object#except#throw_(s:Exception, a:000)
+endfunction
+
+""
+" @function SyntaxError(...)
+" The value of function arguments went wrong.
+function! object#except#SyntaxError(...)
+  call object#except#throw_(s:SyntaxError, a:000)
 endfunction
 
 ""
