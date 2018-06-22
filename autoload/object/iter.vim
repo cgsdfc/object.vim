@@ -2,6 +2,18 @@
 " In all(), the check of next() is rebundant.
 let s:object = object#object_()
 
+" FUNCTION: iter_self() {{{1
+function! s:return_self() dict
+  return self
+endfunction
+
+let s:iter_self = function('s:return_self')
+
+function! object#iter#iter_self()
+  return s:iter_self
+endfunction
+" }}}1
+
 " FINAL CLASS: callable_iterator {{{1
 call object#class#builtin_class('callable_iterator', s:object, s:)
 
@@ -10,9 +22,7 @@ function! s:callable_iterator.__init__(callable, sentinel)
   let self.sentinel = a:sentinel
 endfunction
 
-function! s:callable_iterator.__iter__()
-  return self
-endfunction
+let s:callable_iterator.__iter__ = object#iter#iter_self()
 
 " TODO: self.callable can be method of other object,
 " but it will forget the original self after put into
@@ -26,7 +36,6 @@ function! s:callable_iterator.__next__()
   endif
   return Next
 endfunction
-
 " }}}1
 
 " FUNCTION: iter() {{{1
@@ -118,14 +127,52 @@ function! object#iter#next(obj, ...)
   endtry
   return Val
 endfunction
+" }}}1
+
+" FUNCTION: index() {{{1
+" Return the index of the first occurence of value.
+" Throw ValueError if not present.
+function! object#iter#index(iterable, value)
+  let iter = object#iter(a:iterable)
+  let index = 0
+  try
+    while 1
+      if maktaba#value#IsEqual(a:value, object#next(iter))
+        return index
+      endif
+      let index += 1
+    endwhile
+  catch 'StopIteration'
+    call object#ValueError("sequence.index(x): x not in sequence")
+  endtry
+endfunction
+" }}}1
+
+" FUNCTION: count() {{{1
+" Return the times value appears in iterable.
+function! object#iter#count(iterable, value)
+  let iter = object#iter(a:iterable)
+  let sum = 0
+  try
+    while 1
+      if maktaba#value#IsEqual(a:value, object#next(iter))
+        let sum += 1
+      endif
+    endwhile
+  catch 'StopIteration'
+    return sum
+  endtry
+endfunction
+" }}}1
 
 " FUNCTION: contains() {{{1
-function! object#iter#contains(haystack, needle)
-  let iter = object#iter(a:haystack)
+" Return whether target is in iterable.
+function! object#iter#contains(iterable, target)
+  let iter = object#iter(a:iterable)
   try
     while 1
       " TODO: use object#eq()
-      if maktaba#value#IsEqual(a:needle, object#next(iter))
+      if maktaba#value#IsEqual(a:target, object#next(iter))
         return 1
       endif
     endwhile
@@ -154,6 +201,7 @@ function! object#iter#any(iter)
     return 0
   endtry
 endfunction
+" }}}1
 
 " FUNCTION: sum() {{{1
 ""
@@ -174,6 +222,7 @@ function! object#iter#all(iter)
     return 1
   endtry
 endfunction
+" }}}1
 
 " FUNCTION: sum() {{{1
 ""
@@ -199,6 +248,12 @@ function! object#iter#sum(iter, ...)
   catch 'StopIteration'
     return start
   endtry
+endfunction
+" }}}1
+
+" FUNCTION: reversed() {{{1
+function! object#iter#reversed(iterable)
+
 endfunction
 " }}}1
 

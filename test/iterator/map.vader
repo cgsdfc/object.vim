@@ -3,6 +3,7 @@ let iter = object#map(function('toupper'), 'a')
 AssertEqual object#next(iter), 'A'
 
 let iter = object#map(function('str2nr'), ['1'])
+Assert iter is object#iter(iter)
 AssertEqual object#next(iter), 1
 
 

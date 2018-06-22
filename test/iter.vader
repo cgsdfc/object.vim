@@ -10,4 +10,9 @@ Include(Test all()): iter/all.vader
 Include(Test any()): iter/any.vader
 Include(Test sum()): iter/sum.vader
 
+Execute(iter_self);
+let MyIter = {}
+let MyIter.__iter__ = object#iter#iter_self()
+Assert MyIter.__iter__() is MyIter
+
 " vim: set sw=2 sts=2 et fdm=marker:

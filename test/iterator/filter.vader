@@ -3,6 +3,8 @@ let Bool = function('object#bool')
 
 Execute(Basic Cases);
 let iter = object#filter(Bool, [1, 0])
+Assert iter is object#iter(iter)
+
 AssertEqual 1, object#next(iter)
 AssertThrows call object#next(g:iter)
 Assert g:vader_exception =~# 'StopIteration'

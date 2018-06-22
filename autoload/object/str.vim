@@ -108,9 +108,7 @@ function! s:str_iterator.__next__()
   call object#StopIteration()
 endfunction
 
-function! s:str_iterator.__iter__()
-  return self
-endfunction
+let s:str_iterator.__iter__ = object#iter#iter_self()
 
 " }}}1
 

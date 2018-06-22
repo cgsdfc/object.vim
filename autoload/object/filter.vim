@@ -10,9 +10,7 @@ function! s:filter.__init__(predicate, iterable)
   let self._iterable = object#iter(a:iterable)
 endfunction
 
-function! s:filter.__iter__()
-  return self
-endfunction
+let s:filter.__iter__ = object#iter#iter_self()
 
 function! s:filter.__next__()
   while 1

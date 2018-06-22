@@ -1,5 +1,7 @@
 Execute(Basic Cases);
 let iter = object#enumerate('abc')
+Assert iter is object#iter(iter)
+
 AssertEqual object#next(iter), [0, 'a']
 AssertEqual object#next(iter), [1, 'b']
 AssertEqual object#next(iter), [2, 'c']

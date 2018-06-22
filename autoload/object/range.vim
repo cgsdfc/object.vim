@@ -2,6 +2,7 @@ let s:object = object#object_()
 
 " FINAL CLASS: range {{{1
 call object#class#builtin_class('range', s:object, s:)
+let s:range.__final__ = 1
 
 " Note: all of these attributes are readonly.
 function! s:range.__init__(...)
@@ -20,34 +21,42 @@ function! s:range.__init__(...)
   let self.start = a:0 == 2 ? a:1 : 0
   let self.stop = a:0 == 2 ? a:2 : a:1
   let self._length = object#range#compute_length(start, stop, step)
-  let self._repr = object#range#compute_repr(a:000)
 endfunction
 
 function! s:range.__repr__()
-  return self._repr
+  return self.step == 1 ? printf('range(%d, %d)', self.start, self.stop):
+        \ printf('range(%d, %d, %d)', self.start, self.stop, self.step)
 endfunction
 
-function! s:range.__str__()
-  return self._repr
-endfunction
+let s:range.__str__ = s:range.__repr__
 
 function! s:range.__setattr__(name, val)
   call object#AttributeError('readonly attribute')
 endfunction
 
 function! s:range.__eq__(other)
-  if self is a:other
-    return 1
-  endif
   if !object#builtin#IsObj(a:other)
     return 0
+  endif
+  if self is a:other
+    return 1
   endif
   if a:other.__class__ isnot s:range
     return 0
   endif
-  return self.start == a:other.start &&
-        \self.stop == a:other.stop &&
-        \self.step == a:other.step
+  if self._length != a:other._length
+    return 0
+  endif
+  if !self._length
+    return 1
+  endif
+  if self.start != a:other.start
+    return 0
+  endif
+  if self._length == 1
+    return 1
+  endif
+  return self.step == a:other.step
 endfunction
 
 function! s:range.__ne__(other)
@@ -56,47 +65,69 @@ endfunction
 
 function! s:range.__contains__(value)
   if !object#builtin#IsNumber(a:value)
+    return object#iter#contains(self, a:value)
+  endif
+  " Check if value is ever possible to be in range.
+  if self.step > 0
+    let cmp1 = self.start <= a:value
+    let cmp2 = a:value < self.stop
+  else
+    let cmp1 = self.start >= a:value
+    let cmp2 = a:value > self.stop
+  endif
+  if cmp1 == 0 || cmp2 == 0
     return 0
   endif
-  if self.step > 0
-    return self.start <= a:value && a:value < self.stop
-  endif
-  return self.start >= a:value && a:value > self.stop
-endfunction
-
-function! s:range.__getitem__(index)
-  if !object#builtin#IsNumber(a:index)
-    call object#TypeError("range indices must be integers or slices, not %s",
-          \ object#builtin#TypeName(a:index))
-  endif
-  let len = object#len(self)
-  let index = a:index > 0 ? a:index : a:index + len
-
-  if 0 <= index && index < len
-    return self.start + a:index * self.step
-  endif
-  call object#IndexError("range object index out of range")
+  " Check if stride invalidate membership of value.
+  return 0 == (a:value - self.start) % self.step
 endfunction
 
 function! s:range.count(value)
-  return self.__contains__(a:value)
+  if object#builtin#IsNumber(a:value)
+    return self.__contains__(a:value)
+  endif
+  return object#iter#count(self, a:value)
+endfunction
+
+function! s:range.__getitem__(index)
+  if object#builtin#IsNumber(a:index)
+    let index = a:index
+    if index < 0
+      let index += self._length
+    endif
+    if 0 <= index && index < self._length
+      return self.start + a:index * self.step
+    endif
+    call object#IndexError("range object index out of range")
+  endif
+
+  " TODO slice
+  call object#TypeError("range indices must be integers or slices, not %s",
+          \ object#builtin#TypeName(a:index))
 endfunction
 
 function! s:range.index(value)
-  if !self.__contains__(a:value)
-    call object#ValueError(object#builtin#IsNumber(a:value)?
-          \ printf('%d is not in range', a:value):
-          \ "sequence.index(x): x not in sequence")
+  if !object#builtin#IsNumber(a:value)
+    return object#iter#index(self, a:value)
   endif
-  return abs(a:value - self.start)
+  if self.__contains__(a:value)
+    return (a:value - self.start) / self.step
+  endif
+  call object#ValueError("%d is not in range", a:value)
 endfunction
 
 function! s:range.__iter__()
-  return object#new(s:range_iterator, self)
+  return object#new(s:range_iterator,
+        \ self.start,
+        \ self.step,
+        \ self._length)
 endfunction
 
 function! s:range.__reversed__()
-  " return object#new(s:range_iterator,
+  return object#new(s:range_iterator,
+        \ self.start + (self._length-1) * self.step,
+        \ -self.step,
+        \ self._length)
 endfunction
 
 function! s:range.__len__()
@@ -107,25 +138,24 @@ endfunction
 
 " FINAL CLASS: range_iterator {{{1
 call object#class#builtin_class('range_iterator', s:object, s:)
+let s:range_iterator.__final__ = 1
 
-function! s:range_iterator.__init__(start, stop, step)
-  let self._curval = a:start
-  let self._stop = a:stop
+function! s:range_iterator.__init__(start, step, length)
+  let self._start = a:start
+  let self._length = a:length
   let self._step = a:step
+  let self._index = 0
 endfunction
 
-function! s:range_iterator.__iter__()
-  return self
-endfunction
+let s:range_iterator.__iter__ = object#iter#iter_self()
 
 function! s:range_iterator.__next__()
-  let nextval = self._curval
-  if (self._step > 0 && nextval >= self._stop) ||
-    \(self._step < 0 && nextval <= self._stop)
-    call object#StopIteration()
+  if self._index < self._length
+    let N = self._index * self._step + self._start
+    let self._index += 1
+    return N
   endif
-  let self._curval += self._step
-  return nextval
+  call object#StopIteration()
 endfunction
 " }}}1
 
@@ -151,7 +181,4 @@ function! object#range#compute_length(start, stop, step)
   return ((hi - lo - 1) / step) + 1
 endfunction
 
-function! object#range#compute_repr(args)
-  return printf('range(%s)', join(copy(a:args), ', '))
-endfunction
 " vim: set sw=2 sts=2 et fdm=marker:

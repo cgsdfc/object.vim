@@ -5,6 +5,8 @@
 
 Execute(Basic Cases);
 let iter = object#zip('ab', [1, 2])
+Assert iter is object#iter(iter)
+
 AssertEqual object#next(iter), ['a', 1]
 AssertEqual object#next(iter), ['b', 2]
 

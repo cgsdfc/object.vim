@@ -12,9 +12,7 @@ function! s:map.__init__(callable, ...)
   let self._seqns = map(copy(a:000), 'object#iter(v:val)')
 endfunction
 
-function! s:map.__iter__()
-  return self
-endfunction
+let s:map.__iter__ = object#iter#iter_self()
 
 function! s:map.__next__()
   return object#builtin#Call_(self._callable,

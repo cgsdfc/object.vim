@@ -2,9 +2,7 @@
 let s:object = object#object_()
 call object#class#builtin_class('enumerate', s:object, s:)
 
-function! s:enumerate.__iter__()
-  return self
-endfunction
+let s:enumerate.__iter__ = object#iter#iter_self()
 
 " Note: enumerate is subclassable, that's why moving
 " logic into __init__.

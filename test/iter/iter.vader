@@ -47,7 +47,6 @@ Assert IsIterator(object#new(X))
 " }}}1
 
 
-
 Execute(Check args);
 AssertThrows call object#iter()
 Log g:vader_exception

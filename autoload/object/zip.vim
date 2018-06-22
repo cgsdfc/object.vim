@@ -7,9 +7,7 @@ function! s:zip.__init__(...)
   let self._seqns = map(copy(a:000), 'object#iter(v:val)')
 endfunction
 
-function! s:zip.__iter__()
-  return self
-endfunction
+let s:zip.__iter__ = object#iter#iter_self()
 
 function! s:zip.__next__()
   if empty(self._seqns)

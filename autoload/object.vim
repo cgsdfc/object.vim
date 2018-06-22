@@ -290,6 +290,7 @@ endfunction
 function! object#sum(...) abort
   return call('object#iter#sum', a:000)
 endfunction
+" }}}1
 
 " MODULE: enumerate, zip, map, filter {{{1
 function! object#enumerate(...) abort
@@ -306,6 +307,12 @@ endfunction
 
 function! object#filter(...) abort
   return call('object#filter#filter', a:000)
+endfunction
+" }}}1
+
+" MODULE: range {{{1
+function! object#range(...) abort
+  return call('object#range#range', a:000)
 endfunction
 " }}}1
 

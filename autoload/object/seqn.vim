@@ -73,9 +73,10 @@ function! object#seqn#in(needle, haystack)
 endfunction
 " }}}2
 
-function! object#seqn#reversed(iterable)
-
-endfunction
+" function! object#seqn#ConvertIndex(index, len)
+"   let index = a:index > 0 ? a:index : a:index + a:len
+"   if 
+" endfunction
 
 function! object#seqn#sorted(iterable, ...)
 

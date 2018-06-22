@@ -14,3 +14,4 @@ endfunction
 
 command! ObjectShell call object#shell#run()
 command! -complete=expression -nargs=* Repr call <SID>print(eval(<f-args>))
+command! -complete=expression -nargs=1 Dir echo object#repr(<args>)
