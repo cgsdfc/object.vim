@@ -2,6 +2,8 @@
 
 Before;
 " Mock away the func and nr.
+" Note: since they become Funcrefs, when using AssertThrows, g:
+" prefix must be added.
 function! MockedCheckXXX(func)
   return function(a:func, ['Mocked', 0])
 endfunction
@@ -15,43 +17,57 @@ let Checkers = [
       \ 'CheckDict',
       \ 'CheckString',
       \ 'CheckFuncref',
+      \ 'CheckNumeric',
       \ ]
 
 for chk in Checkers
-  let {chk} = MockedCheckXXX(printf('object#builtin#%s', chk))
+  let g:{chk} = MockedCheckXXX(printf('object#builtin#%s', chk))
 endfor
 
 Execute(Number);
 AssertEqual 1, CheckNumber(1)
-AssertThrows call CheckNumber('')
+AssertThrows call g:CheckNumber('')
+Assert g:vader_exception =~# 'TypeError'
 
 Execute(Bool);
 AssertEqual 1, CheckBool(1)
 AssertEqual v:false, CheckBool(v:false)
-AssertThrows call CheckBool(3)
+AssertThrows call g:CheckBool(3)
+Assert g:vader_exception =~# 'TypeError'
 
 Execute(Dict);
 AssertEqual {}, CheckDict({})
-AssertThrows call CheckDict('')
+AssertThrows call g:CheckDict('')
+Assert g:vader_exception =~# 'TypeError'
 
 Execute(List);
 AssertEqual [], CheckList([])
-AssertThrows call CheckList('')
+AssertThrows call g:CheckList('')
+Assert g:vader_exception =~# 'TypeError'
 
 Execute(Float);
 AssertEqual 1.0, CheckFloat(1.0)
-AssertThrows call CheckFloat(1)
+AssertThrows call g:CheckFloat(1)
+Assert g:vader_exception =~# 'TypeError'
 
 Execute(Obj);
 let obj = object#object()
 AssertEqual obj, CheckObj(obj)
-AssertThrows call CheckObj({})
+AssertThrows call g:CheckObj({})
+Assert g:vader_exception =~# 'TypeError'
 
 Execute(String);
 AssertEqual '', CheckString('')
-AssertThrows call CheckString(1)
-
+AssertThrows call g:CheckString(1)
+Assert g:vader_exception =~# 'TypeError'
 
 Execute(Funcref);
 AssertEqual function('tr'), CheckFuncref(function('tr'))
-AssertThrows call CheckFuncref('tr')
+AssertThrows call g:CheckFuncref('tr')
+Assert g:vader_exception =~# 'TypeError'
+
+Execute(Numberic);
+AssertEqual 1, CheckNumeric(1)
+AssertEqual 1.0, CheckNumeric(1.0)
+AssertThrows call g:CheckNumeric('')
+Assert g:vader_exception =~# 'TypeError'

@@ -36,7 +36,7 @@ function! object#builtin#CheckNumeric(func, nr, X)
     return a:X
   endif
   call object#TypeError('%s() argument %d must be numeric, not %s',
-        \ a:func, a:nr, s:typenames[actual])
+        \ a:func, a:nr, s:typenames[type(a:X)])
 endfunction
 
 function! object#builtin#CheckString(func, nr, X)
@@ -96,7 +96,7 @@ function! object#builtin#IsFloat(X)
 endfunction
 
 function! object#builtin#IsNumeric(X)
-  len type = type(a:X)
+  let type = type(a:X)
   return  type == s:Number || type == s:Float
 endfunction
 
@@ -182,6 +182,8 @@ function! object#builtin#Call_(X, args)
   catch /E488:/
     " E488: Trailing characters
     call object#SyntaxError(object#builtin#ReOrderVimError(v:exception))
+  catch /E\d\+:/
+    call object#VimError(object#builtin#ReOrderVimError(v:exception))
   endtry
   return Val
 endfunction

@@ -11,6 +11,7 @@ let Testers = [
       \ 'IsDict',
       \ 'IsString',
       \ 'IsFuncref',
+      \ 'IsNumeric',
       \ ]
 
 for func in Testers
@@ -47,7 +48,11 @@ Execute(String);
 Assert IsString('')
 Assert !IsString(1)
 
-
 Execute(Funcref);
 Assert IsFuncref(function('tr'))
 Assert !IsFuncref('tr')
+
+Execute(Numeric);
+Assert IsNumeric(1)
+Assert IsNumeric(1.0)
+Assert !IsNumeric('1')

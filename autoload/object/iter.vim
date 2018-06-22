@@ -96,7 +96,7 @@ function! object#iter#IsIterator(X)
 endfunction
 " }}}1
 
-" FUNCTION: next(), contains() {{{1
+" FUNCTION: next() {{{1
 ""
 " @function next(...)
 " Retrieve the next item from an iterator.
@@ -119,6 +119,7 @@ function! object#iter#next(obj, ...)
   return Val
 endfunction
 
+" FUNCTION: contains() {{{1
 function! object#iter#contains(haystack, needle)
   let iter = object#iter(a:haystack)
   try
@@ -134,7 +135,7 @@ function! object#iter#contains(haystack, needle)
 endfunction
 " }}}1
 
-" FUNCTION: any(), all(), sum() {{{1
+" FUNCTION: any() {{{1
 ""
 " @function any(...)
 " If any of the items is True.
@@ -154,6 +155,7 @@ function! object#iter#any(iter)
   endtry
 endfunction
 
+" FUNCTION: sum() {{{1
 ""
 " @function all(...)
 " If all of the items is True.
@@ -173,6 +175,7 @@ function! object#iter#all(iter)
   endtry
 endfunction
 
+" FUNCTION: sum() {{{1
 ""
 " @function sum(...)
 " Return the sum of items from {iter} plus [start], which defaults to 0.

@@ -4,7 +4,7 @@ endif
 let s:object_vim_loaded = 1
 
 function! s:print_(args)
-  let str = join(map(a:args, 'object#repr(eval(v:val))'), ' ')
+  let str = join(map(a:args, 'object#repr(v:val)'), ' ')
   echo str
 endfunction
 
@@ -13,4 +13,4 @@ function! s:print(...)
 endfunction
 
 command! ObjectShell call object#shell#run()
-command! -complete=expression -nargs=* Repr call <SID>print(<f-args>)
+command! -complete=expression -nargs=* Repr call <SID>print(eval(<f-args>))

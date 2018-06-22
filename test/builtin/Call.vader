@@ -69,5 +69,15 @@ endfunction
 AssertThrows call object#builtin#Call(function('TakeOneArg'), 1, 2)
 Log g:vader_exception
 
+
+" VimError {{{1
+" Any currently unrecognized Vim error will be turned into VimError.
+Execute(Faked VimError);
+function! F()
+  throw 'E111: Unrecognized Vim error'
+endfunction
+AssertThrows call object#builtin#Call(function('F'))
+Log g:vader_exception
+
 " vim: ft=vim
 " vim: set sw=2 sts=2 et fdm=marker:

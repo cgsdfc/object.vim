@@ -1,52 +1,38 @@
-" vim:ft=vim
 "
 " Test object#sum()
 "
 
-Execute (empty sequence gets start);
-for x in [ [], '' ]
-  AssertEqual object#sum(x), 0
-  AssertEqual object#sum(x, 1), 1
-  if has('float')
-    AssertEqual object#sum(x, 1.0), 1.0
-  endif
-endfor
+Execute(Basic Cases);
+" TO Vader: Why don't you check the operand of Assert
+" is a god deam Number before you start asserting?
+" Cause Very Strange Message!
+AssertEqual object#sum([1, 2, 3]), 6
+AssertEqual object#sum([1.0, 2.0, 3.0]), 6.0
+AssertEqual object#sum([1, 2.0, 3.0]), 6.0
 
-Execute (sum a list of Numbers);
-" Guass-honored suming 1-100
-let numbers = range(1, 100)
-let x = object#sum(numbers)
-AssertEqual x, 5050
 
-Execute (sum a list of Floats);
-if !has('float')
-  Log '+float not available, skip'
-endif
+Execute(Empty Sequence);
+AssertEqual object#sum([]), 0
+AssertEqual object#sum(''), 0
+AssertEqual object#sum([], 1), 1
+AssertEqual object#sum([], 1.0), 1.0
 
-" This exploits the Number2String implicit conversion
-" of Vim
-let floats = map(range(1, 100), 'str2float(v:val)')
-Assert object#sum(floats) ==# 5050.0
 
-Execute (NAN sequence causes WrongType to throw);
-let input = [
-      \ repeat('a',10),
-      \ [ 1, 2, '3', '4' ],
-      \ [ function('empty'), 1 ],
-      \]
-for x in input
-  AssertThrows call object#sum(g:x)
-  Assert g:vader_exception =~# 'WrongType'
-endfor
-
-Execute (Corner case: 1 element sequence);
-AssertEqual object#sum([1]), 1
-AssertEqual object#sum([3.14]), 3.14
-
-Execute (With optional start);
-AssertEqual object#sum(range(1, 100), 0.0), 5050.0
-
-Execute (Throws WrongType when start is not numeric);
+Execute(Check start);
 AssertThrows call object#sum([], '1')
-Assert g:vader_exception =~# 'WrongType'
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
 
+
+Execute(Check non-numeric);
+AssertThrows call object#sum(repeat('a', 3))
+Assert g:vader_exception =~# 'TypeError'
+
+AssertThrows call object#sum([1, '2'])
+Assert g:vader_exception =~# 'TypeError'
+
+
+Execute(With start);
+AssertEqual object#sum([1.0], 2), 3.0
+
+" vim:ft=vim

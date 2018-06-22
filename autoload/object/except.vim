@@ -27,7 +27,7 @@ function! s:BaseException.__str__()
   return call('printf', self.args)
 endfunction
 
-" Eagerly Bootstrap
+" Eager Bootstrap
 call object#class#builtin_class('Exception', s:BaseException, s:)
 call object#class#builtin_class('StopIteration', s:Exception, s:)
 call object#class#builtin_class('OSError', s:Exception, s:)
@@ -39,6 +39,7 @@ call object#class#builtin_class('IndexError', s:LookupError, s:)
 call object#class#builtin_class('KeyError', s:LookupError, s:)
 call object#class#builtin_class('NameError', s:Exception, s:)
 call object#class#builtin_class('SyntaxError', s:Exception, s:)
+call object#class#builtin_class('VimError', s:Exception, s:)
 
 " On-demand Bootstrap
 function! object#except#lazy_bootstrap()
@@ -246,6 +247,12 @@ endfunction
 " @function NameError(...)
 function! object#except#NameError(...)
   call object#except#throw_(s:NameError, a:000)
+endfunction
+
+""
+" @function VimError(...)
+function! object#except#VimError(...)
+  call object#except#throw_(s:VimError, a:000)
 endfunction
 
 " Helper to throw 'no such attribute'
