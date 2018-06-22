@@ -96,17 +96,11 @@ function! s:range.__iter__()
 endfunction
 
 function! s:range.__reversed__()
-  " return object#new(s:range_iterator, 
+  " return object#new(s:range_iterator,
 endfunction
 
 function! s:range.__len__()
-  " Reference: Python-3.6.5/Objects/rangeobject.c
-  let [lo, hi, step] = self.step > 0? [self.start, self.stop] :
-        \ [self.stop, self.start]
-  if lo >= hi
-    return 0
-  endif
-  return ((hi - lo - 1) / abs(self.step)) + 1
+  return self._length
 endfunction
 
 " }}}1

@@ -4,7 +4,7 @@ let s:object = object#object_()
 call object#class#builtin_class('zip', s:object, s:)
 
 function! s:zip.__init__(...)
-  let self.seqns = map(copy(a:000), 'object#iter(v:val)')
+  let self._seqns = map(copy(a:000), 'object#iter(v:val)')
 endfunction
 
 function! s:zip.__iter__()
@@ -12,10 +12,10 @@ function! s:zip.__iter__()
 endfunction
 
 function! s:zip.__next__()
-  if empty(self.seqns)
+  if empty(self._seqns)
     call object#StopIteration()
   endif
-  return map(copy(self.seqns), 'object#next(v:val)')
+  return map(copy(self._seqns), 'object#next(v:val)')
 endfunction
 
 " }}}1

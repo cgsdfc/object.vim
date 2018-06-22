@@ -6,8 +6,8 @@ call object#class#builtin_class('filter', s:object, s:)
 " Note: Currently predicate doesn't support None.
 " Use function('object#bool') instead.
 function! s:filter.__init__(predicate, iterable)
-  let self.predicate = a:predicate
-  let self.iterable = object#iter(a:iterable)
+  let self._predicate = a:predicate
+  let self._iterable = object#iter(a:iterable)
 endfunction
 
 function! s:filter.__iter__()
@@ -16,8 +16,8 @@ endfunction
 
 function! s:filter.__next__()
   while 1
-    let N = object#next(self.iterable)
-    if object#bool(object#builtin#Call(self.predicate, N))
+    let N = object#next(self._iterable)
+    if object#bool(object#builtin#Call(self._predicate, N))
       return N
     endif
   endwhile

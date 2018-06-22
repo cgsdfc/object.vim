@@ -8,8 +8,8 @@ function! s:map.__init__(callable, ...)
     call object#TypeError("map() must have at least two arguments")
   endif
   " Note: It does not check it immediately.
-  let self.callable = a:callable
-  let self.seqns = map(copy(a:000), 'object#iter(v:val)')
+  let self._callable = a:callable
+  let self._seqns = map(copy(a:000), 'object#iter(v:val)')
 endfunction
 
 function! s:map.__iter__()
@@ -17,8 +17,8 @@ function! s:map.__iter__()
 endfunction
 
 function! s:map.__next__()
-  return object#builtin#Call_(self.callable,
-        \ map(copy(self.seqns), 'object#next(v:val)'))
+  return object#builtin#Call_(self._callable,
+        \ map(copy(self._seqns), 'object#next(v:val)'))
 endfunction
 " }}}1
 

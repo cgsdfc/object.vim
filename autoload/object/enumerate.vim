@@ -10,13 +10,13 @@ endfunction
 " logic into __init__.
 function! s:enumerate.__init__(iterable, ...)
   call object#builtin#TakeAtMostOptional('enumerate', 1, a:0)
-  let self.iter = object#iter(a:iterable)
-  let self.idx = a:0 ? object#builtin#CheckNumber2(a:1) : 0
+  let self._iterable = object#iter(a:iterable)
+  let self._index = a:0 ? object#builtin#CheckNumber2(a:1) : 0
 endfunction
 
 function! s:enumerate.__next__()
-  let next = [self.idx, object#next(self.iter)]
-  let self.idx += 1
+  let next = [self._index, object#next(self._iterable)]
+  let self._index += 1
   return next
 endfunction
 " }}}1
