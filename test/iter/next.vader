@@ -1,0 +1,10 @@
+" vim:ft=vim
+Execute(next() calls the next() method of an obj);
+let cls = {}
+
+function! cls.next()
+  return 'called'
+endfunction
+
+AssertEqual object#next(cls), 'called'
+" vim: set sw=2 sts=2 et fdm=marker:

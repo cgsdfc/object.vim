@@ -1,0 +1,92 @@
+
+Before;
+let X = object#class('X')
+let IsIterable = function('object#iter#IsIterable')
+let IsIterator = function('object#iter#IsIterator')
+
+function! TestNotIterable(X)
+  AssertThrows call object#iter(a:X)
+  Assert g:vader_exception =~# 'TypeError'
+endfunction
+
+" TEST: Check Iterable {{{1
+" Iterable is an object that defines a __iter__() method
+" which return an iterator.
+" Built-in list and str is considered iterable.
+Execute(Check Iterable);
+Assert !IsIterable(1)
+Assert !IsIterable(1.1)
+Assert !IsIterable({})
+Assert !IsIterable(v:false)
+Assert !IsIterable(function('empty'))
+
+Assert !IsIterable('')
+Assert !IsIterable([])
+" }}}1
+
+
+" TEST: Check Iterator {{{1
+" Iterator is an object that defines a __next__() method.
+Execute(Check Iterator);
+Assert !IsIterator(1)
+Assert !IsIterator(1.1)
+Assert !IsIterator({})
+Assert !IsIterator(v:false)
+Assert !IsIterator(function('empty'))
+
+function! X.__next__()
+  return 1
+endfunction
+Assert IsIterator(object#new(X))
+" }}}1
+
+
+Execute(Basic);
+call TestNotIterable(1)
+call TestNotIterable(function('empty'))
+call TestNotIterable({})
+call TestNotIterable(v:false)
+call TestNotIterable(3.14)
+
+
+Execute(Check __iter__);
+let var = object#new(X)
+call TestNotIterable(var)
+
+let var.__iter__ = 1
+call TestNotIterable(var)
+
+function! var.__iter__()
+  return {}
+endfunction
+call TestNotIterable(var)
+
+Execute(throws TypeError returns non-iter);
+let cls = {}
+function! cls.__iter__()
+  return {}
+endfunction
+
+AssertThrows call object#iter(g:cls)
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+
+Execute (Argument to will be returned as it if it is already an iterator);
+let x = object#iter('')
+Assert x is# object#iter(x)
+
+
+Execute(throws WrongType if __iter__ is not a Funcref);
+let cls = {
+      \ '__iter__' : 1,
+      \ }
+
+AssertThrows call object#iter(g:cls)
+Log g:vader_exception
+Assert g:vader_exception =~# 'WrongType'
+
+
+
+" vim:ft=vim
+" vim: set sw=2 sts=2 et fdm=marker:

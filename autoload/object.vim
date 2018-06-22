@@ -283,24 +283,25 @@ function! object#any(...) abort
   return call('object#iter#any', a:000)
 endfunction
 
-function! object#enumerate(...) abort
-  return call('object#iter#enumerate', a:000)
-endfunction
-
-function! object#zip(...) abort
-  return call('object#iter#zip', a:000)
-endfunction
-
 function! object#sum(...) abort
   return call('object#iter#sum', a:000)
 endfunction
 
+" MODULE: enumerate, zip, map, filter {{{1
+function! object#enumerate(...) abort
+  return call('object#enumerate#enumerate', a:000)
+endfunction
+
+function! object#zip(...) abort
+  return call('object#zip#zip', a:000)
+endfunction
+
 function! object#map(...) abort
-  return call('object#iter#map', a:000)
+  return call('object#map#map', a:000)
 endfunction
 
 function! object#filter(...) abort
-  return call('object#iter#filter', a:000)
+  return call('object#filter#filter', a:000)
 endfunction
 " }}}1
 

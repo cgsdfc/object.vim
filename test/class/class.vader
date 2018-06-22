@@ -18,9 +18,9 @@ AssertThrows call object#class('$var')
 Assert g:vader_exception =~# 'ValueError'
 Log g:vader_exception
 
-Execute(Throws WrongType if name is not a String);
+Execute(Check name is a string);
 AssertThrows call object#class(1)
-Assert g:vader_exception =~# 'WrongType'
+Assert g:vader_exception =~# 'SyntaxError'
 Log g:vader_exception
 
 Execute(Throws TypeError if bases is neither a List nor a class);

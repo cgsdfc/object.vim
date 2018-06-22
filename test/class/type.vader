@@ -95,10 +95,10 @@ Log g:vader_exception
 " With a:0 == 3
 "
 
-Execute (Throws WrongType if a:1 is not a String);
+Execute (Check that a:1 is a String);
 AssertThrows call object#type(1, [], {})
-Assert g:vader_exception =~# 'WrongType'
 Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
 
 
 Execute (Throws TypeError if a:2 is not a List);

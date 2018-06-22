@@ -34,39 +34,26 @@
 "   * No generator and yield() supported.
 
 " }}}1
-" TODO: add range()
-" CLASS: enumerate {{{1
+
 let s:object = object#object_()
-call object#class#builtin_class('enumerate', s:object, s:)
+" FINAL CLASS: callable_iterator {{{1
+call object#class#builtin_class('callable_iterator', s:object, s:)
 
-function! s:enumerate.__init__(iter, start)
-  let self.iter = a:iter
-  let self.idx = a:start
+function! s:callable_iterator.__init__(callable, sentinel)
+  let self.callable = a:callable
+  let self.sentinel = a:sentinel
 endfunction
 
-function! s:enumerate.__next__()
-  let next = [self.idx, object#next(self.iter)]
-  let self.idx += 1
-  return next
-endfunction
-" }}}1
-
-" CLASS: zip {{{1
-call object#class#builtin_class('zip', s:object, s:)
-
-function! s:zip.__init__(seqs)
-  let self.seqs = a:seqs
-endfunction
-
-function! s:zip.__iter__()
+function! s:callable_iterator.__iter__()
   return self
 endfunction
 
-function! s:zip.__next__()
-  if empty(self.seqs)
+function! s:callable_iterator.__next__()
+  let Next = object#builtin#Call(self.callable)
+  if Next ==# self.sentinel
     call object#StopIteration()
   endif
-  return map(copy(self.seqs), 'object#next(v:val)')
+  return Next
 endfunction
 
 " }}}1
@@ -78,43 +65,61 @@ endfunction
 " >
 "   iter(List) -> list_iterator
 "   iter(String) -> str_iterator
-"   iter(iterator) -> returned as it
 "   iter(obj) -> obj.__iter__()
+"   iter(callable, sentinel) -> callable_iterator
 " <
-function! object#iter#iter(obj)
-  if object#builtin#IsList(a:obj)
-    return object#list#iter(a:obj)
+function! object#iter#iter(...)
+  if a:0 == 0
+    call object#TypeError("iter expected at least 1 arguments, got 0")
   endif
-
-  if object#builtin#IsString(a:obj)
-    return object#str#iter(a:obj)
+  if a:0 > 2
+    call object#TypeError("iter expected at most 2 arguments, got 3")
   endif
-
-  if object#iter#IsIterable(a:obj)
-    let iter = object#builtin#Call(a:obj.__iter__)
-    if object#iter#IsIterator(iter)
-      return iter
+  if a:0 == 2
+    if !object#builtin#IsFuncref(a:1)
+      call object#TypeError("iter(v, w): v must be callable")
     endif
-    call object#TypeError("iter() returned non-iterator of type '%s'",
-          \ object#builtin#TypeName(a:obj))
+    return object#new_(s:callable_iterator, a:000)
   endif
-  call object#iter#ThrowNotIterable(a:obj)
+
+  let obj = object#iter#CheckIterable(obj)
+  if object#builtin#IsList(obj)
+    return object#list#iter(obj)
+  endif
+  if object#builtin#IsString(obj)
+    return object#str#iter(obj)
+  endif
+
+  let iter = object#builtin#Call(obj.__iter__)
+  return object#iter#CheckIterator(iter,
+        \ printf("iter() returned non-iterator of type '%s'",
+        \ object#builtin#TypeName(a:X)))
 endfunction
 
-" TODO: generalize to detect X has a specific protocol
+function! object#iter#CheckIterator(X, msg)
+  if object#iter#IsIterator(a:X)
+    return a:X
+  endif
+  call object#TypeError(a:msg)
+endfunction
+
+function! object#iter#CheckIterable(X)
+  if object#iter#IsIterable(a:X)
+    return a:X
+  endif
+  call object#TypeError("'%s' object is not iterable",
+        \ object#builtin#TypeName(a:obj))
+endfunction
+
 function! object#iter#IsIterable(X)
-  return object#builtin#IsObj(a:X) && has_key(a:X, '__iter__')
-        \ && object#builtin#IsFuncref(a:X.__iter__)
+  return object#builtin#IsList(a:X) || object#builtin#IsString(a:X)
+        \ (object#builtin#IsObj(a:X) && has_key(a:X, '__iter__')
+        \ && object#builtin#IsFuncref(a:X.__iter__))
 endfunction
 
 function! object#iter#IsIterator(X)
   return object#builtin#IsObj(a:X) && has_key(a:X, '__next__')
         \ && object#builtin#IsFuncref(a:X.__next__)
-endfunction
-
-function! object#iter#ThrowNotIterable(obj)
-  call object#TypeError("'%s' object is not iterable",
-        \ object#builtin#TypeName(a:obj))
 endfunction
 
 ""
@@ -125,12 +130,12 @@ endfunction
 " <
 function! object#iter#next(obj, ...)
   call object#builtin#TakeAtMostOptional('next', 1, a:0)
-  if !object#iter#IsIterator(a:obj)
-    call object#TypeError("'%s' object is not an iterator",
-        \ object#builtin#TypeName(a:obj))
+  let obj = object#iter#CheckIterator(a:obj,
+        \ printf("'%s' object is not an iterator",
+        \ object#builtin#TypeName(a:obj)))
   endif
   try
-    let Val = object#builtin#Call(a:obj.__next__)
+    let Val = object#builtin#Call(obj.__next__)
   catch 'StopIteration'
     if a:0 == 1
       return a:1
@@ -217,61 +222,6 @@ function! object#iter#sum(iter, ...)
   endtry
 endfunction
 " }}}1
-
-" FUNCTION: zip(), enumerate() {{{1
-""
-" @function zip(...)
-" Return an iterator that zips a list of sequences.
-" >
-"   zip(iter[,*iters]) -> [seq1[0], seq2[0], ...], ...
-" <
-" The iterator stops at the shortest sequence.
-function! object#iter#zip(...)
-  let seqs = map(copy(a:000), 'object#iter(v:val)')
-  return object#new(s:zip, seqs)
-endfunction
-
-""
-" @function enumerate(...)
-" Return an iterator for index, value of {iter}.
-" >
-"   enumerate(iterable, start=0) -> [start, item_0], ..., [N, item_N]
-" <
-function! object#iter#enumerate(iter, ...)
-  call object#builtin#TakeAtMostOptional('enumerate', 1, a:0)
-  let iter = object#iter(a:iter)
-  let start =  a:0 ? object#builtin#CheckNumber(a:1) : 0
-  return object#new(s:enumerate, iter, start)
-endfunction
-" }}}1
-
-" FUNCTION: map(), filter() {{{1
-" TODO: allow Funcref here (callable module).
-" map object
-""
-" @function map(...)
-" Tranform the iterable with lambda (String).
-" >
-"   map(iter, lambda) -> a new list mapped from iter
-" <
-function! object#iter#map(iter, lambda)
-  return map(object#list(a:iter), object#builtin#CheckString(a:lambda))
-endfunction
-
-""
-" @function filter(...)
-" Create a new list filtering {iter} using a lambda (String).
-" >
-"   filter(iter) -> a new list without falsy items.
-"   filter(iter, lambda) -> a new list filtered from iter.
-" <
-" Truthness is tested by `bool()`.
-function! object#iter#filter(iter, ...)
-  call object#builtin#TakeAtMostOptional('filter', 1, a:0)
-  let core = a:0 ? printf('%s(v:val)', object#builtin#CheckString(a:1)):
-        \ 'v:val'
-  return filter(object#list(a:iter), 'object#bool('.core.')')
-endfunction
 
 " }}}1
 
