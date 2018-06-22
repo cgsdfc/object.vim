@@ -3,6 +3,8 @@ let s:object = object#object_()
 " CLASS: filter {{{1
 call object#class#builtin_class('filter', s:object, s:)
 
+" Note: Currently predicate doesn't support None.
+" Use function('object#bool') instead.
 function! s:filter.__init__(predicate, iterable)
   let self.predicate = a:predicate
   let self.iterable = object#iter(a:iterable)
