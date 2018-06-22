@@ -1,41 +1,5 @@
-" DOCUMENT: {{{1
-""
-" @section Iterator, iter
-" Iterator protocol.
-"
-" Features:
-"   * Vim-compatible map() and filter() that works with iterators.
-"   * filter() evaluates lambda using |object#types#bool()|.
-"   * Provide iterators for |String| and |List| that works transparently.
-"   * Helpers like sum(), all(), any(), zip() and enumerate() all work as expected.
-"
-" Examples:
-" >
-"   :echo object#all(range(10))
-"   0
-"
-"   :echo object#list(object#enumerate('abc'))
-"   [[0, 'a'], [1, 'b'], [2,'c']]
-"
-"   :echo object#dict(object#zip('abc', range(3)))
-"   {'a': 0, 'b': 1, 'c': 2}
-"
-"   :echo object#sum(range(1, 100))
-"   5050
-"
-"   :echo object#filter(['1', '2', ''])
-"   ['1', '2']
-"
-"   :echo object#list('abc')
-"   ['a', 'b', 'c']
-" <
-"
-" Limitations:
-"   * No generator and yield() supported.
-
-" }}}1
-
 let s:object = object#object_()
+
 " FINAL CLASS: callable_iterator {{{1
 call object#class#builtin_class('callable_iterator', s:object, s:)
 
@@ -48,6 +12,11 @@ function! s:callable_iterator.__iter__()
   return self
 endfunction
 
+" TODO: self.callable can be method of other object,
+" but it will forget the original self after put into
+" callable_iterator.
+" The callable module can detect this and create a method
+" wrapper.
 function! s:callable_iterator.__next__()
   let Next = object#builtin#Call(self.callable)
   if Next ==# self.sentinel
@@ -58,7 +27,7 @@ endfunction
 
 " }}}1
 
-" FUNCTION: iter(), next() contains() {{{1
+" FUNCTION: iter() {{{1
 ""
 " @function iter(...)
 " Return an iterator from {obj}.
@@ -82,7 +51,7 @@ function! object#iter#iter(...)
     return object#new_(s:callable_iterator, a:000)
   endif
 
-  let obj = object#iter#CheckIterable(obj)
+  let obj = object#iter#CheckIterable(a:1)
   if object#builtin#IsList(obj)
     return object#list#iter(obj)
   endif
@@ -93,9 +62,11 @@ function! object#iter#iter(...)
   let iter = object#builtin#Call(obj.__iter__)
   return object#iter#CheckIterator(iter,
         \ printf("iter() returned non-iterator of type '%s'",
-        \ object#builtin#TypeName(a:X)))
+        \ object#builtin#TypeName(iter)))
 endfunction
+" }}}1
 
+" FUNCTION: Helper to test and check Iterable/Iterator {{{1
 function! object#iter#CheckIterator(X, msg)
   if object#iter#IsIterator(a:X)
     return a:X
@@ -108,11 +79,11 @@ function! object#iter#CheckIterable(X)
     return a:X
   endif
   call object#TypeError("'%s' object is not iterable",
-        \ object#builtin#TypeName(a:obj))
+        \ object#builtin#TypeName(a:X))
 endfunction
 
 function! object#iter#IsIterable(X)
-  return object#builtin#IsList(a:X) || object#builtin#IsString(a:X)
+  return object#builtin#IsList(a:X) || object#builtin#IsString(a:X) ||
         \ (object#builtin#IsObj(a:X) && has_key(a:X, '__iter__')
         \ && object#builtin#IsFuncref(a:X.__iter__))
 endfunction
@@ -121,7 +92,9 @@ function! object#iter#IsIterator(X)
   return object#builtin#IsObj(a:X) && has_key(a:X, '__next__')
         \ && object#builtin#IsFuncref(a:X.__next__)
 endfunction
+" }}}1
 
+" FUNCTION: next(), contains() {{{1
 ""
 " @function next(...)
 " Retrieve the next item from an iterator.
@@ -133,7 +106,6 @@ function! object#iter#next(obj, ...)
   let obj = object#iter#CheckIterator(a:obj,
         \ printf("'%s' object is not an iterator",
         \ object#builtin#TypeName(a:obj)))
-  endif
   try
     let Val = object#builtin#Call(obj.__next__)
   catch 'StopIteration'
@@ -161,7 +133,6 @@ endfunction
 " }}}1
 
 " FUNCTION: any(), all(), sum() {{{1
-" TODO: bool()!
 ""
 " @function any(...)
 " If any of the items is True.
@@ -221,8 +192,6 @@ function! object#iter#sum(iter, ...)
     return start
   endtry
 endfunction
-" }}}1
-
 " }}}1
 
 " vim: set sw=2 sts=2 et fdm=marker:
