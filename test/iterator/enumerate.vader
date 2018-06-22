@@ -41,6 +41,6 @@ Execute (throws TypeError if more than 1 optional args given);
 AssertThrows call object#enumerate('a', 1, 2)
 Assert g:vader_exception =~# 'TypeError'
 
-Execute (throws WrongType if start is NAN);
+Execute (throws TypeError if start is NAN);
 AssertThrows call object#enumerate('a', '')
-Assert g:vader_exception =~# 'WrongType'
+Assert g:vader_exception =~# 'TypeError'

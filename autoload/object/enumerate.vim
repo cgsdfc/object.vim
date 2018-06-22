@@ -2,9 +2,16 @@
 let s:object = object#object_()
 call object#class#builtin_class('enumerate', s:object, s:)
 
-function! s:enumerate.__init__(iter, start)
-  let self.iter = a:iter
-  let self.idx = a:start
+function! s:enumerate.__iter__()
+  return self
+endfunction
+
+" Note: enumerate is subclassable, that's why moving
+" logic into __init__.
+function! s:enumerate.__init__(iterable, ...)
+  call object#builtin#TakeAtMostOptional('enumerate', 1, a:0)
+  let self.iter = object#iter(a:iterable)
+  let self.idx = a:0 ? object#builtin#CheckNumber2(a:1) : 0
 endfunction
 
 function! s:enumerate.__next__()
@@ -21,11 +28,8 @@ endfunction
 " >
 "   enumerate(iterable, start=0) -> [start, item_0], ..., [N, item_N]
 " <
-function! object#iter#enumerate(iter, ...)
-  call object#builtin#TakeAtMostOptional('enumerate', 1, a:0)
-  let iter = object#iter(a:iter)
-  let start =  a:0 ? object#builtin#CheckNumber(a:1) : 0
-  return object#new(s:enumerate, iter, start)
+function! object#enumerate#enumerate(...)
+  return object#new_(s:enumerate, a:000)
 endfunction
 " }}}1
 

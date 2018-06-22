@@ -21,7 +21,14 @@ let Checkers = [
       \ ]
 
 for chk in Checkers
-  let g:{chk} = MockedCheckXXX(printf('object#builtin#%s', chk))
+  let {chk} = MockedCheckXXX(printf('object#builtin#%s', chk))
+endfor
+
+let Checker2s = [
+      \ 'CheckNumber2',
+      \ ]
+for chk in Checker2s
+  let {chk} = function(printf('object#builtin#%s', chk))
 endfor
 
 Execute(Number);
@@ -71,3 +78,9 @@ AssertEqual 1, CheckNumeric(1)
 AssertEqual 1.0, CheckNumeric(1.0)
 AssertThrows call g:CheckNumeric('')
 Assert g:vader_exception =~# 'TypeError'
+
+Execute(Number2);
+AssertEqual 1, CheckNumber2(1)
+AssertThrows call g:CheckNumber2('')
+Assert g:vader_exception =~# 'TypeError'
+

@@ -22,11 +22,7 @@ function! object#seqn#len(obj)
       return len(a:obj)
     endif
     if has_key(a:obj, '__len__')
-      let number = object#builtin#Call(a:obj.__len__)
-      if !object#builtin#IsNumber(number)
-        call object#TypeError("'%s' object cannot be interpreted as an integer",
-              \ object#builtin#TypeName(number))
-      endif
+      let number = object#builtin#CheckNumber2(object#builtin#Call(a:obj.__len__))
       if number < 0
         call object#ValueError("__len__() should return >= 0")
       endif

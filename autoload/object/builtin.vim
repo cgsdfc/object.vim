@@ -212,4 +212,12 @@ function! object#builtin#ReOrderVimError(error)
   return printf('%s (%s)', list[2], list[1])
 endfunction
 
+" FUNCTION: CheckXXX2 Alternative forms of type-check {{{1
+function! object#builtin#CheckNumber2(X)
+  if object#builtin#IsNumber(a:X)
+    return a:X
+  endif
+  call object#TypeError("'%s' object cannot be interpreted as an integer",
+        \ object#builtin#TypeName(a:X))
+endfunction
 " vim: set sw=2 sts=2 et fdm=marker:
