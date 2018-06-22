@@ -1,31 +1,19 @@
+Execute(Basic Cases);
+Assert object#any([0, 1, 1, 0])
+Assert !object#any([0, 0])
+Assert !object#any([])
+
+Execute(With map);
+Assert object#any(map(range(10), 'v:val > 5'))
+
+Execute(With filter);
+Assert object#any(filter(range(10), 'v:val'))
+
+Execute(Check args);
+AssertThrows call object#any(function('empty'))
+Log g:vader_exception
+
+AssertThrows call object#any(1)
+Log g:vader_exception
+
 " vim:ft=vim
-"
-" Test any() and all()
-"
-Execute(on all true sequences);
-for x in [ repeat('a', 10), range(1,10),
-      \ map(range(10), 'v:true'), map(range(10), '1'),
-      \ map(range(10), 'function("tr")'),
-      \]
-  Assert object#all(x)
-  Assert object#any(x)
-endfor
-
-Execute(on all false sequences);
-for x in [ map(range(10), '0'), ]
-  Assert !object#all(x)
-  Assert !object#any(x)
-endfor
-
-Execute(on empty sequences);
-for x in ['', []]
-  Assert object#all(x)
-  Assert !object#any(x)
-endfor
-
-Execute(on sequences having both true and false objects);
-for x in [  range(10), [ '', 1 ], [ 0, 'a' ],
-      \  [ {}, 2 ], [function('tr'), 0 ] ]
-  Assert !object#all(x)
-  Assert object#any(x)
-endfor

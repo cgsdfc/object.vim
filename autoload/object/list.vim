@@ -57,7 +57,7 @@ endfunction
 
 " FUNCTION: iter() {{{2
 function! object#list#iter(list)
-  return object#new(s:list, a:list)
+  return object#new(s:list_iterator, a:list)
 endfunction
 " }}}2
 
