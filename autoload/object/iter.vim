@@ -1,3 +1,5 @@
+" PERF: next() and iter() both do CheckIterator(),
+" In all(), the check of next() is rebundant.
 let s:object = object#object_()
 
 " FINAL CLASS: callable_iterator {{{1
@@ -143,12 +145,11 @@ function! object#iter#any(iter)
   let iter = object#iter(a:iter)
   try
     while 1
-      let Item = object#iter#next(iter)
-      if object#bool(Item)
+      if object#bool(object#iter#next(iter))
         return 1
       endif
     endwhile
-  catch /StopIteration/
+  catch 'StopIteration'
     return 0
   endtry
 endfunction
@@ -163,12 +164,11 @@ function! object#iter#all(iter)
   let iter = object#iter(a:iter)
   try
     while 1
-      let Item = object#iter#next(iter)
-      if !object#bool(Item)
+      if !object#bool(object#iter#next(iter))
         return 0
       endif
     endwhile
-  catch /StopIteration/
+  catch 'StopIteration'
     return 1
   endtry
 endfunction
@@ -183,12 +183,17 @@ endfunction
 function! object#iter#sum(iter, ...)
   call object#builtin#TakeAtMostOptional('sum', 1, a:0)
   let iter = object#iter(a:iter)
-  let start = a:0 ? object#builtin#CheckNumeric(a:1) : 0
+  let start = a:0 ? object#builtin#CheckNumeric('sum', 2, a:1) : 0
   try
     while 1
-      let start += object#builtin#CheckNumeric(object#next(iter))
+      " TODO use add()
+      let N = object#next(iter)
+      if !object#builtin#IsNumeric(N)
+        call object#TypeError("sum() can only sum numerics")
+      endif
+      let start += N
     endwhile
-  catch /StopIteration/
+  catch 'StopIteration'
     return start
   endtry
 endfunction

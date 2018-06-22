@@ -31,6 +31,14 @@ function! object#builtin#CheckNumber(func, nr, X)
   return object#builtin#CheckX(a:func, a:nr, a:X, s:Number)
 endfunction
 
+function! object#builtin#CheckNumeric(func, nr, X)
+  if object#builtin#IsNumeric(a:X)
+    return a:X
+  endif
+  call object#TypeError('%s() argument %d must be numeric, not %s',
+        \ a:func, a:nr, s:typenames[actual])
+endfunction
+
 function! object#builtin#CheckString(func, nr, X)
   return object#builtin#CheckX(a:func, a:nr, a:X, s:String)
 endfunction
@@ -73,6 +81,10 @@ endfunction
 function! object#builtin#IsBool(X)
   " TODO: True and False object is bool.
   return type(a:X) == s:Boolean || a:X is 0 || a:X is 1
+endfunction
+
+function! object#builtin#IsNumeric(X)
+  return type(a:X) == s:Number || type(a:X) == s:Float
 endfunction
 
 function! object#builtin#IsNumber(X)

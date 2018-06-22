@@ -1,10 +1,37 @@
-" vim:ft=vim
-Execute(next() calls the next() method of an obj);
-let cls = {}
+Before;
+let X = object#class('X')
 
-function! cls.next()
-  return 'called'
+Execute(Check args);
+AssertThrows call object#next(1)
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+AssertThrows call object#next({})
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+AssertThrows call object#next(1,1,1)
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+
+Execute(Basic case);
+function! X.__next__()
+  return ''
+endfunction
+AssertEqual '', object#next(object#new(X))
+
+
+Execute(With default);
+function! X.__next__()
+  call object#StopIteration()
 endfunction
 
-AssertEqual object#next(cls), 'called'
+let iter = object#new(X)
+AssertThrows call object#next(g:iter)
+Assert g:vader_exception =~# 'StopIteration'
+
+AssertEqual object#next(iter, 1), 1
+
+" vim:ft=vim
 " vim: set sw=2 sts=2 et fdm=marker:
