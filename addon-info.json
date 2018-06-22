@@ -2,9 +2,12 @@
   "name": "object.vim",
   "description": "An Object-Oriented Framework for Vimscript",
   "dependencies": {
-    "maktaba": {"type": "git", "url": "git://github.com/google/vim-maktaba"}
+    "maktaba": {
+      "type": "git",
+      "url": "git://github.com/google/vim-maktaba"
+    }
   },
-  "version": "0.1",
+  "version": "0.0.4",
   "author": "cgsdfc",
   "repository": {
     "type": "git",
