@@ -1,29 +1,44 @@
-" vim:ft=vim
-"
-" Test object#map()
-"
+Execute(Basic Cases);
+let iter = object#map(function('toupper'), 'a')
+AssertEqual object#next(iter), 'A'
 
-Execute (Can do what builtin-map() can do);
-let input = [
-      \ [ range(10),  'string(v:val)'],
-      \ [ [ 0, 1 ], '!v:val' ],
-      \]
-for [data, lambda] in input
-  AssertEqual object#map(data, lambda), map(data, lambda)
-endfor
+let iter = object#map(function('str2nr'), ['1'])
+AssertEqual object#next(iter), 1
 
-Execute (Create new list rather than does it in place);
-let data = range(10)
-Assert data isnot# object#map(data, 'v:val')
 
-Execute (Cannot deal with a directory but builtin-map() can);
-" Because dictionary is _not_ iterable while map() should take iterable,
-" for consistency map() won't treat dictionary as builtin-map() does.
-AssertThrows call object#map({}, 'v:val')
+Execute(Multiple Iterables);
+function! F(x, y)
+  return a:x + a:y
+endfunction
+
+let iter = object#map(function('F'), [1, 2], [3, 4])
+AssertEqual object#next(iter), 4
+AssertEqual object#next(iter), 6
+
+
+Execute(Signature mismatch);
+AssertThrows call object#next(object#map(function('has_key'), [{}]))
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+
+Execute(Check #iterables >= 1);
+AssertThrows call object#map(function('empty'))
 Assert g:vader_exception =~# 'TypeError'
 
-Execute (Can handle String);
-let str = repeat('a', 10)
-let x = object#map(str, 'toupper(v:val)')
-AssertEqual x, map(range(10), '"A"')
 
+Execute(Check callable);
+let iter = object#map('str2nr', '1')
+AssertThrows call object#next(g:iter)
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+" However, if the iterable is empty, StopIteration will be thrown
+" instead of TypeError.
+let iter = object#map('str2nr', '')
+AssertThrows call object#next(g:iter)
+Log g:vader_exception
+Assert g:vader_exception =~# 'StopIteration'
+
+" vim:ft=vim
+" vim: set sw=2 sts=2 et fdm=marker:

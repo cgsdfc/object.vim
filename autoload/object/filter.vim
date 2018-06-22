@@ -1,16 +1,32 @@
-""
-" @function filter(...)
-" Create a new list filtering {iter} using a lambda (String).
-" >
-"   filter(iter) -> a new list without falsy items.
-"   filter(iter, lambda) -> a new list filtered from iter.
-" <
-" Truthness is tested by `bool()`.
-function! object#iter#filter(iter, ...)
-  call object#builtin#TakeAtMostOptional('filter', 1, a:0)
-  let core = a:0 ? printf('%s(v:val)', object#builtin#CheckString(a:1)):
-        \ 'v:val'
-  return filter(object#list(a:iter), 'object#bool('.core.')')
+let s:object = object#object_()
+
+" CLASS: filter {{{1
+call object#class#builtin_class('filter', s:object, s:)
+
+function! s:filter.__init__(predicate, iterable)
+  let self.predicate = a:predicate
+  let self.iterable = object#iter(a:iterable)
 endfunction
 
+function! s:filter.__iter__()
+  return self
+endfunction
 
+function! s:filter.__next__()
+  while 1
+    let N = object#next(self.iterable)
+    if object#bool(object#builtin#Call(self.predicate, N))
+      return N
+    endif
+  endwhile
+endfunction
+" }}}1
+
+" FUNCTION: filter() {{{1
+""
+" @function filter(...)
+function! object#filter#filter(...)
+  return object#new_(s:filter, a:000)
+endfunction
+
+" vim: set sw=2 sts=2 et fdm=marker:

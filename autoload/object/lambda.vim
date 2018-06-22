@@ -115,7 +115,7 @@ endfunction
 " living inside the closure are available as `c.var` from
 " the lambda expression.
 function! object#lambda#lambda(...)
-  return call('object#_lambda', a:000).__call__
+  return function('object#lambda#eval', [object#new_(s:lambda, a:000)])
 endfunction
 
 ""

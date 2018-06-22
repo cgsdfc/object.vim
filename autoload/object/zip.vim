@@ -4,7 +4,7 @@ let s:object = object#object_()
 call object#class#builtin_class('zip', s:object, s:)
 
 function! s:zip.__init__(...)
-  let self.seqs = map(copy(a:000), 'object#iter(v:val)')
+  let self.seqns = map(copy(a:000), 'object#iter(v:val)')
 endfunction
 
 function! s:zip.__iter__()
@@ -12,10 +12,10 @@ function! s:zip.__iter__()
 endfunction
 
 function! s:zip.__next__()
-  if empty(self.seqs)
+  if empty(self.seqns)
     call object#StopIteration()
   endif
-  return map(copy(self.seqs), 'object#next(v:val)')
+  return map(copy(self.seqns), 'object#next(v:val)')
 endfunction
 
 " }}}1
@@ -24,7 +24,7 @@ endfunction
 " @function zip(...)
 " Return an iterator that zips a list of sequences.
 " >
-"   zip(iter[,*iters]) -> [seq1[0], seq2[0], ...], ...
+"   zip(iter[,*iters]) -> [seqn1[0], seqn2[0], ...], ...
 "   zip() -> an empty iterator
 " <
 " The iterator stops at the shortest sequence.
