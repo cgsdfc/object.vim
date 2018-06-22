@@ -3,8 +3,8 @@ let s:object = object#object_()
 " CLASS: zip {{{1
 call object#class#builtin_class('zip', s:object, s:)
 
-function! s:zip.__init__(seqs)
-  let self.seqs = a:seqs
+function! s:zip.__init__(...)
+  let self.seqs = map(copy(a:000), 'object#iter(v:val)')
 endfunction
 
 function! s:zip.__iter__()
@@ -29,8 +29,7 @@ endfunction
 " <
 " The iterator stops at the shortest sequence.
 function! object#zip#zip(...)
-  let seqs = map(copy(a:000), 'object#iter(v:val)')
-  return object#new(s:zip, seqs)
+  return object#new_(s:zip, a:000)
 endfunction
 
 " vim: set sw=2 sts=2 et fdm=marker:

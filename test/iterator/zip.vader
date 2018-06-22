@@ -3,32 +3,35 @@
 " Test zip()
 "
 
-Execute (Works for basic cases);
-let iter = object#zip(range(3), range(3))
-let result = [[0,0],[1,1],[2,2]]
-AssertEqual result, object#list(iter)
+Execute(Basic Cases);
+let iter = object#zip('ab', [1, 2])
+AssertEqual object#next(iter), ['a', 1]
+AssertEqual object#next(iter), ['b', 2]
 
-Execute (StopIteration at the shortest sequence);
-let iter = object#zip(range(3), range(4), range(5))
-let shortest = object#zip(range(3), range(3), range(3))
-AssertEqual object#list(shortest), object#list(iter)
+AssertThrows call object#next(g:iter)
+Assert g:vader_exception =~# 'StopIteration'
 
-Execute (Throws TypeError as any of the arguments is non-iterable);
-AssertThrows call object#zip([], 1)
-Assert g:vader_exception =~# 'TypeError'
 
-Execute (Basic Attributes);
-let x = object#zip([], [])
-Log object#repr(x)
-Log object#repr(object#type(x))
-Log object#dir(x)
+Execute(No args);
+AssertThrows call object#next(object#zip())
+Assert g:vader_exception =~# 'StopIteration'
 
-Execute (Corner cases: zipping empty sequences);
-let iter = object#zip([], range(3))
-AssertEqual [], object#list(iter)
-let iter = object#zip('', range(3))
-AssertEqual [], object#list(iter)
 
-Execute (Corner cases: single arg);
-let iter = object#zip(range(3))
-AssertEqual object#list(iter), range(3)
+Execute(Single arg);
+let iter = object#zip([1])
+AssertEqual object#next(iter), [1]
+
+
+Execute(Stop at the shortest seqn);
+AssertThrows call object#next(object#zip('', [1]))
+Assert g:vader_exception =~# 'StopIteration'
+
+
+Execute(Empty seqn);
+let iter = object#zip([])
+AssertThrows call object#next(g:iter)
+Assert g:vader_exception =~# 'StopIteration'
+
+let iter = object#zip('')
+AssertThrows call object#next(g:iter)
+Assert g:vader_exception =~# 'StopIteration'

@@ -1,46 +1,30 @@
-" vim:ft=vim
-"
-" Test enumerate().
-"
+Execute(Basic Cases);
+let iter = object#enumerate('abc')
+AssertEqual object#next(iter), [0, 'a']
+AssertEqual object#next(iter), [1, 'b']
+AssertEqual object#next(iter), [2, 'c']
 
-Before;
-let empty_seqs = [ [], '' ]
-let test_seqs = [
-      \ range(10),
-      \ split(repeat('a ', 10)),
-      \ map(range(10), 'function("tr")'),
-      \ map(range(10), 'and(v:val, 1)?[]:{}'),
-      \]
 
-" A clever way to turn a List into enumerated List
-" by pure VimL. Actually a less powerful version of
-" enumerate() can be implemented like this but just
-" works for List.
-function! Enumerate_list(x)
-  let x = maktaba#ensure#IsList(a:x)
-  return map(range(len(x)), '[v:val, x[v:val]]')
-endfunction
+Execute(On empty sequence);
+AssertThrows call object#next(object#enumerate([]))
+Assert g:vader_exception =~# 'StopIteration'
 
-Execute (on empty sequence);
-for x in empty_seqs
-  let iter = object#enumerate(x)
-  AssertThrows call object#next(g:iter)
-  Assert g:vader_exception =~# 'StopIteration'
-endfor
+AssertThrows call object#next(object#enumerate(''))
+Assert g:vader_exception =~# 'StopIteration'
 
-Execute (numbers each item default from 0);
-AssertEqual
-      \ map(copy(test_seqs), 'object#list(object#enumerate(v:val))'),
-      \ map(copy(test_seqs), 'Enumerate_list(v:val)')
 
-Execute (takes optional start);
+Execute(Takes optional start);
 let iter = object#enumerate('a', 1)
 AssertEqual [1, 'a'], object#next(iter)
 
-Execute (throws TypeError if more than 1 optional args given);
+
+Execute(Check #args);
 AssertThrows call object#enumerate('a', 1, 2)
 Assert g:vader_exception =~# 'TypeError'
 
-Execute (throws TypeError if start is NAN);
+
+Execute(Check start);
 AssertThrows call object#enumerate('a', '')
 Assert g:vader_exception =~# 'TypeError'
+
+" vim:ft=vim
