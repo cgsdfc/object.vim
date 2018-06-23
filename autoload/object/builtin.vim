@@ -60,12 +60,11 @@ function! object#builtin#CheckFuncref(func, nr, X)
 endfunction
 
 function! object#builtin#CheckBool(func, nr, X)
-  let actual = type(a:X)
-  if actual == s:Boolean || a:X is 0 || a:X is 1
+  if object#builtin#IsBool(a:X)
     return a:X
   endif
   call object#TypeError('%s() argument %d must be bool, not %s',
-        \ a:func, a:nr, s:typenames[actual])
+        \ a:func, a:nr, s:typenames[type(a:X)])
 endfunction
 
 function! object#builtin#CheckObj(func, nr, X)
@@ -78,8 +77,9 @@ function! object#builtin#CheckObj(func, nr, X)
 endfunction
 
 " FUNCTION: IsXXX() {{{1
+" By the good convention of Vim, 0/1 are considered bool.
 function! object#builtin#IsBool(X)
-  " TODO: True and False object is bool.
+  " Note: `is` can avoid "can only compare Dict with Dict"
   return type(a:X) == s:Boolean || a:X is 0 || a:X is 1
 endfunction
 
@@ -116,6 +116,10 @@ function! object#builtin#IsFuncref(X)
   return type(a:X) == s:Funcref
 endfunction
 
+function! object#builtin#IsNone(X)
+  return type(a:X) == s:None
+endfunction
+
 function! object#builtin#IsObj(X)
   return type(a:X) == s:Dict && has_key(a:X, '__class__')
 endfunction
@@ -126,6 +130,11 @@ endfunction
 
 function! object#builtin#IsSequence(X)
   return object#builtin#IsList(a:X) || object#builtin#IsString(a:X)
+endfunction
+
+function! object#builtin#IsContainer(X)
+  return object#builtin#IsSequence(a:X) ||
+        \ (object#builtin#IsDict(a:X) && !has_key(a:X, '__class__'))
 endfunction
 
 " FUNCTION: Others {{{1

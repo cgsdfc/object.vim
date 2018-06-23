@@ -1,56 +1,67 @@
+Before;
+let Bool = function('object#bool')
+let Test = object#class('Test')
+
+Execute(bool() <==> 0);
+AssertEqual 0, Bool()
+
+" Bool on built-in types {{{1
+Execute(Builtin Container);
+Assert !Bool({}) && Bool({'foo': 1})
+Assert !Bool([]) && Bool([1])
+Assert !Bool('') && Bool('A')
+
+Execute(Builtin Bool);
+Assert !Bool(v:false) && Bool(v:true)
+
+Execute(Builtin Numeric);
+Assert !Bool(0) && Bool(4)
+Assert !Bool(0.0) && Bool(4.0)
+
+Execute(Builtin None);
+Assert !Bool(v:none) && !Bool(v:null)
+
+Execute(Builtins Funcref);
+Assert Bool(Bool)
+" }}}1
+
+
+" Bool with object {{{1
+Execute(Without any hook, default is true);
+Assert Bool(object#new(Test))
+
+" What __bool__() should be strictly boolean.
+" Currently accepted booleans are 0, 1, v:false, v:true.
+Execute(Check __bool__);
+function! Test.__bool__()
+  return 'Non-bool'
+endfunction
+
+let var = object#new(Test)
+AssertThrows call object#bool(g:var)
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+function! Test.__bool__()
+  return 1
+endfunction
+Assert Bool(object#new(Test))
+
+
+" If there is no __bool__() but __len__(), it will be used to
+" determine the bool value. What rules hold for len() hold here.
+Execute(Check __len__);
+function! Test.__len__()
+  return -1
+endfunction
+
+AssertThrows call object#bool(object#new(g:Test))
+Log g:vader_exception
+Assert g:vader_exception =~# 'ValueError'
+
+function! Test.__len__()
+  return 0
+endfunction
+Assert !Bool(object#new(Test))
+
 " vim:ft=vim
-"
-" bool()
-"
-
-Execute(Without args return false);
-AssertEqual 0, object#bool()
-
-
-Execute(Works with Number, List, Dict, String, Float and special variables);
-let input = [
-      \ [ 0, 0], [ 1, 1 ], [ -1, 1],
-      \ [ [], 0 ], [ [0], 1 ],
-      \ [ {}, 0 ], [ {'a':1}, 1],
-      \ [ 0.0, 0 ], [ -0.0, 0], [ 1.2, 1], [ 0.000001, 1],
-      \ [ '', 0 ], [ 'a', 1 ],
-      \ [ function('tr'), 1]
-      \ ]
-
-if object#util#has_special_variables()
-  call extend(input,
-        \ [[v:false, 0], [v:true, 1], [v:null, 0], [v:none, 0]])
-endif
-
-for [X, y] in input
-  AssertEqual object#bool(X), y
-endfor
-
-
-Execute(Hooks into __bool__);
-let cls = { 'nr' : 2 }
-
-function! cls.__bool__()
-  return self.nr > 0
-endfunction
-
-Assert object#bool(cls)
-let cls.nr = 0
-Assert !object#bool(cls)
-
-" It is weird maktaba#ensure#IsBool() throws BadValue while other ensurers
-" throw WrongType. Perhpas the author don't think bool is a real type. But
-" to me, bool is as real as the chair I am sitting on ;)
-Execute(Throws BadValue if __bool__ returns neither 0 nor 1);
-let cls = {}
-function! cls.__bool__()
-  return 3
-endfunction
-
-AssertThrows call object#bool(g:cls)
-Assert g:vader_exception =~# 'BadValue'
-
-
-Execute(With plain object subclass);
-let X = object#class('X')
-Assert object#bool(object#new(X))

@@ -1,5 +1,5 @@
 " FUNCTION: Sequence protocols: len(), in() {{{1
-" FUNCTION: len() {{{2
+" FUNCTION: len() {{{1
 ""
 " @function len(...)
 " Return the length of {obj}.
@@ -8,12 +8,8 @@
 "   len(obj) -> obj.__len__()
 " <
 function! object#seqn#len(obj)
-  if object#builtin#IsString(a:obj)
+  if object#builtin#IsSequence(a:obj)
     return object#str#len(a:obj)
-  endif
-
-  if object#builtin#IsList(a:obj)
-    return len(a:obj)
   endif
 
   if object#builtin#IsDict(a:obj)
@@ -22,15 +18,21 @@ function! object#seqn#len(obj)
       return len(a:obj)
     endif
     if has_key(a:obj, '__len__')
-      let number = object#builtin#CheckNumber2(object#builtin#Call(a:obj.__len__))
-      if number < 0
-        call object#ValueError("__len__() should return >= 0")
-      endif
-      return number
+      return object#seqn#CheckedCallLen(a:obj)
     endif
   endif
   call object#TypeError("object of type '%s' has no len()",
         \ object#builtin#TypeName(a:obj))
+endfunction
+
+" FUNCTION: CheckedCallLen() {{{1
+" Call __len__() and check that it return >= 0 integer.
+function! object#seqn#CheckedCallLen(obj)
+  let number = object#builtin#CheckNumber2(object#builtin#Call(a:obj.__len__))
+  if number >= 0
+    return number
+  endif
+    call object#ValueError("__len__() should return >= 0")
 endfunction
 
 " FUNCTION: in() {{{2
@@ -72,11 +74,6 @@ function! object#seqn#in(needle, haystack)
         \ object#builtin#TypeName(a:haystack))
 endfunction
 " }}}2
-
-" function! object#seqn#ConvertIndex(index, len)
-"   let index = a:index > 0 ? a:index : a:index + a:len
-"   if 
-" endfunction
 
 function! object#seqn#sorted(iterable, ...)
 

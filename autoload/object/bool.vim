@@ -1,63 +1,60 @@
-" TODO: Read [Truth Value Testing](https://docs.python.org/3/library/stdtypes.html#id12)
-" to be more Python3.
-let s:bool = object#class('bool', object#int_())
+" [All about TRUTH]( https://docs.python.org/3/library/stdtypes.html#truth )
+" let s:bool = object#class('bool', object#int_())
 
-function! s:bool.__new__(cls, ...)
-  let val = call('object#bool', a:000)
-  if !exists('s:True')
-    let s:True = object#super(s:bool, a:cls).__new__(val)
-    let s:False = object#super(s:bool, a:cls).__new__(!val)
-  endif
-  return val? s:True : s:False
-endfunction
+" function! s:bool.__new__(cls, ...)
+"   let val = call('object#bool', a:000)
+"   if !exists('s:True')
+"     let s:True = object#super(s:bool, a:cls).__new__(val)
+"     let s:False = object#super(s:bool, a:cls).__new__(!val)
+"   endif
+"   return val? s:True : s:False
+" endfunction
 
-function! object#bool#_bool(...)
-  return object#new_(s:bool, a:000)
-endfunction
+" function! object#bool#_bool(...)
+"   return object#new_(s:bool, a:000)
+" endfunction
 
 ""
-" @function bool(...)
-" Convert [args] to a Bool, i.e., 0 or 1.
-" >
-"   bool() -> False
-"   bool(Funcref) -> True
-"   bool(List, String or plain Dict) -> not empty
-"   bool(Number) -> non-zero
-"   bool(Float) -> non-zero
-"   bool(v:false, v:null, v:none) -> False
-"   bool(v:true) -> True
-"   bool(obj) -> obj.__bool__()
-" <
+" FUNCTION: bool() {{{1
+" Note: Although Python bans 1 or 0 as bool in __bool__, we find it hard
+" to do the same in Vim since every builtin boolean function of Vim return
+" 1 or 0.
 function! object#bool#bool(...)
-  call object#util#ensure_argc(1, a:0)
+  if a:0 > 1
+    call object#TypeError("bool() takes at most 1 argument (%d given)", a:0)
+  endif
   if !a:0
     " bool() <==> false
     return 0
   endif
-  let Obj = a:1
-  if has('float') && maktaba#value#IsFloat(Obj)
-    return Obj !=# 0.0
+  if object#builtin#IsContainer(a:1)
+    return !empty(a:1)
   endif
-  if maktaba#value#IsFuncref(Obj)
-    return 1
+  if object#builtin#IsNone(a:1)
+    return 0
   endif
-  if maktaba#value#IsString(Obj) || maktaba#value#IsList(Obj)
-    return !empty(Obj)
+  if object#builtin#IsBool(a:1)
+    return !!a:1
   endif
-  try
-    " If we directly return !!Obj, the exception cannot
-    " be caught.
-    let x = !!Obj
-    return x
-  catch/E728/ " Using a Dictionary as a Number
-    if object#hasattr(Obj, '__bool__')
-      " Thing returned from bool() should be canonical, so as __bool__.
-      " Prevent user from mistakenly return something like 1.0
-      return maktaba#ensure#IsBool(object#protocols#call(Obj.__bool__))
-    endif
-    return !empty(Obj)
-  catch
-    call object#except#not_avail('bool', Obj)
-  endtry
+  if object#builtin#IsNumeric(a:1)
+    return a:1 != 0
+  endif
+  if object#protocol#HasProtocol(a:1, '__bool__')
+    return object#bool#CheckBool(object#builtin#Call(a:1.__bool__))
+  endif
+  if object#protocol#HasProtocol(a:1, '__len__')
+    return !!object#seqn#CheckedCallLen(a:1)
+  endif
+  return 1
 endfunction
 
+function! object#bool#CheckBool(X)
+  " TODO: True/False considered.
+  if object#builtin#IsBool(a:X)
+    return a:X
+  endif
+  call object#TypeError("__bool__ should return bool, returned %s",
+        \ object#builtin#TypeName(a:X))
+endfunction
+
+" vim: set sw=2 sts=2 et fdm=marker:

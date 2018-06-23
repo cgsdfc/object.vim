@@ -10,6 +10,8 @@ let Testers = [
       \ 'IsFuncref',
       \ 'IsNumeric',
       \ 'IsSequence',
+      \ 'IsNone',
+      \ 'IsContainer',
       \ ]
 
 for func in Testers
@@ -21,9 +23,11 @@ Assert IsNumber(1)
 Assert !IsNumber('')
 
 Execute(IsBool);
-Assert IsBool(1)
 Assert IsBool(v:false)
-Assert !IsBool(3)
+Assert IsBool(v:true)
+Assert IsBool(1)
+Assert IsBool(0)
+Assert !IsBool([])
 
 Execute(IsDict);
 Assert IsDict({})
@@ -59,6 +63,16 @@ Execute(IsSequence);
 Assert IsSequence('')
 Assert IsSequence([])
 Assert !IsSequence(1)
+
+Execute(IsNone);
+Assert IsNone(v:null)
+Assert IsNone(v:none)
+Assert !IsNone(v:false)
+
+Execute(IsContainer);
+Assert IsContainer([])
+Assert !IsContainer(object#object())
+Assert IsContainer({})
 
 " vim: ft=vim
 " vim: set sw=2 sts=2 et fdm=marker:
