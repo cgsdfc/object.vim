@@ -316,6 +316,12 @@ function! object#range(...) abort
 endfunction
 " }}}1
 
+" MODULE: reversed {{{1
+function! object#reversed(...) abort
+  return call('object#reversed#reversed', a:000)
+endfunction
+" }}}1
+
 " MODULE: file.vim {{{1
 
 function! object#open(...) abort

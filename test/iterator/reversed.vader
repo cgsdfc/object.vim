@@ -1,0 +1,21 @@
+Execute(Check Rev);
+AssertThrows call object#reversed(1)
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+
+Execute(String);
+let iter = object#reversed('ab')
+AssertEqual object#next(iter), 'b'
+AssertEqual object#next(iter), 'a'
+
+
+Execute(List);
+let iter = object#reversed([1, 2])
+AssertEqual object#next(iter), 2
+AssertEqual object#next(iter), 1
+
+" TODO: reversed use getitem() which is not
+" tested now
+" vim: ft=vim
+" vim: set sw=2 sts=2 et fdm=marker:

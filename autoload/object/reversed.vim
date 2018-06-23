@@ -1,4 +1,5 @@
 " CLASS: reversed {{{1
+let s:object = object#object_()
 call object#class#builtin_class('reversed', s:object, s:)
 
 " METHOD: __init__() {{1
@@ -21,13 +22,13 @@ let s:reversed.__iter__ = object#slots#iter_self()
 let s:reversed.__setattr__ = object#slots#readonly_attribute2()
 
 " FUNCTION: reversed() {{{1
-function! object#iter#reversed(obj)
+function! object#reversed#reversed(obj)
   let obj = object#reversed#CheckReversible(a:obj)
   if object#builtin#IsList(obj)
     " list_reverseiterator
     return object#list#reversed(obj)
   endif
-  if has_key(obj, '__reversed__')
+  if object#protocol#HasProtocol(obj, '__reversed__')
     return object#builtin#Call(obj.__reversed__)
   endif
   return object#new(s:reversed, obj)
