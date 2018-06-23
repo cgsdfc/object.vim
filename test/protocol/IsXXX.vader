@@ -1,8 +1,18 @@
 Before;
 let X = object#class('X')
-let IsIterable = function('object#protocol#IsIterable')
-let IsIterator = function('object#protocol#IsIterator')
-let IsSequence = function('object#protocol#IsSequence')
+let Testers = [
+      \ 'IsIterable',
+      \ 'IsIterator',
+      \ 'IsSequence',
+      \ 'IsSubscriptable',
+      \ 'IsSubscriptAssignable',
+      \ 'IsSubscriptDeletable',
+      \ ]
+
+for func in Testers
+  let {func} = function(printf('object#protocol#%s', func))
+endfor
+
 let HasProtocol = function('object#protocol#HasProtocol')
 
 
@@ -54,6 +64,21 @@ function! X.__next__()
 endfunction
 Assert IsIterator(object#new(X))
 " }}}1
+
+Execute(IsSubscriptXXX);
+" IsSubscriptable
+Assert IsSubscriptable([])
+Assert IsSubscriptable('')
+Assert IsSubscriptable({})
+
+" IsSubscriptAssignable
+Assert IsSubscriptAssignable({})
+Assert IsSubscriptAssignable([])
+Assert !IsSubscriptAssignable('')
+
+Assert IsSubscriptDeletable({})
+Assert IsSubscriptDeletable([])
+Assert !IsSubscriptDeletable('')
 
 " vim:ft=vim
 " vim: set sw=2 sts=2 et fdm=marker:

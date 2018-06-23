@@ -12,6 +12,9 @@ let Testers = [
       \ 'IsSequence',
       \ 'IsNone',
       \ 'IsContainer',
+      \ 'IsSubscriptable',
+      \ 'IsSubscriptAssignable',
+      \ 'IsSubscriptDeletable',
       \ ]
 
 for func in Testers
