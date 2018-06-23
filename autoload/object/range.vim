@@ -4,6 +4,7 @@ let s:object = object#object_()
 call object#class#builtin_class('range', s:object, s:)
 let s:range.__final__ = 1
 
+" METHOD: __init__() {{{1
 " Note: all of these attributes are readonly.
 function! s:range.__init__(...)
   if a:0 < 1
@@ -13,16 +14,18 @@ function! s:range.__init__(...)
     call object#TypeError("range expected at most 3 arguments, got %d", a:0)
   endif
   " Check all args are int.
-  call map(a:000, 'object#builtin#CheckNumber2(v:val)')
+  call map(copy(a:000), 'object#builtin#CheckNumber2(v:val)')
   if a:0 == 3 && a:3 == 0
     call object#ValueError("range() arg 3 must not be zero")
   endif
+  let self.start = a:0 >= 2 ? a:1 : 0
+  let self.stop = a:0 >= 2 ? a:2 : a:1
   let self.step = a:0 == 3 ? a:3 : 1
-  let self.start = a:0 == 2 ? a:1 : 0
-  let self.stop = a:0 == 2 ? a:2 : a:1
-  let self._length = object#range#compute_length(start, stop, step)
+  let self._length = object#range#compute_length(
+        \ self.start, self.stop, self.step)
 endfunction
 
+" METHOD: __repr__() {{{1
 function! s:range.__repr__()
   return self.step == 1 ? printf('range(%d, %d)', self.start, self.stop):
         \ printf('range(%d, %d, %d)', self.start, self.stop, self.step)
@@ -30,10 +33,10 @@ endfunction
 
 let s:range.__str__ = s:range.__repr__
 
-function! s:range.__setattr__(name, val)
-  call object#AttributeError('readonly attribute')
-endfunction
+" METHOD: __setattr__() {{{1
+let s:range.__setattr__ = object#slots#readonly_attribute()
 
+" METHOD: __eq__() {{{1
 function! s:range.__eq__(other)
   if !object#builtin#IsObj(a:other)
     return 0
@@ -63,6 +66,7 @@ function! s:range.__ne__(other)
   return !self.__eq__(a:other)
 endfunction
 
+" METHOD: __contains__() {{{1
 function! s:range.__contains__(value)
   if !object#builtin#IsNumber(a:value)
     return object#iter#contains(self, a:value)
@@ -82,13 +86,7 @@ function! s:range.__contains__(value)
   return 0 == (a:value - self.start) % self.step
 endfunction
 
-function! s:range.count(value)
-  if object#builtin#IsNumber(a:value)
-    return self.__contains__(a:value)
-  endif
-  return object#iter#count(self, a:value)
-endfunction
-
+" METHOD: __getitem__() {{{1
 function! s:range.__getitem__(index)
   if object#builtin#IsNumber(a:index)
     let index = a:index
@@ -106,6 +104,36 @@ function! s:range.__getitem__(index)
           \ object#builtin#TypeName(a:index))
 endfunction
 
+" METHOD: __iter__() {{{1
+function! s:range.__iter__()
+  return object#new(s:range_iterator,
+        \ self.start,
+        \ self.step,
+        \ self._length)
+endfunction
+
+" METHOD: __reversed__() {{{1
+function! s:range.__reversed__()
+  return object#new(s:range_iterator,
+        \ self.start + (self._length-1) * self.step,
+        \ -self.step,
+        \ self._length)
+endfunction
+
+" METHOD: __len__() {{{1
+function! s:range.__len__()
+  return self._length
+endfunction
+
+" METHOD: count() {{{1
+function! s:range.count(value)
+  if object#builtin#IsNumber(a:value)
+    return self.__contains__(a:value)
+  endif
+  return object#iter#count(self, a:value)
+endfunction
+
+" METHOD: index() {{{1
 function! s:range.index(value)
   if !object#builtin#IsNumber(a:value)
     return object#iter#index(self, a:value)
@@ -116,30 +144,13 @@ function! s:range.index(value)
   call object#ValueError("%d is not in range", a:value)
 endfunction
 
-function! s:range.__iter__()
-  return object#new(s:range_iterator,
-        \ self.start,
-        \ self.step,
-        \ self._length)
-endfunction
-
-function! s:range.__reversed__()
-  return object#new(s:range_iterator,
-        \ self.start + (self._length-1) * self.step,
-        \ -self.step,
-        \ self._length)
-endfunction
-
-function! s:range.__len__()
-  return self._length
-endfunction
-
 " }}}1
 
 " FINAL CLASS: range_iterator {{{1
 call object#class#builtin_class('range_iterator', s:object, s:)
 let s:range_iterator.__final__ = 1
 
+" METHOD: __init__() {{{1
 function! s:range_iterator.__init__(start, step, length)
   let self._start = a:start
   let self._length = a:length
@@ -147,8 +158,9 @@ function! s:range_iterator.__init__(start, step, length)
   let self._index = 0
 endfunction
 
-let s:range_iterator.__iter__ = object#iter#iter_self()
+let s:range_iterator.__iter__ = object#slots#iter_self()
 
+" METHOD: __next__() {{{1
 function! s:range_iterator.__next__()
   if self._index < self._length
     let N = self._index * self._step + self._start

@@ -1,0 +1,33 @@
+" Test the sequence interface of range()
+
+Execute(index);
+
+Execute(count);
+
+Execute(getitem);
+
+Execute(contains);
+Assert object#range(5).__contains__(1)
+
+
+
+Execute(len == 0);
+AssertEqual object#len(object#range(2, 1)), 0
+AssertEqual object#len(object#range(0, 1, -1)), 0
+AssertEqual object#len(object#range(-2, -1, -1)), 0
+
+
+Execute(len == 1);
+AssertEqual object#len(object#range(1, 2)), 1
+AssertEqual object#len(object#range(-1, -2, -1)), 1
+AssertEqual object#len(object#range(1)), 1
+
+
+Execute(len > 1);
+AssertEqual object#len(object#range(10)), 10
+AssertEqual object#len(object#range(1, 3)), 2
+AssertEqual object#len(object#range(0, 10, 2)), 5
+AssertEqual object#len(object#range(1, 10, 3)), 3
+AssertEqual object#len(object#range(0, -3, -1)), 3
+AssertEqual object#len(object#range(0, -10, -2)), 5
+AssertEqual object#len(object#range(-1, -10, -3)), 3

@@ -108,7 +108,7 @@ function! s:str_iterator.__next__()
   call object#StopIteration()
 endfunction
 
-let s:str_iterator.__iter__ = object#iter#iter_self()
+let s:str_iterator.__iter__ = object#slots#iter_self()
 
 " }}}1
 

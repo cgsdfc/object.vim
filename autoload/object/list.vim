@@ -78,7 +78,7 @@ function! s:list_iterator.__init__(list)
   let self.list = a:list
 endfunction
 
-let s:list_iterator.__iter__ = object#iter#iter_self()
+let s:list_iterator.__iter__ = object#slots#iter_self()
 
 " When the list index goes out of range, Vim throws E684.
 function! s:list_iterator.__next__()

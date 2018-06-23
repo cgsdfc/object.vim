@@ -2,18 +2,6 @@
 " In all(), the check of next() is rebundant.
 let s:object = object#object_()
 
-" FUNCTION: iter_self() {{{1
-function! s:return_self() dict
-  return self
-endfunction
-
-let s:iter_self = function('s:return_self')
-
-function! object#iter#iter_self()
-  return s:iter_self
-endfunction
-" }}}1
-
 " FINAL CLASS: callable_iterator {{{1
 call object#class#builtin_class('callable_iterator', s:object, s:)
 
@@ -22,7 +10,7 @@ function! s:callable_iterator.__init__(callable, sentinel)
   let self.sentinel = a:sentinel
 endfunction
 
-let s:callable_iterator.__iter__ = object#iter#iter_self()
+let s:callable_iterator.__iter__ = object#slots#iter_self()
 
 " TODO: self.callable can be method of other object,
 " but it will forget the original self after put into
