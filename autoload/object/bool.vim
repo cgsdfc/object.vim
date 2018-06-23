@@ -27,7 +27,7 @@ function! object#bool#bool(...)
     " bool() <==> false
     return 0
   endif
-  if object#builtin#IsContainer(a:1)
+  if object#builtin#IsContainer(a:1) || object#builtin#IsString(a:1)
     return !empty(a:1)
   endif
   if object#builtin#IsNone(a:1)

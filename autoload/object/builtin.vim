@@ -1,7 +1,7 @@
 " Handle built-in types, following the style of maktaba#value(ensure)
 " but use Python's tone to report error :)
 
-" VARIABLE: built-in typenames and type codes. {{{1
+" VARIABLE: Builtin type names and type codes. {{{1
 let s:typenames = [
       \ 'int',
       \ 'str',
@@ -133,11 +133,11 @@ function! object#builtin#IsSequence(X)
 endfunction
 
 function! object#builtin#IsContainer(X)
-  return object#builtin#IsSequence(a:X) ||
+  return object#builtin#IsList(a:X) ||
         \ (object#builtin#IsDict(a:X) && !has_key(a:X, '__class__'))
 endfunction
 
-" FUNCTION: Others {{{1
+" FUNCTION: TakeAtMostOptional() {{{1
 function! object#builtin#TakeAtMostOptional(func, atmost, actual)
   if a:atmost < a:actual
     call object#TypeError('%s() takes at most %d optional arguments (%d given)',
@@ -145,7 +145,8 @@ function! object#builtin#TakeAtMostOptional(func, atmost, actual)
   endif
 endfunction
 
-" FUNCTION: Return typename of a built-in or object type.
+" FUNCTION: TypeName() {{{1
+" Return typename of a built-in or object type.
 function! object#builtin#TypeName(X)
   if object#builtin#IsDict(a:X) && has_key(a:X, '__class__')
     return a:X.__class__.__name__
@@ -153,11 +154,12 @@ function! object#builtin#TypeName(X)
   return s:typenames[type(a:X)]
 endfunction
 
+" FUNCTION: Call() {{{1
 function! object#builtin#Call(X, ...)
   return object#builtin#Call_(a:X, a:000)
 endfunction
 
-" FUNCTION: Call a Funcref. {{{1
+" FUNCTION: Call_()  {{{1
 " Translate Vim error to Python-style error.
 " >
 "   call object#builtin#Call(function('empty'), [])
@@ -201,6 +203,8 @@ function! object#builtin#Call_(X, args)
   return Val
 endfunction
 
+" FUNCTION: ReOrderVimError() {{{1
+" Prettify v:exception.
 " >
 "   Vim(let): E111: something bad happened
 "   becomes
@@ -225,12 +229,25 @@ function! object#builtin#ReOrderVimError(error)
   return printf('%s (%s)', list[2], list[1])
 endfunction
 
-" FUNCTION: CheckXXX2 Alternative forms of type-check {{{1
+" FUNCTION: CheckXXX2() {{{1
+" Alternative forms of type-check.
 function! object#builtin#CheckNumber2(X)
   if object#builtin#IsNumber(a:X)
     return a:X
   endif
   call object#TypeError("'%s' object cannot be interpreted as an integer",
         \ object#builtin#TypeName(a:X))
+endfunction
+
+" FUNCTION: NumberInfo() {{{1
+" Return a dictionary where limits and width of Number are defined.
+let s:number_info = {
+      \ 'INT_MAX': 1/0,
+      \ 'INT_MIN': 0/0,
+      \ 'INT_HEX_WIDTH': len(printf('%x', 1/0)),
+      \ }
+
+function! object#builtin#NumberInfo()
+  return s:number_info
 endfunction
 " vim: set sw=2 sts=2 et fdm=marker:

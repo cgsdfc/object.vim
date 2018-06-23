@@ -9,6 +9,22 @@ let s:isspace = '\v\C^\s+$'
 let s:isupper = '\v\C^\u+$'
 " }}}1
 
+" FUNCTION: getitem() {{{1
+function! object#str#getitem(str, index)
+  if !object#builtin#IsNumber(a:index)
+    call object#TypeError("string indices must be integers")
+  endif
+  let index = a:index
+  if index < 0
+    let index += strchars(a:str)
+  endif
+  if index < 0 || index >= strchars(a:str)
+    call object#IndexError("string index out of range")
+  endif
+  " Make up for unicode.
+  return a:str[a:index : a:index + 2]
+endfunction
+
 " FUNCTION: len(), contains(), iter(), str() {{{1
 function! object#str#iter(str)
   return object#new(s:str_iterator, a:str)

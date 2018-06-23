@@ -1,5 +1,50 @@
 let s:object = object#object_()
 
+" FUNCTION: getitem() {{{1
+function! object#list#getitem(list, index)
+  let index = object#list#CheckIndex(a:index)
+  try
+    let Val = a:list[index]
+  catch 'E684:'
+    " index out of range.
+    call object#IndexError(object#builtin#ReOrderVimError(v:exception))
+  endtry
+  return Val
+endfunction
+
+" FUNCTION: setitem() {{{1
+function! object#list#setitem(list, index, val)
+  let index = object#list#CheckIndex(a:index)
+  try
+    let a:list[index] = a:val
+  catch 'E684:'
+    " index out of range
+    call object#IndexError(object#builtin#ReOrderVimError(v:exception))
+  catch 'E741:'
+    " lockvar
+    call object#RuntimeError(object#builtin#ReOrderVimError(v:exception))
+  endtry
+endfunction
+
+" FUNCTION: delitem() {{{1
+function! object#list#delitem(list, index)
+  let index = object#list#CheckIndex(a:index)
+  try
+    unlet a:list[index]
+  catch 'E684:'
+    call object#IndexError(object#builtin#ReOrderVimError(v:exception))
+  endtry
+endfunction
+
+" FUNCTION: CheckIndex() {{{1
+function! object#list#CheckIndex(index)
+  if object#builtin#IsNumber(a:index)
+    return a:index
+  endif
+  call object#TypeError("list indices must be integers or slices, not %s",
+        \ object#builtin#TypeName(a:index))
+endfunction
+
 " FUNCTION: {{{1 contains(), iter(), repr(), list()
 
 " FUNCTION: list() family {{{2

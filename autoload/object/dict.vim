@@ -3,6 +3,49 @@
 " A wrapper class of built-in |Dict|.
 let s:dict = object#class('dict')
 
+" FUNCTION: getitem() {{{1
+function! object#dict#getitem(dict, key)
+  try
+    let val = a:dict[a:key]
+  catch 'E713:\|E716:\|E717'
+    call object#KeyError(object#builtin#ReOrderVimError(v:exception))
+  catch 'E745:\|E728:\|E703:\|E729:\|E730:\|E731:\|E908:\|E910:\|E913'
+    call object#TypeError(object#builtin#ReOrderVimError(v:exception))
+  catch 'E\d\+:'
+    call object#VimError(object#builtin#ReOrderVimError(v:exception))
+  endtry
+  return val
+endfunction
+
+" FUNCTION: setitem() {{{1
+function! object#dict#setitem(dict, key, val)
+  try
+    let a:dict[a:key] = a:val
+  catch 'E745:\|E728:\|E703:\|E729:\|E730:\|E731:\|E908:\|E910:\|E913'
+    call object#TypeError(object#builtin#ReOrderVimError(v:exception))
+  catch 'E741:'
+    " lockvar
+    call object#RuntimeError(object#builtin#ReOrderVimError(v:exception))
+  catch 'E\d\+:'
+    call object#VimError(object#builtin#ReOrderVimError(v:exception))
+  endtry
+endfunction
+
+" FUNCTION: delitem() {{{1
+function! object#dict#delitem(dict, key)
+  try
+    unlet a:dict[a:key]
+  catch 'E713:\|E716:\|E717'
+    " Key not present.
+    call object#KeyError(object#builtin#ReOrderVimError(v:exception))
+  catch 'E745:\|E728:\|E703:\|E729:\|E730:\|E731:\|E908:\|E910:\|E913'
+    " Conversion Error
+    call object#TypeError(object#builtin#ReOrderVimError(v:exception))
+  catch 'E\d\+:'
+    call object#VimError(object#builtin#ReOrderVimError(v:exception))
+  endtry
+endfunction
+
 ""
 " @function dict(...)
 " Create a plain |Dict|.

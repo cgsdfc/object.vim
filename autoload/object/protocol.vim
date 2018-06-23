@@ -1,12 +1,4 @@
-""
-" @section Protocol, protocol
-" A set of basic hookable functions that inspect and operate on different
-" properties of an object. A protocol in this context means an global function
-" that has well defined behaviours for built-in types and can be overriden by
-" the corresponding methods with double underscores names.
-
 " FUNCTION: repr() {{{1
-""
 " @function repr(...)
 " Generate string representation for {obj}. Fail back on |string()|.
 " >
@@ -42,7 +34,6 @@ function! object#protocol#repr(obj)
   " Number, Float, String, Job and Channel, and Special.
   return string(a:obj)
 endfunction
-" }}}1
 
 " FUNCTION: HasProtocol() {{{1
 " Return whether object X has a protocol.
@@ -71,6 +62,27 @@ function! object#protocol#IsSequence(X)
   return object#builtin#IsSequence(a:X) ||
         \ (object#protocol#HasProtocol(a:X, '__len__') &&
         \ object#protocol#HasProtocol(a:X, '__getitem__'))
+endfunction
+
+" FUNCTION: IsSubscriptable() {{{1
+" getitem() is applicable.
+function! object#protocol#IsSubscriptable(X)
+  return object#builtin#IsContainer(a:X) || object#builtin#IsString(a:X) ||
+        \ object#protocol#HasProtocol(a:X, '__getitem__')
+endfunction
+
+" FUNCTION: IsSubscriptAssignable() {{{1
+" setitem() is applicable.
+function! object#protocol#IsSubscriptAssignable(X)
+  return object#builtin#IsContainer(a:X) ||
+        \ object#protocol#HasProtocol(a:X, '__setitem__')
+endfunction
+
+" FUNCTION: IsSubscriptDeletable() {{{1
+" delitem() is applicable.
+function! object#protocol#IsSubscriptDeletable(X)
+  return object#builtin#IsContainer(a:X) ||
+        \ object#protocol#HasProtocol(a:X, '__delitem__')
 endfunction
 
 " Deprecated

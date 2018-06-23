@@ -73,7 +73,7 @@ function! object#seqn#in(needle, haystack)
   call object#TypeError("argument of type '%s' is not iterable",
         \ object#builtin#TypeName(a:haystack))
 endfunction
-" }}}2
+" }}}1
 
 function! object#seqn#sorted(iterable, ...)
 
