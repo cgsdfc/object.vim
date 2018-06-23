@@ -17,3 +17,4 @@ AssertEqual object#list(iter), []
 
 Execute(reversed);
 " TODO: reversed()
+" vim: ft=vim

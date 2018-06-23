@@ -5,6 +5,7 @@ AssertThrows call object#range(1, 2, 0)
 Log g:vader_exception
 Assert g:vader_exception =~# 'ValueError'
 
+
 Execute(Check #args);
 AssertThrows call object#range()
 Log g:vader_exception
@@ -67,3 +68,4 @@ Assert r.__ne__(None), 'Not a range'
 Assert r.__ne__(object#range(4)), 'Len diff'
 Assert r.__ne__(object#range(1, 4)), 'start diff'
 
+" vim: ft=vim
