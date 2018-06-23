@@ -245,6 +245,10 @@ function! object#VimError(...) abort
   return call('object#except#VimError', a:000)
 endfunction
 
+function! object#RuntimeError(...) abort
+  return call('object#except#RuntimeError', a:000)
+endfunction
+
 function! object#SyntaxError(...) abort
   return call('object#except#SyntaxError', a:000)
 endfunction

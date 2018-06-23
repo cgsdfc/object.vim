@@ -1,79 +1,53 @@
-" vim:ft=vim
-"
-" setitem()
-"
+Before;
+let SetItem = function('object#setitem')
 
-Execute(Should work with builtin List and plain Dict);
-let input = [
-      \ [ range(4), 0, -1 ],
-      \ [ { 'a': 1, 'b': 2 }, 'a', 2 ],
-      \ ]
+Execute(Basic);
+let list = [1]
+call SetItem(list, 0, 2)
+AssertEqual list[0], 2
 
-for [obj, key, val] in input
-  call object#setitem(obj, key, val)
-  AssertEqual obj[key], val
-endfor
+let dict = {}
+call SetItem(dict, 'foo', 1)
+AssertEqual dict.foo , 1
 
-Execute(Can hook into __setitem__);
-let cls = {
-      \ 'data': range(10),
-      \ }
-function! cls.__setitem__(key, val)
-  let self.data[a:key] = a:val
-endfunction
-
-for x in range(10)
-  call object#setitem(cls, x, x)
-  AssertEqual cls.data[x], x
-endfor
-
-function! cls.__setitem__(key, val)
-  throw 'cannot setitem'
-endfunction
-
-AssertThrows call object#setitem(g:cls, 4, 1)
-AssertEqual 'cannot setitem', g:vader_exception
-
-Execute(Throws TypeError with types like String, Number or Boolean);
-let input = [
-      \ 'str', 1,
-      \ ]
-if object#util#has_special_variables()
-  call extend(input, [v:false, v:true, v:none, v:null,])
-endif
-if has('float')
-  call add(input, 1.0)
-endif
-for x in input
-  AssertThrows call object#setitem(g:x, 0, 0)
-  Assert g:vader_exception =~# 'TypeError'
-endfor
-
-Execute(Throws WrongType when __setitem__ is not a Funcref);
-let cls = {
-      \ '__setitem__' : 'not a Funcref',
-      \ }
-AssertThrows call object#setitem(g:cls, 0, 0)
-Assert g:vader_exception =~# 'WrongType'
+AssertThrows call g:SetItem('', 1, 'a')
 Log g:vader_exception
 
-Execute (Throws IndexError if index goes out of range for |List| or |String|);
-let input = [
-      \ [range(3), 3],
-      \]
-for [seq, idx] in input
-  AssertThrows call object#setitem(g:seq, g:idx, 1)
-  Assert g:vader_exception =~# 'IndexError'
-  Log g:vader_exception
-endfor
 
-Execute (Throws WrongType if key is not Number for List or String for Dict);
-let input = [
-      \ [{'1': 'a'}, 1, 'whatever'],
-      \ [range(3), '1', 'whatever'],
-      \]
-for args in input
-  AssertThrows call call('object#setitem', g:args)
-  Assert g:vader_exception =~# 'WrongType'
-  Log g:vader_exception
-endfor
+Execute(lockvar);
+" Currently we choose to report RuntimeError on
+" setitem() on a locked variable.
+" List case:
+let list = [0]
+lockvar list[0]
+AssertThrows call g:SetItem(g:list, 0, 1)
+Log g:vader_exception
+Assert g:vader_exception =~# 'RuntimeError'
+
+" Dict case
+let dict = { 'foo' : 1 }
+lockvar dict.foo
+AssertThrows call g:SetItem(g:dict, 'foo', 1)
+Log g:vader_exception
+Assert g:vader_exception =~# 'RuntimeError'
+
+
+" We have no Key to check.
+Execute(Check Index);
+let list = [0]
+AssertThrows call g:SetItem(g:list, 1, 1)
+Log g:vader_exception
+Assert g:vader_exception =~# 'IndexError'
+
+
+Execute(__setitem__);
+let X = object#class('X')
+function! X.__setitem__(key, val)
+  let self[a:key] = a:val
+endfunction
+
+let x = object#new(X)
+call SetItem(x, 'foo', 1)
+AssertEqual x.foo, 1
+
+" vim:ft=vim

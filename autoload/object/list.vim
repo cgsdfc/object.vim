@@ -36,7 +36,7 @@ function! object#list#delitem(list, index)
   try
     unlet a:list[index]
   catch 'E684:'
-    call object#IndexError(object#builtin#ReOrderVimError(v:exception))
+    call object#IndexError('list index out of range: %d', a:index)
   endtry
 endfunction
 

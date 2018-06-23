@@ -12,3 +12,4 @@ Execute(Create exactly the same as class());
 call object#class#builtin_class('X', Base, g:)
 Assert has_key(g:, 'X'), 'Bind name to scope'
 AssertEqual X, object#class('X', Base)
+Assert X.__mro__[1] is Base

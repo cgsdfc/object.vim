@@ -80,5 +80,14 @@ let Japanese = 'こんにちは世界'
 AssertEqual GetItem(Japanese, 0), 'こ'
 AssertEqual GetItem(Japanese, -1), '界'
 
+
+Execute(__getitem__);
+let T = object#class('T')
+function! T.__getitem__(key)
+  return 'foo'
+endfunction
+
+AssertEqual GetItem(object#new(T), 'bar'), 'foo'
+
 " vim:ft=vim
 " vim: set sw=2 sts=2 et fdm=marker:

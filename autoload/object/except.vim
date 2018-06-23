@@ -40,6 +40,7 @@ call object#class#builtin_class('KeyError', s:LookupError, s:)
 call object#class#builtin_class('NameError', s:Exception, s:)
 call object#class#builtin_class('SyntaxError', s:Exception, s:)
 call object#class#builtin_class('VimError', s:Exception, s:)
+call object#class#builtin_class('RuntimeError', s:Exception, s:)
 
 " On-demand Bootstrap
 function! object#except#lazy_bootstrap()
@@ -103,7 +104,6 @@ function! object#except#lazy_bootstrap()
   " }}}4
 
   " Class: Derived from RuntimeError {{{4
-  call object#class#builtin_class('RuntimeError', s:Exception, s:)
   call object#class#builtin_class('NotImplementedError', s:RuntimeError, s:)
   call object#class#builtin_class('RecursionError', s:RuntimeError, s:)
   " }}}4
@@ -140,6 +140,7 @@ function! object#except#builtins()
   return s:
 endfunction
 
+" FUNCTION: raise() {{{1
 ""
 " @function raise(...)
 " Raise an exception.
@@ -253,6 +254,12 @@ endfunction
 " @function VimError(...)
 function! object#except#VimError(...)
   call object#except#throw_(s:VimError, a:000)
+endfunction
+
+""
+" @function RuntimeError(...)
+function! object#except#RuntimeError(...)
+  call object#except#throw_(s:RuntimeError, a:000)
 endfunction
 
 " Helper to throw 'no such attribute'
