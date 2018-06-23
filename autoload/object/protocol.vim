@@ -85,6 +85,14 @@ function! object#protocol#IsSubscriptDeletable(X)
         \ object#protocol#HasProtocol(a:X, '__delitem__')
 endfunction
 
+" FUNCTION: IsHashable() {{{1
+" - Builtin immutable types.
+" - __hash__().
+function! object#protocol#IsHashable(X)
+  return !object#builtin#IsContainer(a:X) ||
+        \ object#protocol#HasProtocol(a:X, '__hash__')
+endfunction
+
 " Deprecated
 " Call a __protocol__ function {X} (ensure {X} is a Funcref)
 function! object#protocol#call(X, ...)

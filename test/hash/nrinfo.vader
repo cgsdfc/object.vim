@@ -1,5 +1,0 @@
-Execute(Confirm the Number bitwidth of the Vim runtime);
-let info = object#mapping#nrinfo()
-Log printf('Bitwidth of Number %s', info.width)
-Log printf('Max of Number %s', info.max)
-Log printf('Has cryptv %s', has('cryptv')?'yes':'no')
