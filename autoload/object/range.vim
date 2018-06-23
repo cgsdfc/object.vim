@@ -150,12 +150,14 @@ let s:range_iterator.__final__ = 1
 " METHOD: __init__() {{{1
 function! s:range_iterator.__init__(start, step, length)
   let self._start = a:start
-  let self._length = a:length
   let self._step = a:step
+  let self._length = a:length
   let self._index = 0
 endfunction
 
+" SLOTS: {{{1
 let s:range_iterator.__iter__ = object#slots#iter_self()
+let s:range_iterator.__setattr__ = object#slots#readonly_attribute()
 
 " METHOD: __next__() {{{1
 function! s:range_iterator.__next__()
@@ -173,6 +175,7 @@ function! object#range#range(...)
   return object#new_(s:range, a:000)
 endfunction
 
+" FUNCTION: compute_length() {{{1
 function! object#range#compute_length(start, stop, step)
   " Reference: Python-3.6.5/Objects/rangeobject.c
   if a:step > 0

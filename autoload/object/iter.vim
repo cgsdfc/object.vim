@@ -65,6 +65,13 @@ function! object#iter#iter(...)
 endfunction
 " }}}1
 
+" CLASS: 
+" FUNCTION: reversed() {{{1
+function! object#iter#reversed(iterable)
+
+endfunction
+" }}}1
+
 " FUNCTION: Helper to test and check Iterable/Iterator {{{1
 function! object#iter#CheckIterator(X, msg)
   if object#iter#IsIterator(a:X)
@@ -239,10 +246,5 @@ function! object#iter#sum(iter, ...)
 endfunction
 " }}}1
 
-" FUNCTION: reversed() {{{1
-function! object#iter#reversed(iterable)
-
-endfunction
-" }}}1
 
 " vim: set sw=2 sts=2 et fdm=marker:

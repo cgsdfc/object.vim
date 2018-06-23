@@ -1,2 +1,19 @@
 " iter(range) and reversed(range)
+Before;
 
+Execute(iter);
+let iter = object#iter(object#range(3))
+AssertEqual object#list(iter), [0, 1, 2]
+
+let iter = object#iter(object#range(1, 3))
+AssertEqual object#list(iter), [1, 2]
+
+let iter = object#iter(object#range(3, 1, -1))
+AssertEqual object#list(iter), [3, 2]
+
+let iter = object#iter(object#range(2, 1))
+AssertEqual object#list(iter), []
+
+
+Execute(reversed);
+" TODO: reversed()
