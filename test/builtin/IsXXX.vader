@@ -1,7 +1,4 @@
-" vim: ft=vim
-
 Before;
-
 let Testers = [
       \ 'IsNumber',
       \ 'IsBool',
@@ -12,47 +9,56 @@ let Testers = [
       \ 'IsString',
       \ 'IsFuncref',
       \ 'IsNumeric',
+      \ 'IsSequence',
       \ ]
 
 for func in Testers
   let {func} = function(printf('object#builtin#%s', func))
 endfor
 
-Execute(Number);
+Execute(IsNumber);
 Assert IsNumber(1)
 Assert !IsNumber('')
 
-Execute(Bool);
+Execute(IsBool);
 Assert IsBool(1)
 Assert IsBool(v:false)
 Assert !IsBool(3)
 
-Execute(Dict);
+Execute(IsDict);
 Assert IsDict({})
 Assert !IsDict('')
 
-Execute(List);
+Execute(IsList);
 Assert IsList([])
 Assert !IsList('')
 
-Execute(Float);
+Execute(IsFloat);
 Assert IsFloat(1.0)
 Assert !IsFloat(1)
 
-Execute(Obj);
+Execute(IsObj);
 let obj = object#object()
 Assert IsObj(obj)
 Assert !IsObj({})
 
-Execute(String);
+Execute(IsString);
 Assert IsString('')
 Assert !IsString(1)
 
-Execute(Funcref);
+Execute(IsFuncref);
 Assert IsFuncref(function('tr'))
 Assert !IsFuncref('tr')
 
-Execute(Numeric);
+Execute(IsNumeric);
 Assert IsNumeric(1)
 Assert IsNumeric(1.0)
 Assert !IsNumeric('1')
+
+Execute(IsSequence);
+Assert IsSequence('')
+Assert IsSequence([])
+Assert !IsSequence(1)
+
+" vim: ft=vim
+" vim: set sw=2 sts=2 et fdm=marker:

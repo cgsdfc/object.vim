@@ -44,6 +44,35 @@ function! object#protocol#repr(obj)
 endfunction
 " }}}1
 
+" FUNCTION: HasProtocol() {{{1
+" Return whether object X has a protocol.
+function! object#protocol#HasProtocol(X, name)
+  return object#builtin#IsObj(a:X) && has_key(a:X, a:name)
+        \ && object#builtin#IsFuncref(a:X[a:name])
+endfunction
+
+" FUNCTION: IsIterable() {{{1
+" Object with __iter__().
+function! object#protocol#IsIterable(X)
+  return object#builtin#IsSequence(a:X) || object#protocol#HasProtocol(a:X, '__iter__')
+endfunction
+
+" FUNCTION: IsIterator() {{{1
+" Object with __next__().
+function! object#protocol#IsIterator(X)
+  return object#protocol#HasProtocol(a:X, '__next__')
+endfunction
+
+" FUNCTION: IsSequence() {{{1
+" Return whether object X is a Sequence.
+" - Builtin sequences.
+" - Object with __len__() and __getitem__().
+function! object#protocol#IsSequence(X)
+  return object#builtin#IsSequence(a:X) ||
+        \ (object#protocol#HasProtocol(a:X, '__len__') &&
+        \ object#protocol#HasProtocol(a:X, '__getitem__'))
+endfunction
+
 " Deprecated
 " Call a __protocol__ function {X} (ensure {X} is a Funcref)
 function! object#protocol#call(X, ...)

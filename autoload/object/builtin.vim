@@ -124,6 +124,10 @@ function! object#builtin#IsClass(X)
   return object#builtin#IsObj(a:X) && has_key(a:X, '__mro__')
 endfunction
 
+function! object#builtin#IsSequence(X)
+  return object#builtin#IsList(a:X) || object#builtin#IsString(a:X)
+endfunction
+
 " FUNCTION: Others {{{1
 function! object#builtin#TakeAtMostOptional(func, atmost, actual)
   if a:atmost < a:actual

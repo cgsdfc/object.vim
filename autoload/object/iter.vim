@@ -65,39 +65,22 @@ function! object#iter#iter(...)
 endfunction
 " }}}1
 
-" CLASS: 
-" FUNCTION: reversed() {{{1
-function! object#iter#reversed(iterable)
-
-endfunction
-" }}}1
-
 " FUNCTION: Helper to test and check Iterable/Iterator {{{1
 function! object#iter#CheckIterator(X, msg)
-  if object#iter#IsIterator(a:X)
+  if object#protocol#IsIterator(a:X)
     return a:X
   endif
   call object#TypeError(a:msg)
 endfunction
 
 function! object#iter#CheckIterable(X)
-  if object#iter#IsIterable(a:X)
+  if object#protocol#IsIterable(a:X)
     return a:X
   endif
   call object#TypeError("'%s' object is not iterable",
         \ object#builtin#TypeName(a:X))
 endfunction
 
-function! object#iter#IsIterable(X)
-  return object#builtin#IsList(a:X) || object#builtin#IsString(a:X) ||
-        \ (object#builtin#IsObj(a:X) && has_key(a:X, '__iter__')
-        \ && object#builtin#IsFuncref(a:X.__iter__))
-endfunction
-
-function! object#iter#IsIterator(X)
-  return object#builtin#IsObj(a:X) && has_key(a:X, '__next__')
-        \ && object#builtin#IsFuncref(a:X.__next__)
-endfunction
 " }}}1
 
 " FUNCTION: next() {{{1

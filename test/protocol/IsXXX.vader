@@ -1,0 +1,59 @@
+Before;
+let X = object#class('X')
+let IsIterable = function('object#protocol#IsIterable')
+let IsIterator = function('object#protocol#IsIterator')
+let IsSequence = function('object#protocol#IsSequence')
+let HasProtocol = function('object#protocol#HasProtocol')
+
+
+Execute(HasProtocol);
+Assert HasProtocol(object#range(2), '__iter__')
+Assert !HasProtocol(object#range(2), 'start')
+
+
+Execute(IsSequence);
+Assert IsSequence(object#range(2))
+Assert IsSequence([])
+Assert !IsSequence(1)
+
+
+Execute(IsIterable);
+Assert !IsIterable(1)
+Assert !IsIterable(1.1)
+Assert !IsIterable({})
+Assert !IsIterable(v:false)
+Assert !IsIterable(function('empty'))
+
+let var = object#new(X)
+Assert !IsIterable(var)
+
+let var.__iter__ = 1
+Assert !IsIterable(var)
+
+unlet var.__iter__
+function! var.__iter__()
+  return {}
+endfunction
+Assert IsIterable(var)
+
+Assert IsIterable('')
+Assert IsIterable([])
+" }}}1
+
+
+Execute(IsIterator);
+Assert !IsIterator(1)
+Assert !IsIterator(1.1)
+Assert !IsIterator({})
+Assert !IsIterator(v:false)
+Assert !IsIterator(function('empty'))
+Assert !IsIterator(object#new(X))
+
+function! X.__next__()
+  return 1
+endfunction
+Assert IsIterator(object#new(X))
+" }}}1
+
+" vim:ft=vim
+" vim: set sw=2 sts=2 et fdm=marker:

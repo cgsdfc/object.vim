@@ -61,6 +61,11 @@ function! object#list#iter(list)
 endfunction
 " }}}2
 
+" FUNCTION: reversed() {{{2
+function! object#list#reversed(list)
+  return object#new(s:list_reverseiterator, a:list)
+endfunction
+
 " FUNCTION: repr() {{{2
 " Return representation of a plain |List|.
 function! object#list#repr(list)
@@ -93,6 +98,30 @@ endfunction
 
 " }}}1
 
+" FINAL CLASS: list_reverseiterator {{{1
+call object#class#builtin_class('list_reverseiterator', s:object, s:)
+let s:list_reverseiterator.__final__ = 1
+" Note: To tell the truth, I don't quite understand why Python has a
+" separated list_reverseiterator for list while other sequences all use
+" plain reversed object.
+function! s:list_reverseiterator.__init__(list)
+  let self._seqn = a:list
+  let self._index = len(a:list) - 1
+endfunction
+
+function! s:list_reverseiterator.__next__()
+  if self._index == -1
+    call object#StopIteration()
+  endif
+  let N = self._seqn[self._index]
+  let self._index -= 1
+  return N
+endfunction
+
+let s:list_reverseiterator.__iter__ = object#slots#iter_self()
+let s:list_reverseiterator.__setattr__ = object#slots#readonly_attribute()
+
+" }}}1
 " CLASS: list {{{1
 call object#class#builtin_class('list', s:object, s:)
 
@@ -110,6 +139,11 @@ call object#class#builtin_class('list', s:object, s:)
 " Initialize a list.
 function! s:list.__init__(...)
   let self._list = call('object#list', a:000)
+endfunction
+
+" METHOD: __reversed__() {{{1
+function! s:list.__reversed__()
+  return object#list#reversed(self._list)
 endfunction
 
 ""
