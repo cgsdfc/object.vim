@@ -184,10 +184,15 @@ endfunction
 " }}}1
 " }}}1
 
-" MODULE: mapping.vim {{{1
-
+" MODULE: hash.vim {{{1
 function! object#hash(...) abort
-  return call('object#mapping#hash', a:000)
+  return call('object#hash#hash', a:000)
+endfunction
+" }}}1
+
+" MODULE: mapping.vim {{{1
+function! object#delitem(...) abort
+  return call('object#mapping#delitem', a:000)
 endfunction
 
 function! object#getitem(...) abort

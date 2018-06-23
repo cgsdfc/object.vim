@@ -1,0 +1,34 @@
+Execute(Basic);
+let list = [0, 1, 2]
+call object#delitem(list, 0)
+AssertEqual list, [1,2]
+
+let dict = { 'foo': 1 }
+call object#delitem(dict, 'foo')
+AssertEqual dict, {}
+
+AssertThrows call object#delitem('', 0)
+Assert g:vader_exception =~# 'TypeError'
+
+
+Execute(Check Key);
+AssertThrows call object#delitem({}, 'foo')
+Assert g:vader_exception =~# 'KeyError'
+
+Execute(Check Index);
+AssertThrows call object#delitem([], 0)
+Assert g:vader_exception =~# 'IndexError'
+
+
+Execute(__delitem__);
+let T = object#class('T')
+function! T.__delitem__(key)
+  if has_key(self, a:key)
+    unlet self[a:key]
+  endif
+endfunction
+
+call object#delitem(object#new(T), 'bar')
+
+" vim: ft=vim
+" vim: set sw=2 sts=2 et fdm=marker:

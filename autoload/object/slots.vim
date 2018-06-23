@@ -24,6 +24,14 @@ function! s:slots.iter_self()
   return self
 endfunction
 
+function! s:slots.getitem(obj, key)
+  return a:obj[a:key]
+endfunction
+
+function! s:slots.setitem(obj, key, val)
+  let a:obj[a:key] = a:val
+endfunction
+
 " Getter of the slots. {{{1
 function! object#slots#readonly_attribute2()
   return s:slots.readonly_attribute2
@@ -36,4 +44,6 @@ endfunction
 function! object#slots#iter_self()
   return s:slots.iter_self
 endfunction
+
+function! o
 " vim: set sw=2 sts=2 et fdm=marker:

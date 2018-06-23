@@ -160,11 +160,7 @@ function! object#builtin#Call(X, ...)
 endfunction
 
 " FUNCTION: Call_()  {{{1
-" Translate Vim error to Python-style error.
-" >
-"   call object#builtin#Call(function('empty'), [])
-"   return object#builtin#Call(obj.__len__)
-" <
+" Only accept Funcref
 function! object#builtin#Call_(X, args)
   " Should we need a catch-all to throw something like:
   " 'Unrecognized Vim Error'? No, not at all.
@@ -179,13 +175,24 @@ function! object#builtin#Call_(X, args)
     call object#TypeError("'%s' object is not callable",
           \ object#builtin#TypeName(a:X))
   endif
+  return object#builtin#CallStringFuncref_(a:X, a:args)
+endfunction
+
+" FUNCTION: CallStringFuncref() {{{1
+function! object#builtin#CallStringFuncref(X, ...)
+  return object#builtin#CallStringFuncref_(X, a:000)
+endfunction
+
+" FUNCTION: CallStringFuncref_() {{{1
+" Accept both Funcref and String.
+function! object#builtin#CallStringFuncref_(X, args)
   try
     let Val = call(a:X, a:args)
-  catch /E118:\|E119:/
+  catch 'E118:\|E119:'
     " E118: Too many or not enough args.
     " E119: Too many or not enough args.
     call object#TypeError(object#builtin#ReOrderVimError(v:exception))
-  catch /E117:\|E121:/
+  catch 'E117:\|E121:'
     " E117: Unknown function.
     " E121: Undefined variables.
     " NOTE: Unknown function can also be caused by
@@ -194,10 +201,19 @@ function! object#builtin#Call_(X, args)
     " However, the word "Unknown" makes it very like
     " an undefined name.
     call object#NameError(object#builtin#ReOrderVimError(v:exception))
-  catch /E488:/
+  catch 'E488:'
     " E488: Trailing characters
     call object#SyntaxError(object#builtin#ReOrderVimError(v:exception))
-  catch /E\d\+:/
+  catch 'E713:\|E716:\|E717'
+    " E716: Key not present
+    call object#KeyError(object#builtin#ReOrderVimError(v:exception))
+  catch 'E684:'
+    " index out of range.
+    call object#IndexError(object#builtin#ReOrderVimError(v:exception))
+  catch 'E741:'
+    " lockvar
+    call object#RuntimeError(object#builtin#ReOrderVimError(v:exception))
+  catch 'E\d\+:'
     call object#VimError(object#builtin#ReOrderVimError(v:exception))
   endtry
   return Val
