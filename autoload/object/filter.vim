@@ -11,6 +11,7 @@ function! s:filter.__init__(predicate, iterable)
 endfunction
 
 let s:filter.__iter__ = object#slots#iter_self()
+let s:filter.__setattr__ = object#slots#readonly_attribute()
 
 function! s:filter.__next__()
   while 1

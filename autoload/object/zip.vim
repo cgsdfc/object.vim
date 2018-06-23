@@ -8,6 +8,7 @@ function! s:zip.__init__(...)
 endfunction
 
 let s:zip.__iter__ = object#slots#iter_self()
+let s:zip.__setattr__ = object#slots#readonly_attribute()
 
 function! s:zip.__next__()
   if empty(self._seqns)

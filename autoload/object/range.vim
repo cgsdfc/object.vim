@@ -89,12 +89,9 @@ endfunction
 " METHOD: __getitem__() {{{1
 function! s:range.__getitem__(index)
   if object#builtin#IsNumber(a:index)
-    let index = a:index
-    if index < 0
-      let index += self._length
-    endif
+    let index = a:index < 0 ? a:index + self._length : a:index
     if 0 <= index && index < self._length
-      return self.start + a:index * self.step
+      return self.start + index * self.step
     endif
     call object#IndexError("range object index out of range")
   endif

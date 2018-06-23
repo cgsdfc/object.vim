@@ -3,6 +3,7 @@ let s:object = object#object_()
 call object#class#builtin_class('enumerate', s:object, s:)
 
 let s:enumerate.__iter__ = object#slots#iter_self()
+let s:enumerate.__setattr__ = object#slots#readonly_attribute()
 
 " Note: enumerate is subclassable, that's why moving
 " logic into __init__.

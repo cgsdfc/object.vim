@@ -1,14 +1,59 @@
 " Test the sequence interface of range()
 
 Execute(index);
+AssertThrows call object#range(4).index('')
+Assert g:vader_exception =~# 'ValueError'
+
+AssertThrows call object#range(4).index(4)
+Assert g:vader_exception =~# 'ValueError'
+
+AssertThrows call object#range(4).index(-1)
+Assert g:vader_exception =~# 'ValueError'
+
+AssertEqual object#range(4).index(0), 0
+AssertEqual object#range(4).index(3), 3
+
+AssertEqual object#range(-1, -3, -1).index(-1), 0
+AssertEqual object#range(0, 10, 2).index(2), 1
+
 
 Execute(count);
+AssertEqual 1, object#range(1).count(0)
+AssertEqual 0, object#range(1).count(1)
+
+AssertEqual 0, object#range(2).count('')
+
 
 Execute(getitem);
+AssertThrows call object#range(4).__getitem__('')
+Assert g:vader_exception =~# 'TypeError'
+
+AssertEqual object#range(4).__getitem__(0), 0
+AssertEqual object#range(4).__getitem__(3), 3
+AssertEqual object#range(4).__getitem__(-1), 3
+AssertEqual object#range(4).__getitem__(-3), 1
+
+AssertThrows call object#range(4).__getitem__(4)
+Assert g:vader_exception =~# 'IndexError'
+
+AssertThrows call object#range(4).__getitem__(-5)
+Assert g:vader_exception =~# 'IndexError'
+
 
 Execute(contains);
 Assert object#range(5).__contains__(1)
+Assert !object#range(5).__contains__(6)
+Assert !object#range(5).__contains__(-1)
+Assert !object#range(0, 6, 2).__contains__(5)
+Assert object#range(0, 6, 2).__contains__(4)
 
+Assert !object#range(5, -1, -1).__contains__(6)
+Assert !object#range(5, -1, -1).__contains__(-1)
+Assert !object#range(0, -6, -2).__contains__(-5)
+Assert object#range(0, -6, -2).__contains__(-4)
+
+Assert !object#range(5).__contains__('')
+Assert !object#range(5).__contains__(1.0)
 
 
 Execute(len == 0);

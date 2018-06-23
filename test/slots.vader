@@ -7,6 +7,21 @@ let var = object#new(Test)
 AssertThrows call g:var.__setattr__('foo', 1)
 Assert g:vader_exception =~# 'AttributeError'
 
+
+Execute(readonly_attribute2);
+let Test.__setattr__ = object#slots#readonly_attribute2()
+let var = object#new(Test)
+AssertThrows call g:var.__setattr__('foo', 1)
+Log g:vader_exception
+Assert g:vader_exception =~# 'AttributeError'
+
+" This is ironic. A direct access to 'foo' breaks all the hell.
+let var.foo = 1
+AssertThrows call g:var.__setattr__('foo', 1)
+Log g:vader_exception
+Assert g:vader_exception =~# 'AttributeError'
+
+
 Execute(iter_self);
 let Test.__iter__ = object#slots#iter_self()
 function! Test.__next__()

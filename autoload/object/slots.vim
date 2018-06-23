@@ -5,12 +5,28 @@
 " once they are defined.
 let s:slots = {}
 
+" Slots {{{1
+function! s:slots.readonly_attribute2(name, val)
+  try
+    call object#getattr(self, a:name)
+  catch 'AttributeError'
+    throw v:exception
+  endtry
+  call object#AttributeError("'%s' object attribute '%s' is read-only",
+        \ self.__class__.__name__, a:name)
+endfunction
+
 function! s:slots.readonly_attribute(name, val)
   call object#AttributeError('readonly attribute')
 endfunction
 
 function! s:slots.iter_self()
   return self
+endfunction
+
+" Getter of the slots. {{{1
+function! object#slots#readonly_attribute2()
+  return s:slots.readonly_attribute2
 endfunction
 
 function! object#slots#readonly_attribute()
@@ -20,3 +36,4 @@ endfunction
 function! object#slots#iter_self()
   return s:slots.iter_self
 endfunction
+" vim: set sw=2 sts=2 et fdm=marker:

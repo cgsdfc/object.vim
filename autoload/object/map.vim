@@ -13,6 +13,7 @@ function! s:map.__init__(callable, ...)
 endfunction
 
 let s:map.__iter__ = object#slots#iter_self()
+let s:map.__setattr__ = object#slots#readonly_attribute()
 
 function! s:map.__next__()
   return object#builtin#Call_(self._callable,
