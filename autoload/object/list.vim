@@ -2,12 +2,16 @@ let s:object = object#object_()
 
 " FUNCTION: getitem() {{{1
 function! object#list#getitem(list, index)
+  " Python just report 'list index out of range' without giving
+  " the explicit index, while Vim makes it wrong for negative index
+  " by giving the `index + len`.
   let index = object#list#CheckIndex(a:index)
   try
     let Val = a:list[index]
   catch 'E684:'
     " index out of range.
-    call object#IndexError(object#builtin#ReOrderVimError(v:exception))
+    " Vim gets wrong about negative index.
+    call object#IndexError('list index out of range: %d', a:index)
   endtry
   return Val
 endfunction
@@ -19,7 +23,7 @@ function! object#list#setitem(list, index, val)
     let a:list[index] = a:val
   catch 'E684:'
     " index out of range
-    call object#IndexError(object#builtin#ReOrderVimError(v:exception))
+    call object#IndexError('list index out of range: %d', a:index)
   catch 'E741:'
     " lockvar
     call object#RuntimeError(object#builtin#ReOrderVimError(v:exception))

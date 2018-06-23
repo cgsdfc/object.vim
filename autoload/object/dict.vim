@@ -1,28 +1,33 @@
-""
-" @section Dict, dict
-" A wrapper class of built-in |Dict|.
-let s:dict = object#class('dict')
+" FUNCTION: CheckKey() {{{1
+" Only string and number can be used.
+" By explicitly disallowing other types, we don't need to catch
+" mysterious Vim errors and save the day.
+function! object#dict#CheckKey(key)
+  if object#builtin#IsString(a:key) || object#builtin#IsNumber(a:key)
+    return a:key
+  endif
+  call object#TypeError("dict key must be string or integer, not %s",
+        \ object#builtin#TypeName(a:key))
+endfunction
 
 " FUNCTION: getitem() {{{1
 function! object#dict#getitem(dict, key)
+  let key = object#dict#CheckKey(a:key)
   try
-    let val = a:dict[a:key]
+    let Val = a:dict[key]
   catch 'E713:\|E716:\|E717'
     call object#KeyError(object#builtin#ReOrderVimError(v:exception))
-  catch 'E745:\|E728:\|E703:\|E729:\|E730:\|E731:\|E908:\|E910:\|E913'
-    call object#TypeError(object#builtin#ReOrderVimError(v:exception))
   catch 'E\d\+:'
     call object#VimError(object#builtin#ReOrderVimError(v:exception))
   endtry
-  return val
+  return Val
 endfunction
 
 " FUNCTION: setitem() {{{1
 function! object#dict#setitem(dict, key, val)
+  let key = object#dict#CheckKey(a:key)
   try
-    let a:dict[a:key] = a:val
-  catch 'E745:\|E728:\|E703:\|E729:\|E730:\|E731:\|E908:\|E910:\|E913'
-    call object#TypeError(object#builtin#ReOrderVimError(v:exception))
+    let a:dict[key] = a:val
   catch 'E741:'
     " lockvar
     call object#RuntimeError(object#builtin#ReOrderVimError(v:exception))
@@ -33,14 +38,12 @@ endfunction
 
 " FUNCTION: delitem() {{{1
 function! object#dict#delitem(dict, key)
+  let key = object#dict#CheckKey(a:key)
   try
-    unlet a:dict[a:key]
+    unlet a:dict[key]
   catch 'E713:\|E716:\|E717'
     " Key not present.
     call object#KeyError(object#builtin#ReOrderVimError(v:exception))
-  catch 'E745:\|E728:\|E703:\|E729:\|E730:\|E731:\|E908:\|E910:\|E913'
-    " Conversion Error
-    call object#TypeError(object#builtin#ReOrderVimError(v:exception))
   catch 'E\d\+:'
     call object#VimError(object#builtin#ReOrderVimError(v:exception))
   endtry
@@ -87,6 +90,9 @@ endfunction
 function! object#dict#dict_()
   return s:dict
 endfunction
+
+" CLASS: dict {{{1
+let s:dict = object#class('dict')
 
 ""
 " @dict dict
@@ -296,3 +302,5 @@ function! object#dict#from_iter(iter)
     return d
   endtry
 endfunction
+
+" vim: set sw=2 sts=2 et fdm=marker:

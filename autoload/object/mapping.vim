@@ -1,6 +1,6 @@
 " FUNCTION: CheckSubscriptable() {{{1
 function! object#mapping#CheckSubscriptable(X)
-  if object#builtin#IsSubscriptable(a:X)
+  if object#protocol#IsSubscriptable(a:X)
     return a:X
   endif
   call object#TypeError("'%s' object doesn't support indexing",
@@ -9,7 +9,7 @@ endfunction
 
 " FUNCTION: CheckSubscriptAssignable() {{{1
 function! object#mapping#CheckSubscriptAssignable(X)
-  if object#builtin#IsSubscriptAssignable(a:X)
+  if object#protocol#IsSubscriptAssignable(a:X)
     return a:X
   endif
   call object#TypeError("'%s' object doesn't support item assignment",
@@ -18,7 +18,7 @@ endfunction
 
 " FUNCTION: CheckSubscriptDeletable() {{{1
 function! object#mapping#CheckSubscriptDeletable(X)
-  if object#builtin#IsSubscriptDeletable(a:X)
+  if object#protocol#IsSubscriptDeletable(a:X)
     return a:X
   endif
   call object#TypeError("'%s' object doesn't support item deletion",

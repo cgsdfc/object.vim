@@ -1,4 +1,84 @@
-Execute();
+Before;
+let GetItem = function('object#getitem')
+
+Execute(Basic Cases);
+AssertEqual GetItem([1], 0), 1
+AssertEqual GetItem('a', 0), 'a'
+AssertEqual GetItem({'key': 1}, 'key'), 1
+
+
+Execute(Check Key);
+AssertThrows call g:GetItem({}, [])
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+AssertThrows call g:GetItem({}, 1.2)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+" Number is allowed as it is convenient to use.
+" Nobody want to do GetItem(dict, string(1)).
+AssertEqual GetItem({1: 1}, 1), 1, 'Number -> String'
+
+AssertThrows call g:GetItem({}, 'foo')
+Assert g:vader_exception =~# 'KeyError'
+Log g:vader_exception
+
+
+Execute(Check Index);
+" Only Number is allowed as index.
+AssertThrows call g:GetItem([], 1.2)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+AssertThrows call g:GetItem('', 1.2)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+" IndexError
+" Possitive index
+AssertThrows call g:GetItem([1], 1)
+Assert g:vader_exception =~# 'IndexError'
+Log g:vader_exception
+
+" Negative
+AssertThrows call g:GetItem([1], -2)
+Assert g:vader_exception =~# 'IndexError'
+Log g:vader_exception
+
+AssertThrows call g:GetItem('a', 1)
+Assert g:vader_exception =~# 'IndexError'
+Log g:vader_exception
+
+AssertThrows call g:GetItem('a', -2)
+Assert g:vader_exception =~# 'IndexError'
+Log g:vader_exception
+
+
+Execute(CheckSubscriptable);
+AssertThrows call g:GetItem(1, 2)
+Assert g:vader_exception =~# 'TypeError'
+Log g:vader_exception
+
+
+Execute(Unicode);
+let Chinese = '你好，世界'
+AssertEqual GetItem(Chinese, 0), '你'
+AssertEqual GetItem(Chinese, -5), '你'
+
+AssertEqual GetItem(Chinese, 1), '好'
+AssertEqual GetItem(Chinese, -4), '好'
+
+AssertEqual GetItem(Chinese, 4), '界'
+AssertEqual GetItem(Chinese, -1), '界'
+
+AssertThrows call g:GetItem(g:Chinese, 6)
+Assert g:vader_exception =~# 'IndexError'
+Log g:vader_exception
+
+let Japanese = 'こんにちは世界'
+AssertEqual GetItem(Japanese, 0), 'こ'
+AssertEqual GetItem(Japanese, -1), '界'
 
 " vim:ft=vim
 " vim: set sw=2 sts=2 et fdm=marker:

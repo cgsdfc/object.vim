@@ -14,15 +14,19 @@ function! object#str#getitem(str, index)
   if !object#builtin#IsNumber(a:index)
     call object#TypeError("string indices must be integers")
   endif
+  " When index out of range, Vim returns an empty string.
+  " That's why we have to figure it out here.
   let index = a:index
   if index < 0
     let index += strchars(a:str)
   endif
   if index < 0 || index >= strchars(a:str)
-    call object#IndexError("string index out of range")
+    " Note: use the original index.
+    call object#IndexError("string index out of range: %d", a:index)
   endif
   " Make up for unicode.
-  return a:str[a:index : a:index + 2]
+  let index = index * 3
+  return a:str[index: index+2]
 endfunction
 
 " FUNCTION: len(), contains(), iter(), str() {{{1
