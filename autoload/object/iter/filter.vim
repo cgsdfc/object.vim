@@ -26,7 +26,7 @@ endfunction
 " FUNCTION: filter() {{{1
 ""
 " @function filter(...)
-function! object#filter#filter(...)
+function! object#iter#filter#filter(...)
   return object#new_(s:filter, a:000)
 endfunction
 

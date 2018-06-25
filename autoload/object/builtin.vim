@@ -266,4 +266,10 @@ let s:number_info = {
 function! object#builtin#NumberInfo()
   return s:number_info
 endfunction
+
+" FUNCTION: FuncName() {{{1
+function! object#builtin#FuncName(funcref)
+
+endfunction
+
 " vim: set sw=2 sts=2 et fdm=marker:

@@ -1,4 +1,47 @@
+" TODO: Use more real-life hashing strategy.
+" Referencing Python3 is a good starting point
+" but it is a too serious piece of C code that
+" I'd like to leave to the next iteration.
+" For now just patch hash() so that it gives
+" well-defined results for any object.
 let s:NumberInfo = object#builtin#NumberInfo()
+if s:NumberInfo.INT_HEX_WIDTH == 16
+  let s:PyHASH_BITS = 61
+else
+  let s:PyHASH_BITS = 31
+endif
+let s:PyHASH_INF = 31
+let s:PyHASH_NAN = 0
+let s:PyHASH_MODULUS = s:NumberInfo.INT_MAX
+
+
+" FUNCTION: HashFuncref() {{{1
+" Funcrefs are hashed by their name. As the
+" comparison of Funcrefs does, partials of function
+" with the same name are equal.
+" Keeping with the builtin operator makes the result
+" less surprising. Consider MyClass derives from object
+" the `__init__()` method and for the two __init__, although
+" they have different dict, they still compare equal, and their
+" hash should be equal.
+function! object#hash#HashFuncref(funcref)
+  return object#hash#HashString(object#builtin#FuncName(a:funcref))
+endfunction
+
+" FUNCTION: HashNumber() {{{1
+function! object#hash#HashNumber(number)
+  return 
+endfunction
+
+" FUNCTION: HashFloat() {{{1
+function! object#hash#HashFloat(float)
+
+endfunction
+
+" FUNCTION: HashJob() {{{1
+function! object#hash#HashJob(job)
+
+endfunction
 
 " FUNCTION: xmult() {{{1
 " Multiply 2 non-negative Numbers.
@@ -26,7 +69,8 @@ function! object#hash#strhash_sha256(str)
   return str2nr(sha256(a:str)[: s:NumberInfo.INT_HEX_WIDTH-2], 16)
 endfunction
 
-function! object#hash#strhash(str)
+" FUNCTION: HashString() {{{1
+function! object#hash#HashString(str)
   return exists('*sha256') ? object#hash#strhash_sha256(a:str):
         \ object#hash#strhash_djb2(a:str)
 endfunction
@@ -56,17 +100,22 @@ function! object#hash#hash(obj)
   if object#builtin#IsBool(obj) || object#builtin#IsNone(obj)
     return !!obj
   endif
-  if object#builtin#IsNumeric(obj)
-    " Note: Float is hashed as Number.
-    return object#hash#WrapNumber(float2nr(obj))
+  if object#builtin#IsNumber(obj)
+    return object#hash#HashNumber(obj)
+  endif
+  if object#builtin#IsFloat(obj)
+    return object#hash#HashFloat(obj)
+  endif
+  if object#builtin#IsFuncref(obj)
+    return object#hash#HashFuncref(obj)
   endif
   if object#builtin#IsString(obj)
-    return object#hash#strhash(obj)
+    return object#hash#HashString(obj)
   endif
   if object#protocol#HasProtocol(obj, '__hash__')
     return object#hash#CheckNumber(object#builtin#Call(obj.__hash__))
   endif
-  return object#hash#strhash(string(obj))
+  return object#hash#HashOther(obj)
 endfunction
 
 " FUNCTION: CheckNumber() {{{1

@@ -303,31 +303,31 @@ endfunction
 
 " MODULE: enumerate, zip, map, filter {{{1
 function! object#enumerate(...) abort
-  return call('object#enumerate#enumerate', a:000)
+  return call('object#iter#enumerate#enumerate', a:000)
 endfunction
 
 function! object#zip(...) abort
-  return call('object#zip#zip', a:000)
+  return call('object#iter#zip#zip', a:000)
 endfunction
 
 function! object#map(...) abort
-  return call('object#map#map', a:000)
+  return call('object#iter#map#map', a:000)
 endfunction
 
 function! object#filter(...) abort
-  return call('object#filter#filter', a:000)
+  return call('object#iter#filter#filter', a:000)
 endfunction
 " }}}1
 
 " MODULE: range {{{1
 function! object#range(...) abort
-  return call('object#range#range', a:000)
+  return call('object#iter#range#range', a:000)
 endfunction
 " }}}1
 
 " MODULE: reversed {{{1
 function! object#reversed(...) abort
-  return call('object#reversed#reversed', a:000)
+  return call('object#iter#reversed#reversed', a:000)
 endfunction
 " }}}1
 

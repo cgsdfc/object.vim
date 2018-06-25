@@ -1,3 +1,19 @@
+" TODO: Don't use s:slots.
+" The dictionary holding up all these slots only to make them
+" Funcref is unnecessary. User can use `function()` themselves.
+" All we need to do is define the operations here.
+" like:
+" function! object#slots#getitem(obj, key)
+"   return a:obj[a:key]
+" endfunction
+"
+" User can also take advantage of `object#bulitin#Call()` so that
+" exceptions get properly translated.
+"
+" TODO: For locked variables, use VariableLockedError or some
+" bigger name other than RuntimeError.
+" After all, exceptions stand for their names.
+
 " Boilerplate methods to implement certain behaviours of
 " builtin types go here.
 
@@ -45,5 +61,4 @@ function! object#slots#iter_self()
   return s:slots.iter_self
 endfunction
 
-function! o
 " vim: set sw=2 sts=2 et fdm=marker:

@@ -24,7 +24,7 @@ endfunction
 " FUNCTION: map() {{{1
 ""
 " @function map(...)
-function! object#map#map(...)
+function! object#iter#map#map(...)
   return object#new_(s:map, a:000)
 endfunction
 

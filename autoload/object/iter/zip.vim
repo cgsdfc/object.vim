@@ -19,6 +19,7 @@ endfunction
 
 " }}}1
 
+" FUNCTION: zip() {{{1
 ""
 " @function zip(...)
 " Return an iterator that zips a list of sequences.
@@ -27,7 +28,7 @@ endfunction
 "   zip() -> an empty iterator
 " <
 " The iterator stops at the shortest sequence.
-function! object#zip#zip(...)
+function! object#iter#zip#zip(...)
   return object#new_(s:zip, a:000)
 endfunction
 

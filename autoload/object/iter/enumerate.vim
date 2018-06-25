@@ -27,7 +27,7 @@ endfunction
 " >
 "   enumerate(iterable, start=0) -> [start, item_0], ..., [N, item_N]
 " <
-function! object#enumerate#enumerate(...)
+function! object#iter#enumerate#enumerate(...)
   return object#new_(s:enumerate, a:000)
 endfunction
 " }}}1

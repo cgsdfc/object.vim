@@ -21,8 +21,7 @@ function! s:range.__init__(...)
   let self.start = a:0 >= 2 ? a:1 : 0
   let self.stop = a:0 >= 2 ? a:2 : a:1
   let self.step = a:0 == 3 ? a:3 : 1
-  let self._length = object#range#compute_length(
-        \ self.start, self.stop, self.step)
+  let self._length = s:ComputeLength(self.start, self.stop, self.step)
 endfunction
 
 " METHOD: __repr__() {{{1
@@ -171,12 +170,12 @@ endfunction
 " }}}1
 
 " FUNCTION: range() {{{1
-function! object#range#range(...)
+function! object#iter#range#range(...)
   return object#new_(s:range, a:000)
 endfunction
 
-" FUNCTION: compute_length() {{{1
-function! object#range#compute_length(start, stop, step)
+" FUNCTION: ComputeLength() {{{1
+function! s:ComputeLength(start, stop, step)
   " Reference: Python-3.6.5/Objects/rangeobject.c
   if a:step > 0
     let lo = a:start

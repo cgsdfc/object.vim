@@ -22,8 +22,8 @@ let s:reversed.__iter__ = object#slots#iter_self()
 let s:reversed.__setattr__ = object#slots#readonly_attribute2()
 
 " FUNCTION: reversed() {{{1
-function! object#reversed#reversed(obj)
-  let obj = object#reversed#CheckReversible(a:obj)
+function! object#iter#reversed#reversed(obj)
+  let obj = s:CheckReversible(a:obj)
   if object#builtin#IsList(obj)
     " list_reverseiterator
     return object#list#reversed(obj)
@@ -35,8 +35,8 @@ function! object#reversed#reversed(obj)
 endfunction
 
 " FUNCTION: CheckReversible() {{{1
-function! object#reversed#CheckReversible(X)
-  if object#reversed#IsReversible(a:X)
+function! s:CheckReversible(X)
+  if s:IsReversible(a:X)
     return a:X
   endif
   call object#TypeError("'%s' object is not reversible",
@@ -47,7 +47,7 @@ endfunction
 " - object with __reversed__()
 " - Sequence object
 " - Builtin sequence.
-function! object#reversed#IsReversible(X)
+function! s:IsReversible(X)
   return object#protocol#HasProtocol(a:X, '__reversed__') ||
         \ object#protocol#IsSequence(a:X)
 endfunction
