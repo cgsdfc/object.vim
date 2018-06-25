@@ -1,6 +1,6 @@
 " FUNCTION: CheckSubscriptable() {{{1
-function! object#mapping#CheckSubscriptable(X)
-  if object#protocol#IsSubscriptable(a:X)
+function! object#proto#mapping#CheckSubscriptable(X)
+  if object#proto#IsSubscriptable(a:X)
     return a:X
   endif
   call object#TypeError("'%s' object doesn't support indexing",
@@ -8,8 +8,8 @@ function! object#mapping#CheckSubscriptable(X)
 endfunction
 
 " FUNCTION: CheckSubscriptAssignable() {{{1
-function! object#mapping#CheckSubscriptAssignable(X)
-  if object#protocol#IsSubscriptAssignable(a:X)
+function! object#proto#mapping#CheckSubscriptAssignable(X)
+  if object#proto#IsSubscriptAssignable(a:X)
     return a:X
   endif
   call object#TypeError("'%s' object doesn't support item assignment",
@@ -17,8 +17,8 @@ function! object#mapping#CheckSubscriptAssignable(X)
 endfunction
 
 " FUNCTION: CheckSubscriptDeletable() {{{1
-function! object#mapping#CheckSubscriptDeletable(X)
-  if object#protocol#IsSubscriptDeletable(a:X)
+function! object#proto#mapping#CheckSubscriptDeletable(X)
+  if object#proto#IsSubscriptDeletable(a:X)
     return a:X
   endif
   call object#TypeError("'%s' object doesn't support item deletion",
@@ -26,15 +26,15 @@ function! object#mapping#CheckSubscriptDeletable(X)
 endfunction
 
 " FUNCTION: getitem() {{{1
-function! object#mapping#getitem(obj, key)
-  let obj = object#mapping#CheckSubscriptable(a:obj)
+function! object#proto#mapping#getitem(obj, key)
+  let obj = object#proto#mapping#CheckSubscriptable(a:obj)
   if object#builtin#IsString(obj)
     return object#str#getitem(obj, a:key)
   endif
   if object#builtin#IsList(obj)
     return object#list#getitem(obj, a:key)
   endif
-  if object#protocol#HasProtocol(obj, '__getitem__')
+  if object#proto#HasProtocol(obj, '__getitem__')
     return object#builtin#Call(obj.__getitem__, a:key)
   endif
   " TODO: IsDict should exclude Obj.
@@ -42,24 +42,24 @@ function! object#mapping#getitem(obj, key)
 endfunction
 
 " FUNCTION: setitem() {{{1
-function! object#mapping#setitem(obj, key, val)
-  let obj = object#mapping#CheckSubscriptAssignable(a:obj)
+function! object#proto#mapping#setitem(obj, key, val)
+  let obj = object#proto#mapping#CheckSubscriptAssignable(a:obj)
   if object#builtin#IsList(obj)
     return object#list#setitem(obj, a:key, a:val)
   endif
-  if object#protocol#HasProtocol(obj, '__setitem__')
+  if object#proto#HasProtocol(obj, '__setitem__')
     return object#builtin#Call(obj.__setitem__, a:key, a:val)
   endif
   return object#dict#setitem(obj, a:key, a:val)
 endfunction
 
 " FUNCTION: delitem() {{{1
-function! object#mapping#delitem(obj, key)
-  let obj = object#mapping#CheckSubscriptDeletable(a:obj)
+function! object#proto#mapping#delitem(obj, key)
+  let obj = object#proto#mapping#CheckSubscriptDeletable(a:obj)
   if object#builtin#IsList(obj)
     return object#list#delitem(obj, a:key)
   endif
-  if object#protocol#HasProtocol(obj, '__delitem__')
+  if object#proto#HasProtocol(obj, '__delitem__')
     return object#builtin#Call(obj.__delitem__, a:key)
   endif
   return object#dict#delitem(obj, a:key)

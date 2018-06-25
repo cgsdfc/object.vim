@@ -8,7 +8,7 @@ let s:dir_ignored = ['__mro__', '__bases__', '__base__', '__name__',]
 " }}}1
 
 " FUNCTION: CheckAttrName() {{{1
-function! object#attr#CheckAttrName(func, name)
+function! object#proto#attr#CheckAttrName(func, name)
   if object#builtin#IsString(a:name)
     return a:name
   endif
@@ -31,16 +31,16 @@ endfunction
 "   for {obj}, it will be tried. Otherwise, 2 fails.
 " 3. If 2 fails, and if [default] is given, it will be returned.
 "   Otherwise, the latest `AttributeError` is thrown.
-function! object#attr#getattr(obj, name, ...)
+function! object#proto#attr#getattr(obj, name, ...)
   call object#builtin#TakeAtMostOptional('getattr', 1, a:0)
   let obj = object#builtin#CheckObj('getattr', 1, a:obj)
-  let name = object#attr#CheckAttrName('getattr', a:name)
+  let name = object#proto#attr#CheckAttrName('getattr', a:name)
 
   try
     if has_key(obj, '__getattribute__')
       let Val = object#builtin#Call(obj.__getattribute__, name)
     else
-      let Val = object#attr#dict_lookup(obj, name)
+      let Val = object#proto#attr#dict_lookup(obj, name)
     endif
   catch /AttributeError/
     if has_key(obj, '__getattr__')
@@ -62,7 +62,7 @@ function! object#attr#getattr(obj, name, ...)
   return Val
 endfunction
 
-function! object#attr#dict_lookup(obj, key)
+function! object#proto#attr#dict_lookup(obj, key)
   try
     let Val = a:obj[a:key]
   catch /E716/
@@ -86,11 +86,11 @@ endfunction
 "   setattr(plain dict, name, val) -> let d[name] = val
 "   setattr(obj, name, val) -> obj.__setattr__(name, val)
 " <
-function! object#attr#setattr(obj, name, val)
+function! object#proto#attr#setattr(obj, name, val)
   " TODO: __setattr__ for class to validate val.
   " Use metaclass's __setattr__ for a class.
   let obj = object#builtin#CheckObj('setattr', 1, a:obj)
-  let name = object#attr#CheckAttrName('setattr', a:name)
+  let name = object#proto#attr#CheckAttrName('setattr', a:name)
 
   " NOTE: Currently, special attrs not not lookuped through
   " getattr().
@@ -111,9 +111,9 @@ endfunction
 " <
 " @throws WrongType if {name} is not a String.
 " @throws WrongType if {obj} is not a Dict.
-function! object#attr#hasattr(obj, name)
+function! object#proto#attr#hasattr(obj, name)
   let obj = object#builtin#CheckObj('hasattr', 1, a:obj)
-  let name = object#attr#CheckAttrName('hasattr', a:name)
+  let name = object#proto#attr#CheckAttrName('hasattr', a:name)
   try
     call object#getattr(obj, name)
     " NOTE: Only AttributeError is concerned.
@@ -132,7 +132,7 @@ endfunction
 " >
 "   dir(obj) -> list of attribute names.
 " <
-function! object#attr#dir(obj)
+function! object#proto#attr#dir(obj)
   let obj = object#builtin#CheckObj('dir', 1, a:obj)
   if has_key(obj, '__dir__')
     let names = object#builtin#Call(obj.__dir__)
@@ -150,4 +150,8 @@ function! object#attr#dir(obj)
 endfunction
 "}}}1
 
+" TODO: FUNCTION: delattr() {{{1
+function! object#proto#attr#delattr(obj, name)
+
+endfunction
 " vim: set sw=2 sts=2 et fdm=marker:

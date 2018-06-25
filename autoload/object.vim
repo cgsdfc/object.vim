@@ -1,125 +1,20 @@
-" DOCUMENT: {{{1
-""
-" @section Introduction, intro
-" @stylized object
-" @library
-" @order intro class super protocols mapping iter file types lambda dict int dicts functions exceptions motivation
-" >
-"                              __      _           __
-"                       ____  / /_    (_)__  _____/ /_
-"                      / __ \/ __ \  / / _ \/ ___/ __/
-"                     / /_/ / /_/ / / /  __/ /__/ /_
-"                     \____/_.___/_/ /\___/\___/\__/
-"                               /___/
-"
-" <
-"
-" @subsection quick-start
-" object.vim is an object-oriented framework for plugin writers of Vim.
-" It aims to augment and enrich the existing techniques for OOP in Vim.
-" That means instead of doing this:
-" >
-"   let s:MyAwesomeClass = {}
-" <
-" you can do this:
-" >
-"   let s:MyAwesomeClass = object#class('MyAwesomeClass')
-" <
-" And yes, you type the class name twice, but here is the prizes:
-" >
-"   echo object#repr(s:MyAwesomeClass)
-"   <type 'MyAwesomeClass'>
-"
-"   let awesome = object#new(s:MyAwesomeClass)
-"   echo object#repr(awesome)
-"   <'MyAwesomeClass' object>
-" <
-"
-" What you get is a type that works out of the box instead of a plain |Dict|.
-" There is a lot more you can do with object.vim, such as multiple
-" inheritance. Although people nearly always frown on madly complicated class
-" hierarchy, object.vim make it possible for you to make people mad :).
-" Powered by C3-linearization, you get exactly the same MRO as examplified
-" by |https://rhettinger.wordpress.com/2011/05/26/super-considered-super/|:
-" >
-"   let s:LoggingDict = object#class('LoggingDict', somedict)
-"   let s:LoggingOD = object#class('LoggingOD', [s:LoggingDict, s:OrderedDict)
-"
-"   echo object#repr(s:LoggingOD.__mro__)
-"   [<type 'LoggingOD'>,
-"    <type 'LoggingDict'>,
-"    <type 'OrderedDict'>,
-"    <type, 'somedict'>,
-"    <type, 'object'>]
-" <
-"
-"
-" @subsection features
-" object.vim implements its features in the following modules:
-"
-"   * class:    inheritance and instantiation.
-"   * iter:     iterator for |List| and |String| and helper functions.
-"   * file:     plain old file object for line-oriented I/O.
-"   * lambda:   create one-liner easily and `for()` loop construct.
-"   * mapping:  hash arbitrary object and generic `getitem()`, `setitem()`.
-"   * types:    top level classes like `object`, `type` and conversion protocols like `bool()`.
-"
-" Note that although these features are implemented in separate files, they
-" are kind-of imported into a shallow namespace for the ease of use so please
-" use `object#class()` instead of `object#class#class()`. Please consider
-" everything in namespaces deeper than `object` as implementation details and
-" avoid using them as much as you can. However, each individual function is still
-" documented with its full name, as found in @section(functions).
-"
-" @subsection testing
-" I use `vader.vim` for unit tests. A comprehensive test suite for each module
-" can be found in `object.vim/test`. To run all the test, use:
-" >
-"   object.vim/test/run-tests.sh
-" <
-"
-" @subsection dependency
-"   * `vim-maktaba`: |https://github.com/google/vim-maktaba|
-"   * `vader.vim`: |https://github.com/junegunn/vader.vim|
-"   * `vimdoc`: |https://github.com/google/vimdoc| (developers)
-"   * `Vim`: version >= 7.4
-"
-" @subsection author
-"   * author: @plugin(author)
-"   * email: cgsdfc@126.com
-"
-" There are a lot more interesting stuffs about object.vim. Read on.
+" MODULE: types.vim {{{1
 
-""
-" @section Motivation, motivation
-" Well the first question that I asked myself at the beginning of this project
-" is: What? you want to create a DSL in Vim that looks like Python and you
-" expect those who use pure Python or pure Vimscript for their plugins to like
-" your hybridization that sounds like Vimthon?
-"
-" Well first of all, I don't expect people to like my plugin and I just
-" find it fun to write an OOP framework for Vim. That's my motivation.
-"
-" Second, I personally don't
-" think it is a DSL because it is just a bunch of functions that work
-" together. There is no new syntax to learn (which means extra rules to
-" obey).
-" You just pick up a piece of tool you want to use and it (should) works out of the
-" box.
-"
-" Third, I am not doing hybridization like Emacs in Vim or vice versa, which
-" explains why we have such a limited number of functions compared with the
-" versatile libraries of Python. Those who expect a complete Python layer
-" over Vimscript will be disappointed by the fact that not even the standard library `sys`
-" is found. What's more, some counterparts of Python have different signatures
-" or even different behaviors, which will be explained in details. Most of
-" the time, we strive for Python compatibility since that won't surprise people
-" gravely.
-"
-" In short, what we provide is an OOP framework that feels familiar to Python
-" and hopefully, useful for Vim plugin writers.
-"
+function! object#object(...) abort
+  return call('object#class#types#object', a:000)
+endfunction
 
+function! object#object_(...) abort
+  return call('object#class#types#object_', a:000)
+endfunction
+
+function! object#type_(...) abort
+  return call('object#class#types#type_', a:000)
+endfunction
+
+function! object#None(...) abort
+  return call('object#class#types#None', a:000)
+endfunction
 " }}}1
 
 " MODULE: class.vim {{{1
@@ -149,37 +44,41 @@ function! object#issubclass(...) abort
 endfunction
 " }}}1
 
-" MODULE: protocol.vim {{{1
+" MODULE: proto.vim {{{1
 function! object#repr(...) abort
-  return call('object#protocol#repr', a:000)
+  return call('object#proto#repr', a:000)
 endfunction
 " }}}1
 
-" MODULE: attr.vim Attribute Protocols {{{1
+" MODULE: attr.vim {{{1
 function! object#dir(...) abort
-  return call('object#attr#dir', a:000)
+  return call('object#proto#attr#dir', a:000)
 endfunction
 
 function! object#getattr(...) abort
-  return call('object#attr#getattr', a:000)
+  return call('object#proto#attr#getattr', a:000)
+endfunction
+
+function! object#delattr(...) abort
+  return call('object#proto#attr#delattr', a:000)
 endfunction
 
 function! object#setattr(...) abort
-  return call('object#attr#setattr', a:000)
+  return call('object#proto#attr#setattr', a:000)
 endfunction
 
 function! object#hasattr(...) abort
-  return call('object#attr#hasattr', a:000)
+  return call('object#proto#attr#hasattr', a:000)
 endfunction
 " }}}1
 
 " MODULE: seqn.vim Sequence Protocols {{{1
 function! object#len(...) abort
-  return call('object#seqn#len', a:000)
+  return call('object#proto#seqn#len', a:000)
 endfunction
 
 function! object#in(...) abort
-  return call('object#seqn#in', a:000)
+  return call('object#proto#seqn#in', a:000)
 endfunction
 " }}}1
 " }}}1
@@ -192,15 +91,15 @@ endfunction
 
 " MODULE: mapping.vim {{{1
 function! object#delitem(...) abort
-  return call('object#mapping#delitem', a:000)
+  return call('object#proto#mapping#delitem', a:000)
 endfunction
 
 function! object#getitem(...) abort
-  return call('object#mapping#getitem', a:000)
+  return call('object#proto#mapping#getitem', a:000)
 endfunction
 
 function! object#setitem(...) abort
-  return call('object#mapping#setitem', a:000)
+  return call('object#proto#mapping#setitem', a:000)
 endfunction
 " }}}1
 
@@ -256,25 +155,6 @@ endfunction
 
 function! object#SyntaxError(...) abort
   return call('object#except#SyntaxError', a:000)
-endfunction
-" }}}1
-
-" MODULE: types.vim {{{1
-
-function! object#object(...) abort
-  return call('object#types#object', a:000)
-endfunction
-
-function! object#object_(...) abort
-  return call('object#types#object_', a:000)
-endfunction
-
-function! object#type_(...) abort
-  return call('object#types#type_', a:000)
-endfunction
-
-function! object#None(...) abort
-  return call('object#types#None', a:000)
 endfunction
 " }}}1
 
@@ -364,11 +244,11 @@ endfunction
 " MODULE: super.vim {{{1
 
 function! object#super(...) abort
-  return call('object#super#super', a:000)
+  return call('object#class#super#super', a:000)
 endfunction
 
 function! object#super_(...) abort
-  return call('object#super#super_', a:000)
+  return call('object#class#super#super_', a:000)
 endfunction
 " }}}1
 

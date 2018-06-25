@@ -7,9 +7,12 @@
 "   len(String, List or Dict) -> len(obj)
 "   len(obj) -> obj.__len__()
 " <
-function! object#seqn#len(obj)
-  if object#builtin#IsSequence(a:obj)
+function! object#proto#seqn#len(obj)
+  if object#builtin#IsString(a:obj)
     return object#str#len(a:obj)
+  endif
+  if object#builtin#IsList(a:obj)
+    return len(a:obj)
   endif
 
   if object#builtin#IsDict(a:obj)
@@ -18,7 +21,7 @@ function! object#seqn#len(obj)
       return len(a:obj)
     endif
     if has_key(a:obj, '__len__')
-      return object#seqn#CheckedCallLen(a:obj)
+      return object#proto#seqn#CheckedCallLen(a:obj)
     endif
   endif
   call object#TypeError("object of type '%s' has no len()",
@@ -27,7 +30,7 @@ endfunction
 
 " FUNCTION: CheckedCallLen() {{{1
 " Call __len__() and check that it return >= 0 integer.
-function! object#seqn#CheckedCallLen(obj)
+function! object#proto#seqn#CheckedCallLen(obj)
   let number = object#builtin#CheckNumber2(object#builtin#Call(a:obj.__len__))
   if number >= 0
     return number
@@ -45,7 +48,7 @@ endfunction
 "   in(needle, iterable) -> needle in list(iterable).
 "   in(needle, obj) -> bool(obj.__contains__(needle)).
 " <
-function! object#seqn#in(needle, haystack)
+function! object#proto#seqn#in(needle, haystack)
   if object#builtin#IsList(a:haystack)
     return object#list#contains(a:haystack, a:needle)
   endif
@@ -75,7 +78,7 @@ function! object#seqn#in(needle, haystack)
 endfunction
 " }}}1
 
-function! object#seqn#sorted(iterable, ...)
+function! object#proto#seqn#sorted(iterable, ...)
 
 endfunction
 " }}}1

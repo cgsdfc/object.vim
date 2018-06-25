@@ -19,7 +19,7 @@
 " TODO mv to object#util#typename()
 " Get the typename of {obj}. If {obj} is a type,
 " 'type' will be returned always.
-function! object#types#name(obj)
+function! object#class#types#name(obj)
   if object#hasattr(a:obj, '__class__')
     return string(a:obj.__class__.__name__)
   endif
@@ -27,7 +27,7 @@ function! object#types#name(obj)
 endfunction
 
 " Install special attrs.
-function! object#types#install(obj, name, class, base, mro)
+function! object#class#types#install(obj, name, class, base, mro)
   let a:obj.__name__ = a:name
   let a:obj.__base__ = a:base
   let a:obj.__bases__ = [a:base]
@@ -40,9 +40,9 @@ let s:type = {}
 let s:NoneType = {}
 let s:None = { '__class__' : s:NoneType }
 
-call object#types#install(s:object, 'object', s:type, s:None, [s:object])
-call object#types#install(s:type, 'type', s:type, s:object, [s:type, s:object])
-call object#types#install(s:NoneType, 'NoneType', s:type, s:object, [s:NoneType, s:type, s:object])
+call object#class#types#install(s:object, 'object', s:type, s:None, [s:object])
+call object#class#types#install(s:type, 'type', s:type, s:object, [s:type, s:object])
+call object#class#types#install(s:NoneType, 'NoneType', s:type, s:object, [s:NoneType, s:type, s:object])
 
 "
 " object and type
@@ -89,27 +89,27 @@ endfunction
 ""
 " @function object()
 " Create a plain object.
-function! object#types#object()
+function! object#class#types#object()
   return object#new(s:object)
 endfunction
 
 ""
 " @function object_()
 " Return the object class
-function! object#types#object_()
+function! object#class#types#object_()
   return s:object
 endfunction
 
 ""
 " @function type_()
 " Return the type class
-function! object#types#type_()
+function! object#class#types#type_()
   return s:type
 endfunction
 
 ""
 " @function None()
 " Return the None object
-function! object#types#None()
+function! object#class#types#None()
   return s:None
 endfunction

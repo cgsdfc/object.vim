@@ -10,10 +10,10 @@ let Testers = [
       \ ]
 
 for func in Testers
-  let {func} = function(printf('object#protocol#%s', func))
+  let {func} = function(printf('object#proto#%s', func))
 endfor
 
-let HasProtocol = function('object#protocol#HasProtocol')
+let HasProtocol = function('object#proto#HasProtocol')
 
 
 Execute(HasProtocol);

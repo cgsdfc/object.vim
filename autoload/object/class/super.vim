@@ -104,7 +104,7 @@ let s:super = object#class('super')
 " <
 " @throws TypeError if object#isinstance({obj}, {type}) is false.
 " @throws TypeError if {type} is at the end of the MRO of {obj}.
-function! object#super#super(type, obj)
+function! object#class#super#super(type, obj)
   " TODO: if we have __new__()
   let type = object#class#ensure_class(a:type)
   let obj = object#class#ensure_object(a:obj)
@@ -122,7 +122,7 @@ function! object#super#super(type, obj)
     let obj.__super__[type.__name__] = []
   endif
 
-  let [idx, N, mro] = object#super#find_super(type, obj)
+  let [idx, N, mro] = object#class#super#find_super(type, obj)
   let super = object#new(s:super, type, obj, idx, N, mro)
   call add(obj.__super__[type.__name__], super)
 
@@ -132,7 +132,7 @@ endfunction
 "
 " Find the super based on find_class().
 " Check for various failures.
-function! object#super#find_super(type, obj)
+function! object#class#super#find_super(type, obj)
   let idx = object#class#find_class(a:type, a:obj.__class__)
   if idx < 0
     throw object#TypeError('isinstance(type, obj) required')
@@ -155,7 +155,7 @@ function! s:super.__init__(type, obj, start, end, mro)
 
   while i < a:end
     let methods = object#class#methods(a:mro[i])
-    let rebind = map(methods, 'function("object#super#call", [v:val], self)')
+    let rebind = map(methods, 'function("object#class#super#call", [v:val], self)')
     " Force out the methods of super derived from object.
     " If we don't do that, methods like __init__(), __repr__() can't be
     " forwarded.
@@ -167,7 +167,7 @@ endfunction
 "
 " High ordered function that take a Funcref X and apply args to it
 " with dict bound to __self__.
-function! object#super#call(X, ...) dict
+function! object#class#super#call(X, ...) dict
   return call(a:X, a:000, self.__self__)
 endfunction
 
@@ -183,12 +183,12 @@ endfunction
 " @throws TypeError if object#isinstance({obj}, {type}) is false.
 " @throws TypeError if {type} is at the end of the MRO of {obj}.
 " @throws AttributeError if {name} cannot be resolved.
-function! object#super#super_(type, obj, name)
+function! object#class#super#super_(type, obj, name)
   let type = object#class#ensure_class(a:type)
   let obj = object#class#ensure_object(a:obj)
   let name = object#util#ensure_identifier(a:name)
 
-  let [idx, N, mro] = object#super#find_super(type, obj)
+  let [idx, N, mro] = object#class#super#find_super(type, obj)
 
   while idx < N
     if has_key(mro[idx], name) && maktaba#value#IsFuncref(mro[idx][name])

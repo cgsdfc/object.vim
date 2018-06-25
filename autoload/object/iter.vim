@@ -67,14 +67,14 @@ endfunction
 
 " FUNCTION: Helper to test and check Iterable/Iterator {{{1
 function! object#iter#CheckIterator(X, msg)
-  if object#protocol#IsIterator(a:X)
+  if object#proto#IsIterator(a:X)
     return a:X
   endif
   call object#TypeError(a:msg)
 endfunction
 
 function! object#iter#CheckIterable(X)
-  if object#protocol#IsIterable(a:X)
+  if object#proto#IsIterable(a:X)
     return a:X
   endif
   call object#TypeError("'%s' object is not iterable",
