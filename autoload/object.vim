@@ -288,20 +288,20 @@ function! object#str(...) abort
   return call('object#str#str', a:000)
 endfunction
 
-function! object#_str(...) abort
-  return call('object#str#_str', a:000)
-endfunction
-
-function! object#str_(...) abort
-  return call('object#str#str_', a:000)
-endfunction
-
 function! object#chr(...) abort
   return call('object#str#chr', a:000)
 endfunction
 
 function! object#ord(...) abort
   return call('object#str#ord', a:000)
+endfunction
+
+function! object#_str(...) abort
+  return call('object#str#str#_str', a:000)
+endfunction
+
+function! object#str_(...) abort
+  return call('object#str#str#str_', a:000)
 endfunction
 " }}}1
 

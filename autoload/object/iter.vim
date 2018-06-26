@@ -55,7 +55,7 @@ function! object#iter#iter(...)
     return object#list#iter#iter(obj)
   endif
   if object#builtin#IsString(obj)
-    return object#str#iter(obj)
+    return object#str#iter#iter(obj)
   endif
 
   let iter = object#builtin#CallFuncref(obj.__iter__)
@@ -181,7 +181,7 @@ function! object#iter#any(iter)
 endfunction
 " }}}1
 
-" FUNCTION: sum() {{{1
+" FUNCTION: all() {{{1
 ""
 " @function all(...)
 " If all of the items is True.

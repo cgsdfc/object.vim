@@ -55,6 +55,7 @@ endfunction
 
 " FUNCTION: repr() {{{1
 " Return representation of a plain |List|.
+" TODO: control level.
 function! object#list#repr(list)
   return printf('[%s]', join(map(copy(a:list), 'object#repr(v:val)'), ', '))
 endfunction
@@ -85,7 +86,7 @@ function! object#list#list(...)
     while 1
       call add(list, object#next(iter))
     endwhile
-  catch /StopIteration/
+  catch 'StopIteration'
     return list
   endtry
 endfunction

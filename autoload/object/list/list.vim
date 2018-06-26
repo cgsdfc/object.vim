@@ -35,7 +35,7 @@ endfunction
 
 " METHOD: __reversed__() {{{1
 function! s:list.__reversed__()
-  return object#list#reversed(self._list)
+  return object#list#iter#reversed(self._list)
 endfunction
 
 ""
@@ -112,7 +112,7 @@ function! s:list.extend(Iterable)
     while 1
       call add(self._list, object#next(iter))
     endwhile
-  catch /StopIteration/
+  catch 'StopIteration'
     return
   endtry
 endfunction
@@ -144,7 +144,7 @@ function! s:list.pop(...)
   let idx = a:0 ? maktaba#ensure#IsNumber(a:1) : object#len(self) - 1
   try
     return remove(self._list, idx)
-  catch /E684/
+  catch 'E684:'
     call object#IndexError('list index out of range: %d', idx)
   endtry
 endfunction

@@ -49,13 +49,13 @@ let s:list_reverseiterator.__setattr__ = object#slots#readonly_attribute()
 
 " }}}1
 
-" FUNCTION: iter() {{{2
+" FUNCTION: iter() {{{1
 function! object#list#iter#iter(list)
   return object#new(s:list_iterator, a:list)
 endfunction
 " }}}2
 
-" FUNCTION: reversed() {{{2
+" FUNCTION: reversed() {{{1
 function! object#list#iter#reversed(list)
   return object#new(s:list_reverseiterator, a:list)
 endfunction
