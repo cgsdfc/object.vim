@@ -31,7 +31,7 @@ endfunction
 " FUNCTION: CheckedCallLen() {{{1
 " Call __len__() and check that it return >= 0 integer.
 function! object#proto#seqn#CheckedCallLen(obj)
-  let number = object#builtin#CheckNumber2(object#builtin#Call(a:obj.__len__))
+  let number = object#builtin#CheckNumber2(object#builtin#CallFuncref(a:obj.__len__))
   if number >= 0
     return number
   endif
@@ -61,12 +61,12 @@ function! object#proto#seqn#in(needle, haystack)
     if !has_key(a:haystack, '__class__')
       " NOTE: We don't ensure a:needle is a String.
       " Just let automatic conversion happen.
-      return has_key(a:haystack, a:needle)
+      return object#dict#contains(a:haystack, a:needle)
     endif
     if has_key(a:haystack, '__contains__')
       " NOTE: return value of __contains__() is a bool context.
       return object#bool(
-            \ object#builtin#Call(a:haystack.__contains__, a:needle))
+            \ object#builtin#CallFuncref(a:haystack.__contains__, a:needle))
     endif
     if has_key(a:haystack, '__iter__')
       return object#iter#contains(a:haystack, a:needle)

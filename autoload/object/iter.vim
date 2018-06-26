@@ -18,7 +18,7 @@ let s:callable_iterator.__iter__ = object#slots#iter_self()
 " The callable module can detect this and create a method
 " wrapper.
 function! s:callable_iterator.__next__()
-  let Next = object#builtin#Call(self.callable)
+  let Next = object#builtin#CallFuncref(self.callable)
   if Next ==# self.sentinel
     call object#StopIteration()
   endif
@@ -58,7 +58,7 @@ function! object#iter#iter(...)
     return object#str#iter(obj)
   endif
 
-  let iter = object#builtin#Call(obj.__iter__)
+  let iter = object#builtin#CallFuncref(obj.__iter__)
   return object#iter#CheckIterator(iter,
         \ printf("iter() returned non-iterator of type '%s'",
         \ object#builtin#TypeName(iter)))
@@ -96,7 +96,7 @@ function! object#iter#next(obj, ...)
         \ printf("'%s' object is not an iterator",
         \ object#builtin#TypeName(a:obj)))
   try
-    let Val = object#builtin#Call(obj.__next__)
+    let Val = object#builtin#CallFuncref(obj.__next__)
   catch 'StopIteration'
     if a:0 == 1
       return a:1

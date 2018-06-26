@@ -113,7 +113,7 @@ function! object#proto#hash#hash(obj)
     return object#proto#hash#HashString(obj)
   endif
   if object#proto#HasProtocol(obj, '__hash__')
-    return object#proto#hash#CheckNumber(object#builtin#Call(obj.__hash__))
+    return object#proto#hash#CheckNumber(object#builtin#CallFuncref(obj.__hash__))
   endif
   return object#proto#hash#HashOther(obj)
 endfunction

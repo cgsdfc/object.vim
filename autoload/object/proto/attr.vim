@@ -17,6 +17,12 @@ function! object#proto#attr#CheckAttrName(func, name)
 endfunction
 "}}}1
 
+" FUNCTION: ThrowNoAttr() {{{1
+function! object#proto#attr#ThrowNoAttr(obj, name)
+  call object#AttributeError("'%s' object has no attribute '%s'",
+        \ object#builtin#TypeName(a:obj),  a:name)
+endfunction
+
 " FUNCTION: getattr() {{{1
 ""
 " @function getattr(...)
@@ -37,16 +43,17 @@ function! object#proto#attr#getattr(obj, name, ...)
   let name = object#proto#attr#CheckAttrName('getattr', a:name)
 
   try
+    " TODO: implement object.__getattribute__ as dict_lookup()
     if has_key(obj, '__getattribute__')
-      let Val = object#builtin#Call(obj.__getattribute__, name)
+      let Val = object#builtin#CallFuncref(obj.__getattribute__, name)
     else
       let Val = object#proto#attr#dict_lookup(obj, name)
     endif
-  catch /AttributeError/
+  catch 'AttributeError'
     if has_key(obj, '__getattr__')
       try
-        let Val = object#builtin#Call(obj.__getattr__, name)
-      catch /AttributeError/
+        let Val = object#builtin#CallFuncref(obj.__getattr__, name)
+      catch 'AttributeError'
         if a:0 == 1
           let Val = a:1
         else
@@ -62,16 +69,16 @@ function! object#proto#attr#getattr(obj, name, ...)
   return Val
 endfunction
 
-function! object#proto#attr#dict_lookup(obj, key)
+function! object#proto#attr#dict_lookup(obj, name)
   try
-    let Val = a:obj[a:key]
-  catch /E716/
+    let Val = a:obj[a:name]
+  catch 'E716:'
     if has_key(a:obj, '__mro__')
       call object#AttributeError("type object %s has no attribute '%s'",
-            \ a:obj.__name__,  a:key)
+            \ a:obj.__name__,  a:name)
     else
       call object#AttributeError("'%s' object has no attribute '%s'",
-            \ object#builtin#TypeName(a:obj),  a:key)
+            \ object#builtin#TypeName(a:obj),  a:name)
     endif
   endtry
   return Val
@@ -95,7 +102,7 @@ function! object#proto#attr#setattr(obj, name, val)
   " NOTE: Currently, special attrs not not lookuped through
   " getattr().
   if has_key(obj, '__setattr__')
-    call object#builtin#Call(obj.__setattr__, name, a:val)
+    call object#builtin#CallFuncref(obj.__setattr__, name, a:val)
   else
     let obj[name] = a:val
   endif
@@ -135,7 +142,7 @@ endfunction
 function! object#proto#attr#dir(obj)
   let obj = object#builtin#CheckObj('dir', 1, a:obj)
   if has_key(obj, '__dir__')
-    let names = object#builtin#Call(obj.__dir__)
+    let names = object#builtin#CallFuncref(obj.__dir__)
     return sort(object#list(names))
   endif
 
@@ -152,6 +159,18 @@ endfunction
 
 " TODO: FUNCTION: delattr() {{{1
 function! object#proto#attr#delattr(obj, name)
-
+  let obj = object#builtin#CheckObj('delattr', 1, a:obj)
+  let name = object#proto#attr#CheckAttrName('delattr', a:name)
+  if has_key(obj, '__delattr__')
+    return object#builtin#CallFuncref(obj.__delattr__, a:name)
+  endif
+  try
+    unlet a:obj[a:name]
+  catch 'E713:\|E716:\|E717:'
+    call object#proto#attr#ThrowNoAttr(a:obj, a:name)
+  catch 'E741:'
+    " lockvar
+    call object#RuntimeError(object#builtin#ReOrderVimError(v:exception))
+  endtry
 endfunction
 " vim: set sw=2 sts=2 et fdm=marker:

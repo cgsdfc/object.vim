@@ -1,5 +1,4 @@
-" TODO: the doc inside Include() is of
-" little use.
+" TODO: delattr()
 Include(Test getattr()): attr/getattr.vader
 Include(Test setattr()): attr/setattr.vader
 Include(Test hasattr()): attr/hasattr.vader
