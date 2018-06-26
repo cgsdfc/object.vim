@@ -25,8 +25,7 @@ let s:reversed.__setattr__ = object#slots#readonly_attribute2()
 function! object#iter#reversed#reversed(obj)
   let obj = s:CheckReversible(a:obj)
   if object#builtin#IsList(obj)
-    " list_reverseiterator
-    return object#list#reversed(obj)
+    return object#list#iter#reversed(obj)
   endif
   if object#protocol#HasProtocol(obj, '__reversed__')
     return object#builtin#Call(obj.__reversed__)

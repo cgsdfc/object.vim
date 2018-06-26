@@ -255,7 +255,7 @@ endfunction
 " MODULE: list.vim {{{1
 "
 function! object#list_(...) abort
-  return call('object#list#list_', a:000)
+  return call('object#list#list#list_', a:000)
 endfunction
 
 function! object#list(...) abort
@@ -263,14 +263,14 @@ function! object#list(...) abort
 endfunction
 
 function! object#_list(...) abort
-  return call('object#list#_list', a:000)
+  return call('object#list#list#_list', a:000)
 endfunction
 " }}}1
 
 " MODULE: dict.vim {{{1
 "
 function! object#dict_(...) abort
-  return call('object#dict#dict_', a:000)
+  return call('object#dict#dict#dict_', a:000)
 endfunction
 
 function! object#dict(...) abort
@@ -278,7 +278,7 @@ function! object#dict(...) abort
 endfunction
 
 function! object#_dict(...) abort
-  return call('object#dict#_dict', a:000)
+  return call('object#dict#dict#_dict', a:000)
 endfunction
 " }}}1
 

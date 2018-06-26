@@ -52,7 +52,7 @@ function! object#iter#iter(...)
 
   let obj = object#iter#CheckIterable(a:1)
   if object#builtin#IsList(obj)
-    return object#list#iter(obj)
+    return object#list#iter#iter(obj)
   endif
   if object#builtin#IsString(obj)
     return object#str#iter(obj)
