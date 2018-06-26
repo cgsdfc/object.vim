@@ -110,51 +110,51 @@ function! object#raise(...) abort
 endfunction
 
 function! object#Exception(...) abort
-  return call('object#except#Exception', a:000)
+  return call('object#except#throw#Exception', a:000)
 endfunction
 
 function! object#ValueError(...) abort
-  return call('object#except#ValueError', a:000)
+  return call('object#except#throw#ValueError', a:000)
 endfunction
 
 function! object#TypeError(...) abort
-  return call('object#except#TypeError', a:000)
+  return call('object#except#throw#TypeError', a:000)
 endfunction
 
 function! object#StopIteration(...) abort
-  return call('object#except#StopIteration', a:000)
+  return call('object#except#throw#StopIteration', a:000)
 endfunction
 
 function! object#AttributeError(...) abort
-  return call('object#except#AttributeError', a:000)
+  return call('object#except#throw#AttributeError', a:000)
 endfunction
 
 function! object#IndexError(...) abort
-  return call('object#except#IndexError', a:000)
+  return call('object#except#throw#IndexError', a:000)
 endfunction
 
 function! object#KeyError(...) abort
-  return call('object#except#KeyError', a:000)
+  return call('object#except#throw#KeyError', a:000)
 endfunction
 
 function! object#OSError(...) abort
-  return call('object#except#OSError', a:000)
+  return call('object#except#throw#OSError', a:000)
 endfunction
 
 function! object#NameError(...) abort
-  return call('object#except#NameError', a:000)
+  return call('object#except#throw#NameError', a:000)
 endfunction
 
 function! object#VimError(...) abort
-  return call('object#except#VimError', a:000)
+  return call('object#except#throw#VimError', a:000)
 endfunction
 
 function! object#RuntimeError(...) abort
-  return call('object#except#RuntimeError', a:000)
+  return call('object#except#throw#RuntimeError', a:000)
 endfunction
 
 function! object#SyntaxError(...) abort
-  return call('object#except#SyntaxError', a:000)
+  return call('object#except#throw#SyntaxError', a:000)
 endfunction
 " }}}1
 

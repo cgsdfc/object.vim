@@ -1,0 +1,89 @@
+" Translate Vim error to Python style error {{{1
+" The following test cases are grouped into the Python
+" exception they correspond to.
+" If you add a new catch in builtin.vim, you must add
+" a test case to _the_ group here.
+" SyntaxError {{{1
+Execute(Tailing characters);
+function! F()
+  let 1 = 2
+endfunction
+AssertThrows call object#builtin#Call('F')
+Log g:vader_exception
+
+
+" NameError {{{1
+Execute(Undefined variable);
+function! F(name)
+  return name " a:name actually.
+endfunction
+AssertThrows call object#builtin#Call('F', '')
+Log g:vader_exception
+
+Execute(Unknown function);
+function! F()
+  call print() " typo of printf
+endfunction
+AssertThrows call object#builtin#Call('F')
+Log g:vader_exception
+
+
+" TypeError {{{1
+Execute(No enough arguments);
+function! TakeOneArg(arg)
+endfunction
+AssertThrows call object#builtin#Call('TakeOneArg')
+Log g:vader_exception
+
+Execute(Too many arguments);
+function! TakeOneArg(arg)
+endfunction
+AssertThrows call object#builtin#Call('TakeOneArg', 1, 2)
+Log g:vader_exception
+
+Execute(printf() arguments);
+AssertThrows call object#builtin#Call('printf', '%s%s', '')
+Log g:vader_exception
+AssertThrows call object#builtin#Call('printf', '%s', '', 1)
+Log g:vader_exception
+
+" KeyError {{{1
+Execute(KeyError);
+function! F()
+  let s={}
+  return s.foo
+endfunction
+AssertThrows call object#builtin#Call('F')
+Log g:vader_exception
+
+" IndexError {{{1
+Execute(IndexError);
+function! F()
+  let s=[]
+  return s[0]
+endfunction
+AssertThrows call object#builtin#Call('F')
+Log g:vader_exception
+
+" RuntimeError {{{1
+Execute(lockvar);
+function! F()
+  let s=1
+  lockvar s
+  let s=2
+endfunction
+AssertThrows call object#builtin#Call('F')
+Log g:vader_exception
+
+" VimError {{{1
+" Any currently unrecognized Vim error will be turned into VimError.
+Execute(Faked VimError);
+function! F()
+  throw 'E111: Unrecognized Vim error'
+endfunction
+AssertThrows call object#builtin#Call('F')
+Log g:vader_exception
+
+
+" vim: ft=vim
+" vim: set sw=2 sts=2 et fdm=marker:

@@ -1,9 +1,8 @@
 " vim:ft=vim
 " Test Exceptions
 Before;
-let builtins = object#except#builtins()
-let BaseException = builtins.BaseException
-let Exception = builtins.Exception
+let BaseException = object#except#builtin#BaseException()
+let Exception = object#except#builtin#Exception()
 
 
 Execute(BaseException);
@@ -12,12 +11,12 @@ Log object#dir(e)
 AssertEqual e.args, []
 AssertThrows call add(g:e.args, 1)
 AssertEqual object#repr(e), 'BaseException([])'
-AssertEqual object#str(e), ''
+AssertEqual e.__str__(), ''
 
 
 Execute(BaseException with more args);
 let e = object#new(BaseException, 'msg')
-AssertEqual object#str(e), 'msg'
+AssertEqual e.__str__(), 'msg'
 AssertEqual object#repr(e), 'BaseException([''msg''])'
 
 

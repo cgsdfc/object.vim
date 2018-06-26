@@ -2,8 +2,9 @@
 
 Before;
 " Create a customized exception.
-let Exception = object#except#Exception_()
+let Exception = object#except#builtin#Exception()
 call object#class('MyError', Exception, g:)
+
 
 Execute(No args: reraise);
 function! TestReraise()
@@ -17,6 +18,7 @@ endfunction
 AssertThrows call TestReraise()
 Assert g:vader_exception =~# 'Exception'
 
+
 Execute(No args, no pending: RuntimeError);
 AssertThrows call object#raise()
 Assert g:vader_exception =~# 'RuntimeError'
@@ -29,7 +31,18 @@ Log g:vader_exception
 Assert g:vader_exception =~# 'MyError'
 
 
-Execute(Throw TypeError if !issubclass(except, BaseException));
+Execute(Check args[0] IsString);
+AssertThrows call object#raise(g:MyError, [])
+Log g:vader_exception
+Assert g:vader_exception =~# 'TypeError'
+
+
+Execute(Check call printf());
+AssertThrows call object#raise(g:MyError, '%s%s', '1')
+Log g:vader_exception
+
+
+Execute(Check issubclass(except, BaseException));
 let bad = [
       \ 1,
       \ 'Exception',
@@ -47,8 +60,8 @@ AssertThrows call object#raise(g:MyError, 'Ops')
 Log g:vader_exception
 Assert g:vader_exception =~# 'MyError: Ops'
 
+
 Execute(More than 2 args: formatted error message);
 AssertThrows call object#raise(g:MyError, 'Invalid address %x', 0xffffffff)
 Log g:vader_exception
-Assert g:vader_exception =~# 'MyError:.*'
-
+Assert g:vader_exception =~# 'MyError:.\+'

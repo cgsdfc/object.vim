@@ -154,43 +154,34 @@ function! object#builtin#TypeName(X)
   return s:typenames[type(a:X)]
 endfunction
 
+" FUNCTION: CallFuncref() {{{1
+function! object#builtin#CallFuncref(X, ...)
+  return object#builtin#CallFuncref_(a:X, a:000)
+endfunction
+
+" FUNCTION: CallFuncref_()  {{{1
+function! object#builtin#CallFuncref_(X, args)
+  if !object#builtin#IsFuncref(a:X)
+    call object#TypeError("'%s' object is not callable",
+          \ object#builtin#TypeName(a:X))
+  endif
+  return object#builtin#Call_(a:X, a:args)
+endfunction
+
 " FUNCTION: Call() {{{1
 function! object#builtin#Call(X, ...)
   return object#builtin#Call_(a:X, a:000)
 endfunction
 
-" FUNCTION: Call_()  {{{1
-" Only accept Funcref
+" FUNCTION: Call_() {{{1
 function! object#builtin#Call_(X, args)
-  " Should we need a catch-all to throw something like:
-  " 'Unrecognized Vim Error'? No, not at all.
-  " - If it is a user exception, just let it go.
-  " - If it is an unrecognized exception, just let it out, it
-  "   will be added here after all.
-  " We use Exxx to recognize VimError, but what if we end up
-  " match what we produced since for user's benefits we enclose
-  " the error code in it?
-  " We should match a unique pattern that only Vim should throw.
-  if !object#builtin#IsFuncref(a:X)
-    call object#TypeError("'%s' object is not callable",
-          \ object#builtin#TypeName(a:X))
-  endif
-  return object#builtin#CallStringFuncref_(a:X, a:args)
-endfunction
-
-" FUNCTION: CallStringFuncref() {{{1
-function! object#builtin#CallStringFuncref(X, ...)
-  return object#builtin#CallStringFuncref_(X, a:000)
-endfunction
-
-" FUNCTION: CallStringFuncref_() {{{1
-" Accept both Funcref and String.
-function! object#builtin#CallStringFuncref_(X, args)
   try
     let Val = call(a:X, a:args)
-  catch 'E118:\|E119:'
+  catch 'E767:\|E766:\|E118:\|E119:'
     " E118: Too many or not enough args.
     " E119: Too many or not enough args.
+    " E766: Insufficient args to printf()
+    " E767: Too many args to printf()
     call object#TypeError(object#builtin#ReOrderVimError(v:exception))
   catch 'E117:\|E121:'
     " E117: Unknown function.

@@ -63,7 +63,7 @@ for s:obj in [s:NoneType, s:None]
   function! s:obj.__init__()
     "  TODO: Add __new__ and type(None)() should return None itself.
     "  Python3 never throws about this.
-    throw object#TypeError('cannot create NoneType instance')
+    call object#TypeError('cannot create NoneType instance')
   endfunction
   function! s:obj.__repr__()
     return 'None'
