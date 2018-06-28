@@ -30,7 +30,9 @@ endfunction
 
 " FUNCTION: HashNumber() {{{1
 function! object#proto#hash#HashNumber(number)
-  return 0
+  " Since currently we don't have arbitrary large integer,
+  " the hash is just the very beginning of the long_hash().
+  return a:number == -1 ? -2 : a:number
 endfunction
 
 " FUNCTION: HashFloat() {{{1
@@ -56,7 +58,7 @@ function! object#proto#hash#strhash_djb2(str)
   let [i, N] = [0, len(a:str)]
   while i < N
     let c = a:str[i]
-    let hash = xor(object#proto#hash#xmult(hash, 33), c)
+    let hash = xor(hash * 33, c)
     let i += 1
   endwhile
   return hash
