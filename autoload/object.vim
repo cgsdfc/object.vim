@@ -1,3 +1,10 @@
+if exists('s:loaded')
+  finish
+endif
+
+call object#Lib#bootstrap#Initialize()
+let s:loaded = 1
+
 " TODO: Use the Lib.builtins
 " MODULE: types.vim {{{1
 

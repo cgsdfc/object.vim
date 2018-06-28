@@ -17,6 +17,5 @@ function! s:enumerate.__next__()
   let self._index += 1
   return next
 endfunction
-" }}}1
 
 " vim: set sw=2 sts=2 et fdm=marker:

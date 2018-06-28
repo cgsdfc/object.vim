@@ -1,7 +1,5 @@
-let s:object = object#object_()
-
 " CLASS: filter {{{1
-call object#class#builtin_class('filter', s:object, s:)
+let s:filter = object#Lib#builtins#Type_New('filter')
 
 " Note: Currently predicate doesn't support None.
 " Use function('object#bool') instead.
@@ -20,14 +18,6 @@ function! s:filter.__next__()
       return N
     endif
   endwhile
-endfunction
-" }}}1
-
-" FUNCTION: filter() {{{1
-""
-" @function filter(...)
-function! object#iter#filter#filter(...)
-  return object#new_(s:filter, a:000)
 endfunction
 
 " vim: set sw=2 sts=2 et fdm=marker:

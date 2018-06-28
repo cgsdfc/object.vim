@@ -1,15 +1,12 @@
-" FUNCTION: FuncName() {{{1
-function! object#builtin#FuncName(funcref)
+function! object#builtin#FuncName(funcref) "{{{1
 
 endfunction
 
-" FUNCTION: CallFuncref() {{{1
-function! object#Lib#func#CallFuncref(X, ...)
+function! object#Lib#func#CallFuncref(X, ...) "{{{1
   return object#Lib#func#CallFuncref_(a:X, a:000)
 endfunction
 
-" FUNCTION: CallFuncref_()  {{{1
-function! object#Lib#func#CallFuncref_(X, args)
+function! object#Lib#func#CallFuncref_(X, args) "{{{1
   if !object#Lib#value#IsFuncref(a:X)
     call object#TypeError("'%s' object is not callable",
           \ object#Lib#value#TypeName(a:X))
@@ -17,13 +14,11 @@ function! object#Lib#func#CallFuncref_(X, args)
   return object#Lib#func#Call_(a:X, a:args)
 endfunction
 
-" FUNCTION: Call() {{{1
-function! object#Lib#func#Call(X, ...)
+function! object#Lib#func#Call(X, ...) "{{{1
   return object#Lib#func#Call_(a:X, a:000)
 endfunction
 
-" FUNCTION: Call_() {{{1
-function! object#Lib#func#Call_(X, args)
+function! object#Lib#func#Call_(X, args) "{{{1
   try
     let Val = call(a:X, a:args)
   catch 'E767:\|E766:\|E118:\|E119:'

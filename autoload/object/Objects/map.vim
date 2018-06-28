@@ -1,7 +1,5 @@
-let s:object = object#object_()
-
 " CLASS: map {{{1
-call object#class#builtin_class('map', s:object, s:)
+let s:map = object#Lib#builtins#Type_New('map')
 
 function! s:map.__init__(callable, ...)
   if !a:0
@@ -18,14 +16,6 @@ let s:map.__setattr__ = object#slots#readonly_attribute()
 function! s:map.__next__()
   return object#builtin#Call_(self._callable,
         \ map(copy(self._seqns), 'object#next(v:val)'))
-endfunction
-" }}}1
-
-" FUNCTION: map() {{{1
-""
-" @function map(...)
-function! object#iter#map#map(...)
-  return object#new_(s:map, a:000)
 endfunction
 
 " vim: set sw=2 sts=2 et fdm=marker:
