@@ -1,15 +1,15 @@
 let s:super = object#class('super')
 
-""
-" @function super(...)
-" Return a super object bound to {obj} that delegates method calls to the parents and
-" siblings of {type}.
-" >
-"   super(type, obj) -> bound super object
-" <
-" @throws TypeError if object#isinstance({obj}, {type}) is false.
-" @throws TypeError if {type} is at the end of the MRO of {obj}.
 function! object#class#super#super(type, obj)
+  " @function super(...)
+  " Return a super object bound to {obj} that delegates method calls to the parents and
+  " siblings of {type}.
+  " >
+  "   super(type, obj) -> bound super object
+  " <
+  " @throws TypeError if object#isinstance({obj}, {type}) is false.
+  " @throws TypeError if {type} is at the end of the MRO of {obj}.
+
   " TODO: if we have __new__()
   let type = object#class#ensure_class(a:type)
   let obj = object#class#ensure_object(a:obj)
@@ -34,10 +34,9 @@ function! object#class#super#super(type, obj)
   return super
 endfunction
 
-"
-" Find the super based on find_class().
-" Check for various failures.
 function! object#class#super#find_super(type, obj)
+  " Find the super based on find_class().
+  " Check for various failures.
   let idx = object#class#find_class(a:type, a:obj.__class__)
   if idx < 0
     call object#TypeError('isinstance(type, obj) required')
@@ -69,26 +68,24 @@ function! s:super.__init__(type, obj, start, end, mro)
   endwhile
 endfunction
 
-"
-" High ordered function that take a Funcref X and apply args to it
-" with dict bound to __self__.
 function! object#class#super#call(X, ...) dict
+  " High ordered function that take a Funcref X and apply args to it
+  " with dict bound to __self__.
   return call(a:X, a:000, self.__self__)
 endfunction
 
-""
-" @function super_(...)
-" Retrieve method {name} bound to {obj} from the parent or sibling of {type}.
-" >
-"   super_(type, obj, name) -> Funcref
-" <
-" The MRO of {obj} is visited started from {type} and the first attribute with
-" {name} that is a |Funcref|, i.e., the first method, is returned.
-"
-" @throws TypeError if object#isinstance({obj}, {type}) is false.
-" @throws TypeError if {type} is at the end of the MRO of {obj}.
-" @throws AttributeError if {name} cannot be resolved.
 function! object#class#super#super_(type, obj, name)
+  " @function super_(...)
+  " Retrieve method {name} bound to {obj} from the parent or sibling of {type}.
+  " >
+  "   super_(type, obj, name) -> Funcref
+  " <
+  " The MRO of {obj} is visited started from {type} and the first attribute with
+  " {name} that is a |Funcref|, i.e., the first method, is returned.
+  "
+  " @throws TypeError if object#isinstance({obj}, {type}) is false.
+  " @throws TypeError if {type} is at the end of the MRO of {obj}.
+  " @throws AttributeError if {name} cannot be resolved.
   let type = object#class#ensure_class(a:type)
   let obj = object#class#ensure_object(a:obj)
   let name = object#util#ensure_identifier(a:name)

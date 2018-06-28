@@ -214,11 +214,11 @@ endfunction
 " MODULE: file.vim {{{1
 
 function! object#open(...) abort
-  return call('object#file#open', a:000)
+  return call('object#io#file#open', a:000)
 endfunction
 
 function! object#file_(...) abort
-  return call('object#file#file_', a:000)
+  return call('object#io#file#file_', a:000)
 endfunction
 " }}}1
 
@@ -307,31 +307,31 @@ endfunction
 
 " MODULE: int.vim {{{1
 function! object#int(...) abort
-  return call('object#int#int', a:000)
+  return call('object#number#int#int', a:000)
 endfunction
 
 function! object#_int(...) abort
-  return call('object#int#_int', a:000)
+  return call('object#number#int#_int', a:000)
 endfunction
 
 function! object#int_(...) abort
-  return call('object#int#int_', a:000)
+  return call('object#number#int#int_', a:000)
 endfunction
 
 function! object#bin(...) abort
-  return call('object#int#bin', a:000)
+  return call('object#number#int#bin', a:000)
 endfunction
 
 function! object#hex(...) abort
-  return call('object#int#hex', a:000)
+  return call('object#number#int#hex', a:000)
 endfunction
 
 function! object#oct(...) abort
-  return call('object#int#oct', a:000)
+  return call('object#number#int#oct', a:000)
 endfunction
 
 function! object#abs(...) abort
-  return call('object#int#abs', a:000)
+  return call('object#number#int#abs', a:000)
 endfunction
 " }}}1
 

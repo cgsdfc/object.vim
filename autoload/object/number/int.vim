@@ -1,75 +1,3 @@
-""
-" @section Int, int
-" The `int()` converter and the wrapper type `int`.
-"
-" @subsection checked-conversion-to-int
-" The built-in `str2nr()` does no checking to the string to be
-" converted while with simple regex it can be achieved.
-" `int()` ensures that the base and the string literal are valid
-" and it can handle |Float| much like |float2nr()| does. When called
-" with no argument, it returns the constant `0`, which can be useful
-" to supply default value. It also hooks into `__int__()`. Very nice.
-" See some examples:
-" >
-"   >>> object#int()
-"   0
-"   >>> object#int(1.2)
-"   1
-"   >>> object#int('0b101', 2)
-"   5
-"   >>> object#int('1234')
-"   1234
-"   >>> object#int('0xg', 16)
-"   ValueError: invalid literal for int() with base 16: '0xg'
-" <
-"
-" @subsection handy-formatter-of-various-bases
-" You can use `bin()`, `oct()` and `hex()` to get a |String| representations
-" of various bases from an integer.
-" What was return can be parsed back to
-" an `int` with `int()`. Different from `printf()` with specifiers, these
-" do not pull out the 2-complementary digits when the argument is negative.
-" Rather, they prefix it with a negative sign:
-" >
-"   >>> object#bin(-1)
-"   -0b1
-"   >>> printf('%b', -1)
-"   11111111111111111111111111111111
-"   >>> object#hex(-1)
-"   -0x1
-"   >>> printf('%x', -1)
-"   ffffffff
-" <
-"
-" @subsection wrapper-type-int
-" A wrapper type `int` is defined for the cases when object-oriented
-" interface is handy. `int` can be extended just as any other built-in
-" type can. Just rememebr keeping it at the very end of your base list since
-" for efficiency, `__init__()` of it does not call `super()`.
-"
-" Data descriptor for `int`:
-" - `INT_MAX`: maximum value of |Number|.
-" - `INT_MIN`: minimum value of |Number|.
-" - `INT_WIDTH`: bit-width of |Number|.
-" Here are some examples:
-" >
-"   >>> let i = object#_int(1)
-"   >>> i
-"   1
-"   >>> i.numerator
-"   1
-"   >>> i.real
-"   1
-"   >>> i.imag
-"   0
-"   >>> object#hash(i)
-"   1
-"   >>> object#abs(i)
-"   1
-"   >>> object#int_()
-"   <type 'int'>
-" <
-
 " TODO: let bin() e.g. hook into __index__().
 
 let s:int = object#class('int')
@@ -109,7 +37,7 @@ let s:specifiers = {
       \}
 
 " Ensure that the given base and literal under that base are valid.
-function! object#int#ensure_literal(nargs, args)
+function! object#number#int#ensure_literal(nargs, args)
   let lit = object#builtin#CheckString(a:args[0])
   let base = a:nargs == 2 ? object#builtin#CheckNumber(a:args[1]): 10
 
@@ -134,13 +62,13 @@ endfunction
 "   int(String, base=10) -> convert to Number as str2nr() does
 " <
 " Valid bases are 2, 8, 10, 16 as accepted by |str2nr()|.
-function! object#int#int(...)
+function! object#number#int#int(...)
   call object#builtin#TakeAtMostOptional('int', 2, a:0)
   if !a:0
     return 0
   endif
   if object#builtin#IsString(a:1)
-    return call('str2nr', object#int#ensure_literal(a:0, a:000))
+    return call('str2nr', object#number#int#ensure_literal(a:0, a:000))
   endif
   if a:0 != 1
     throw object#TypeError('int() cannot convert %s with explicit base %d',
@@ -157,7 +85,7 @@ function! object#int#int(...)
 endfunction
 
 " Replacement when '%b' is missing.
-function! object#int#convert_binary(int)
+function! object#number#int#convert_binary(int)
   let int = object#builtin#CheckNumber(a:int)
   if int is# 0
     return '0b0'
@@ -171,7 +99,7 @@ function! object#int#convert_binary(int)
   return printf('%s0b%s', sign, join(reverse(digits), ''))
 endfunction
 
-function! object#int#convert_printf(int, base)
+function! object#number#int#convert_printf(int, base)
   let int = object#builtin#CheckNumber(a:int)
   let sign = int < 0 ? '-' : ''
   let fmt = '%s%s'.s:specifiers[a:base]
@@ -185,10 +113,10 @@ endfunction
 "   bin(3) -> '0b11'
 "   bin(-3) -> '-0b11'
 " <
-function! object#int#bin(int)
+function! object#number#int#bin(int)
   return object#util#has_bin_specifier() ?
-        \ object#int#convert_printf(a:int, 2):
-        \ object#int#convert_binary(a:int)
+        \ object#number#int#convert_printf(a:int, 2):
+        \ object#number#int#convert_binary(a:int)
 endfunction
 
 ""
@@ -198,8 +126,8 @@ endfunction
 "   hex(11) -> '0xb'
 "   hex(-11) -> '-0xb'
 " <
-function! object#int#hex(int)
-  return object#int#convert_printf(a:int, 16)
+function! object#number#int#hex(int)
+  return object#number#int#convert_printf(a:int, 16)
 endfunction
 
 ""
@@ -209,8 +137,8 @@ endfunction
 "   oct(8) -> '010'
 "   oct(-8) -> '-010'
 " <
-function! object#int#oct(int)
-  return object#int#convert_printf(a:int, 8)
+function! object#number#int#oct(int)
+  return object#number#int#convert_printf(a:int, 8)
 endfunction
 
 ""
@@ -220,7 +148,7 @@ endfunction
 "   abs(Number or Float) -> abs(num)
 "   abs(obj) -> obj.__abs__()
 " <
-function! object#int#abs(num)
+function! object#number#int#abs(num)
   if object#builtin#IsNumeric(a:num)
     return abs(a:num)
   endif
@@ -233,14 +161,14 @@ endfunction
 ""
 " @function _int(...)
 " Create an int object.
-function! object#int#_int(...)
+function! object#number#int#_int(...)
   return object#new_(s:int, a:000)
 endfunction
 
 ""
 " @function int_(...)
 " Return the int type.
-function! object#int#int_()
+function! object#number#int#int_()
   return s:int
 endfunction
 

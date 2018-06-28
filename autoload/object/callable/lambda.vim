@@ -1,50 +1,3 @@
-""
-" @section Lambda, lambda
-" Create a function in one line of code. It is an
-" enhanced version of |maktaba#function#FromExpr()|.
-"
-" Features:
-"   * `lambda()` returns a |Funcref| rather than a |Dict|, which can be used
-"     directly in situation such as |sort()|.
-"   * The created lambda uses named arguments rather than numbered
-"     arguments like `a:1`, improving readability.
-"   * Provide interface to the underlying lambda object via `_lambda()`.
-"   * lambda can create closure if one want to.
-"   * `for()` function let you execute nearly arbitrary code while iterating.
-"
-" Limitations:
-"   * Only one dictionary can be captured as closure at most, which means you
-"   cannot access both `s:` and `l:` from the lambda at once. But there is
-"   a simple workaround for this:
-"   >
-"     :let both_s_and_l = { 's': s:, 'l': l: }
-"     :echo object#lambda('x', 'x > 1 ? c.s.var : c.l.var')(1)
-"   <
-"   * The number of arguments to the lambda is limited by the maximum number
-"     allowed by Vim.
-"
-" Examples:
-" >
-"   :echo object#lambda('x y', 'x + y')(1, 2)
-"   3
-"
-"   :echo sort(range(10), object#lambda('x y', 'y - x'))
-"   [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
-"
-"   :echo object#map('aaa', object#lambda('s', 'toupper(s)'))
-"   'AAA'
-"
-"   :call object#for('key val', object#enumerate([1, 2]), 'echo key val')
-"   0 1
-"   1 2
-"
-"   :let f = object#_lambda('x y', 'x + y')
-"   :echo object#repr(f)
-"   <'lambda' object>
-"   :echo f.__call__(1, 2)
-"   3
-" <
-
 let s:lambda = object#class('lambda')
 
 ""
@@ -66,7 +19,7 @@ let s:lambda = object#class('lambda')
 " [closure] is not a |Dict|.
 function! s:lambda.__init__(names, code, ...)
   call object#util#ensure_argc(1, a:0)
-  let self.__argv__ = object#lambda#make_names(a:names)
+  let self.__argv__ = object#callable#lambda#make_names(a:names)
   let self.__argc__ = len(self.__argv__)
   let self.__code__ = maktaba#ensure#IsString(a:code)
   if a:0 == 1
@@ -81,11 +34,11 @@ endfunction
 " @throws TypeError if the actual arguments do not match the
 " formal arguments declared via names.
 function! s:lambda.__call__(...)
-  return object#lambda#eval(self, a:0, a:000)
+  return object#callable#lambda#eval(self, a:0, a:000)
 endfunction
 
 " Evaluate the {__lambda} object.
-function! object#lambda#eval(__lambda, __nargs, __args)
+function! object#callable#lambda#eval(__lambda, __nargs, __args)
   if a:__nargs ==# a:__lambda.__argc__
     if has_key(a:__lambda, '__closure__')
       let c = a:__lambda.__closure__
@@ -114,8 +67,8 @@ endfunction
 " If a [closure] argument is given, the variables `var`
 " living inside the closure are available as `c.var` from
 " the lambda expression.
-function! object#lambda#lambda(...)
-  return function('object#lambda#eval', [object#new_(s:lambda, a:000)])
+function! object#callable#lambda#lambda(...)
+  return function('object#callable#lambda#eval', [object#new_(s:lambda, a:000)])
 endfunction
 
 ""
@@ -124,14 +77,14 @@ endfunction
 " >
 "   _lambda(vars, expr[,closure]).__call__
 " <
-function! object#lambda#_lambda(...)
+function! object#callable#lambda#_lambda(...)
   return object#new_(s:lambda, a:000)
 endfunction
 
 ""
 " @function lambda_(...)
 " Return the lambda class.
-function! object#lambda#lambda_()
+function! object#callable#lambda#lambda_()
   return s:lambda
 endfunction
 
@@ -150,10 +103,10 @@ endfunction
 "   call object#for('f', files, 'call f.close()')
 "   call object#for('key val', items(dict), 'echo key val')
 " <
-function! object#lambda#for(names, iterable, cmds, ...)
+function! object#callable#lambda#for(names, iterable, cmds, ...)
   " TODO: use for object
   call object#util#ensure_argc(1, a:0)
-  let names = object#lambda#make_names(a:names)
+  let names = object#callable#lambda#make_names(a:names)
   let iter = object#iter(a:iterable)
   let closure = a:0 ? maktaba#ensure#IsDict(a:1) : {}
 
@@ -166,15 +119,15 @@ function! object#lambda#for(names, iterable, cmds, ...)
 
   try
     while 1
-      let Items = object#lambda#make_items(names, object#next(iter))
-      call object#lambda#execute_cmds(excmds, Items, closure)
+      let Items = object#callable#lambda#make_items(names, object#next(iter))
+      call object#callable#lambda#execute_cmds(excmds, Items, closure)
     endwhile
   catch /StopIteration/
     return
   endtry
 endfunction
 
-function! object#lambda#ensure_unique(names)
+function! object#callable#lambda#ensure_unique(names)
   let seen = {}
   for x in a:names
     if !has_key(seen, x)
@@ -196,7 +149,7 @@ endfunction
 " @throws WrongType if Vals is not a List but len(names) > 1.
 " @throws TypeError if the len of names does not match that of
 " Vals.
-function! object#lambda#make_items(names, Vals)
+function! object#callable#lambda#make_items(names, Vals)
   let names_nr = len(a:names)
   if names_nr ==# 1
     return [ [a:names[0], a:Vals] ]
@@ -220,16 +173,16 @@ function! object#lambda#make_items(names, Vals)
         \ 'less targets than list items')
 endfunction
 
-function! object#lambda#make_names(names)
+function! object#callable#lambda#make_names(names)
   let names = maktaba#ensure#IsString(a:names)
-  return object#lambda#ensure_unique(map(
+  return object#callable#lambda#ensure_unique(map(
         \ split(names), 'object#util#ensure_identifier(v:val)'))
 endfunction
 
 "
 " Execute {__excmds} with {__items} set as items
 " from the iterator.
-function! object#lambda#execute_cmds(__excmds, __items, __closure)
+function! object#callable#lambda#execute_cmds(__excmds, __items, __closure)
   let c = a:__closure
   for __i in a:__items
     let {__i[0]} = __i[1]

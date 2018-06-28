@@ -1,42 +1,3 @@
-""
-" @section File, file
-" A simple interface to the |readfile()| and |writefile()| functions.
-" Features:
-"   * Lazy reading and writing.
-"   * Line-oriented I/O.
-"   * Handle errors with OSError.
-"   * Mode string syntax like 'a', 'w' or '+', 'b'.
-"
-" Limitations:
-"   * The file is always buffered.
-"   * The content of the file object is not synchronized with external changes to the
-"     underlying file.
-"   * The file is unseekable. All reading or writing happens essentially at the
-"     current line number.
-"   * No context manager available. Must call f.close() explicitly or you may
-"     lost written data.
-"
-" Note:
-"   * Unlike the counterparts from Python, readlines() always strips tailing newlines and
-"   * writelines() always adds tailing newlines.
-"
-" Examples:
-" >
-"   Your file is
-"   1
-"   2
-"   3
-"   :echo f.readlines()
-"   ['1', '2', '3']
-"
-"   :call f.writelines(range(3))
-"   :call f.close()
-"   Your file becomes
-"   1
-"   2
-"   3
-" <
-" This is rooted at the nature of |readfile()| and |writefile()|.
 
 let s:readable =    '\V\C\^\(r\[aw+]\?\|\[aw]\[r+]\)b\?\$'
 let s:writable =    '\V\C\^\(\[aw]\[r+]\?\|r\[aw+]\)b\?\$'
@@ -64,7 +25,7 @@ let s:file = object#class('file')
 " It will be truncated when opened for writing.
 " Add a 'b' to the [mode] for binary files. See |readfile()| and |writefile()|.
 " Add a '+' to the [mode] to allow simultaneous reading and writing.
-function! object#file#open(name, ...)
+function! object#io#file#open(name, ...)
   call object#builtin#TakeAtMostOptional('open', 1, a:0)
   let mode = a:0 ? a:1 : 'r'
   return object#new(s:file, a:name, mode)
@@ -87,7 +48,7 @@ function! s:file.__init__(name, mode)
     if !filereadable(name)
       call object#OSError('file not readable: ''%s''', name)
     endif
-    let self._rflags = object#file#read_flags(mode)
+    let self._rflags = object#io#file#read_flags(mode)
   endif
 
   if mode =~# s:writable
@@ -95,11 +56,11 @@ function! s:file.__init__(name, mode)
       " Try to create a new file.
       try
         call writefile([], name)
-      catch /E482/
+      catch 'E482:'
         call object#OSError('file not writable: ''%s''', name)
       endtry
     endif
-    let self._wflags = object#file#write_flags(mode)
+    let self._wflags = object#io#file#write_flags(mode)
     let self._wbuf = []
   endif
 
@@ -110,7 +71,7 @@ endfunction
 
 ""
 " Return the file class object.
-function! object#file#file_()
+function! object#io#file#file_()
   return s:file
 endfunction
 
@@ -168,7 +129,7 @@ function! s:file.readline()
   call self._check_readable()
   try
     return object#next(self._rbuf)
-  catch /StopIteration/
+  catch 'StopIteration'
     return ''
   endtry
 endfunction
@@ -219,7 +180,7 @@ function! s:file.writelines(iter)
     while 1
       call add(self._wbuf, object#builtin#CheckString(object#next(iter)))
     endwhile
-  catch /StopIteration/
+  catch 'StopIteration'
     return
   endtry
 endfunction
@@ -235,7 +196,7 @@ function! s:file.flush()
   endif
   try
     call writefile(self._wbuf, self.name, self._wflags)
-  catch /E482/
+  catch 'E482:'
     call object#OSError('cannot create file ''%s''', self.name)
   endtry
 endfunction
@@ -277,11 +238,11 @@ endfunction
 "
 " Private Helpers
 "
-function! object#file#read_flags(mode)
+function! object#io#file#read_flags(mode)
   return matchstr(a:mode, 'b')
 endfunction
 
-function! object#file#write_flags(mode)
+function! object#io#file#write_flags(mode)
   return join(map(['a', 'b'], 'stridx(a:mode, v:val)>=0?v:val:""'), '')
 endfunction
 
@@ -316,9 +277,9 @@ function! s:file._check_readable()
   endif
   try
     let lines = readfile(self.name, self._rflags)
-  catch /E484/
+  catch 'E484:'
     call object#OSError('cannot open file ''%s''', self.name)
-  catch /E485/
+  catch 'E485:'
     call object#OSError('cannot read file ''%s''', self.name)
   endtry
   let self._rbuf = object#iter(lines)
@@ -326,6 +287,6 @@ endfunction
 
 " Return patterns for valid mode string, readable and writable mode string.
 " Append counts as writable.
-function! object#file#patterns()
+function! object#io#file#patterns()
   return [s:valid_mode, s:readable, s:writable]
 endfunction
