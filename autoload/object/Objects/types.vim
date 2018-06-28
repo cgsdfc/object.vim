@@ -1,31 +1,3 @@
-""
-" @section Types, types
-" Define a minimal set of fundamental types as the basic of the type
-" hierarchy.
-" They are:
-"   * object(None): The base class of all the rest of classes. The base class of it is
-"     None, the only instance of the NoneType.
-"
-"   * type(object): The class of all the types for both built-in and user
-"     definded ones. In other words, every class is an instance of type.
-"
-"   * NoneType(type): The class of the None object, the place holder for
-"   absence of sensible values, such as the base class of object.
-
-" Note: We cannot use in global scope any of the functions from class.vim.
-
-" TODO: __new__() hook
-
-" TODO mv to object#util#typename()
-" Get the typename of {obj}. If {obj} is a type,
-" 'type' will be returned always.
-function! object#class#types#name(obj)
-  if object#hasattr(a:obj, '__class__')
-    return string(a:obj.__class__.__name__)
-  endif
-  return string(maktaba#value#TypeName(a:obj))
-endfunction
-
 " Install special attrs.
 function! object#class#types#install(obj, name, class, base, mro)
   let a:obj.__name__ = a:name
@@ -78,6 +50,21 @@ endfor
 
 " Actually an NOP.
 function! s:object.__init__()
+endfunction
+
+function! s:object.__getattribute__(name)
+  try
+    let Val = a:obj[a:name]
+  catch 'E716:'
+    if has_key(a:obj, '__mro__')
+      call object#AttributeError("type object %s has no attribute '%s'",
+            \ a:obj.__name__,  a:name)
+    else
+      call object#AttributeError("'%s' object has no attribute '%s'",
+            \ object#builtin#TypeName(a:obj),  a:name)
+    endif
+  endtry
+  return Val
 endfunction
 
 "

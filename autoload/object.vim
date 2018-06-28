@@ -1,15 +1,8 @@
+" TODO: Use the Lib.builtins
 " MODULE: types.vim {{{1
 
 function! object#object(...) abort
-  return call('object#class#types#object', a:000)
-endfunction
-
-function! object#object_(...) abort
-  return call('object#class#types#object_', a:000)
-endfunction
-
-function! object#type_(...) abort
-  return call('object#class#types#type_', a:000)
+  return object#Lib#builtin#New_('object', a:000)
 endfunction
 
 function! object#None(...) abort
@@ -92,6 +85,7 @@ endfunction
 " MODULE: mapping.vim {{{1
 function! object#delitem(...) abort
   return call('object#proto#mapping#delitem', a:000)
+  return object#Modules#builtin('delitem', a:000)
 endfunction
 
 function! object#getitem(...) abort
@@ -183,7 +177,7 @@ endfunction
 
 " MODULE: enumerate, zip, map, filter {{{1
 function! object#enumerate(...) abort
-  return call('object#iter#enumerate#enumerate', a:000)
+  return object#Lib#BuiltinType_New('enumerate', a:000)
 endfunction
 
 function! object#zip(...) abort
