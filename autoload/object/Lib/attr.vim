@@ -11,7 +11,18 @@ function! object#Lib#attr#CheckName(name)
         \ object#Lib#value#TypeName(a:name))
 endfunction
 
-function! object#Lib#attr#ReadOnlyAttro(obj, name, val)
+function! object#Lib#attr#Object__getattribute__(name) dict abort "{{{1
+  " Implement object.__getattribute__()
+  let name = object#Lib#attr#CheckName(a:name)
+  try
+    let Val = a:obj[a:name]
+  catch 'E716:'
+    call object#Lib#attr#NoAttribute(self, a:name)
+  endtry
+  return Val
+endfunction
+
+function! object#Lib#attr#ReadOnlyAttro(name, val) dict abort "{{{1
   let name = object#Lib#attr#CheckName(a:name)
   try
     call object#Lib#attr#GetAttro(a:obj, name)
@@ -22,7 +33,7 @@ function! object#Lib#attr#ReadOnlyAttro(obj, name, val)
         \ a:obj.__class__.__name__, name)
 endfunction
 
-function! object#Lib#attr#ReadOnlyAttro2(obj, name, val)
+function! object#Lib#attr#ReadOnlyAttro2(name, val) dict abort "{{{1
   call object#AttributeError('readonly attribute')
 endfunction
 
@@ -91,14 +102,16 @@ endfunction
 " different from release to release.
 " We only filter some common patterns like __mro__.
 let s:dir_ignored = ['__mro__', '__bases__', '__base__', '__name__',]
+" TODO: differentiate module, class and object.
+" TODO: When we have classmethod/staticmethod, do something here.
+" TODO: dir() returns keys of current module (#7)
 
-function! object#Lib#attr#Dir(obj)
-  " TODO: differentiate module, class and object.
-  " TODO: When we have classmethod/staticmethod, do something here.
-  " TODO: dir() returns keys of current module (#7)
-  let dict = copy(a:obj)
-  if has_key(a:obj, '__mro__')
-    call extend(dict, a:obj.__class__, 'keep')
+function! object#Lib#attr#Object__dir__() dict abort "{{{1
+  " Implement object.__dir__()
+  let dict = copy(self)
+  if has_key(self, '__mro__')
+    call extend(dict, self.__class__, 'keep')
   endif
   return sort(keys(filter(dict, 'index(s:dir_ignored, v:key)<0')))
 endfunction
+" vim: set sw=2 sts=2 et fdm=marker:

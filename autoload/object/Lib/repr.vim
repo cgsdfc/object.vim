@@ -47,12 +47,14 @@ function! object#Lib#repr#String_Repr(str) " {{{1
   endif
 endfunction
 
-function! object#Lib#repr#Type_Repr(type) "{{{1
-  return printf("<class '%s'>", a:type.__name__)
+function! object#Lib#repr#Type__repr__() dict abort "{{{1
+  " Implement type.__repr__()
+  return printf("<class '%s'>", self.__name__)
 endfunction
 
-function! object#Lib#repr#Object_Repr(obj) "{{{1
-  return printf('<%s object>', a:obj.__class__.__name__)
+function! object#Lib#repr#Object__repr__() dict abort "{{{1
+  " Implement object.__repr__()
+  return printf('<%s object>', self.__class__.__name__)
 endfunction
 
 function! object#Lib#repr#Dict_Repr(dict)
@@ -65,4 +67,7 @@ function! object#Lib#repr#List_Repr(seen, list)
         \ 'object#Lib#repr#ReprImpl(a:seen, v:val)'), ', '))
 endfunction
 
+function! object#Lib#repr#Repr(obj)
+  return object#Lib#func#Call('object#Lib#repr#ReprImpl', [], a:obj)
+endfunction
 " vim: set sw=2 sts=2 et fdm=marker:

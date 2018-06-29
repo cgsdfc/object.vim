@@ -1,6 +1,6 @@
 let s:super = object#class('super')
 
-function! object#class#super#super(type, obj)
+function! s:super.__new__(type, obj)
   " @function super(...)
   " Return a super object bound to {obj} that delegates method calls to the parents and
   " siblings of {type}.
@@ -11,8 +11,8 @@ function! object#class#super#super(type, obj)
   " @throws TypeError if {type} is at the end of the MRO of {obj}.
 
   " TODO: if we have __new__()
-  let type = object#class#ensure_class(a:type)
-  let obj = object#class#ensure_object(a:obj)
+  let type = object#Lib#vaule#CheckType(a:type)
+  let obj = object#Lib#value#CheckObj(a:obj)
 
   if !has_key(obj, '__super__')
     let obj.__super__ = {}

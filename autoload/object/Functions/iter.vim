@@ -1,31 +1,5 @@
 " PERF: next() and iter() both do CheckIterator(),
 " In all(), the check of next() is rebundant.
-let s:object = object#object_()
-
-" FINAL CLASS: callable_iterator {{{1
-call object#class#builtin_class('callable_iterator', s:object, s:)
-
-function! s:callable_iterator.__init__(callable, sentinel)
-  let self.callable = a:callable
-  let self.sentinel = a:sentinel
-endfunction
-
-let s:callable_iterator.__iter__ = object#slots#iter_self()
-
-" TODO: self.callable can be method of other object,
-" but it will forget the original self after put into
-" callable_iterator.
-" The callable module can detect this and create a method
-" wrapper.
-function! s:callable_iterator.__next__()
-  let Next = object#builtin#CallFuncref(self.callable)
-  if Next ==# self.sentinel
-    call object#StopIteration()
-  endif
-  return Next
-endfunction
-" }}}1
-
 " FUNCTION: iter() {{{1
 ""
 " @function iter(...)
@@ -139,23 +113,6 @@ function! object#iter#count(iterable, value)
     endwhile
   catch 'StopIteration'
     return sum
-  endtry
-endfunction
-" }}}1
-
-" FUNCTION: contains() {{{1
-" Return whether target is in iterable.
-function! object#iter#contains(iterable, target)
-  let iter = object#iter(a:iterable)
-  try
-    while 1
-      " TODO: use object#eq()
-      if maktaba#value#IsEqual(a:target, object#next(iter))
-        return 1
-      endif
-    endwhile
-  catch 'StopIteration'
-    return 0
   endtry
 endfunction
 " }}}1

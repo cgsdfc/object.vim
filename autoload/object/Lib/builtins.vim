@@ -2,6 +2,7 @@
 let s:object = {}
 let s:type = {}
 let s:None = {}
+let s:NotImplemented = {}
 
 call extend(s:object, {
       \ '__name__': 'object',

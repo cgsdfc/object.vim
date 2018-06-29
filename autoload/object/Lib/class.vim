@@ -3,7 +3,16 @@ let s:object = s:builtins.object
 let s:None = s:builtins.None
 let s:type = s:builtins.type
 
-let s:new_ignored = [
+let s:implicit_classmethods = [ "{{{1
+      \ '__subclasscheck__',
+      \ '__instancecheck__',
+      \ '__subclasshook__',
+      \ '__init_subclass__',
+      \ '__subclasses__',
+      \]
+
+" Attros that are not carried to instance or subclass.
+let s:new_ignored = [ "{{{1
       \ '__class__',
       \ '__base__',
       \ '__name__',
@@ -11,6 +20,7 @@ let s:new_ignored = [
       \ '__mro__',
       \ '__super__',
       \ '__self__',
+      \ '__final__',
       \ '__classmethods__',
       \ '__staticmethods__',
       \]
@@ -19,7 +29,8 @@ function! s:TransformAttro(type, key, val) "{{{1
   if !object#Lib#value#IsFuncref(a:val)
     return a:val
   endif
-  if has_key(a:type.__classmethods__, a:key)
+  if index(s:implicit_classmethods, a:key) >= 0 ||
+        \ has_key(a:type.__classmethods__, a:key)
     return function('s:CallClassmethod', a:val)
   endif
   return a:val
@@ -64,11 +75,11 @@ function! object#Lib#class#Object_New_(type, args) abort "{{{1
   return obj
 endfunction
 
-function! object#Lib#class#Object_New(type, ...)
+function! object#Lib#class#Object_New(type, ...) abort "{{{1
   return object#Lib#class#Object_New_(a:type, a:000)
 endfunction
 
-function! object#Lib#class#SimpleType_New(name, ...)
+function! object#Lib#class#SimpleType_New(name, ...) abort "{{{1
   let base = a:0 ? a:1 : s:object
   let type = {
         \ '__name__': a:name,
@@ -80,37 +91,22 @@ function! object#Lib#class#SimpleType_New(name, ...)
   return type
 endfunction
 
-function! object#Lib#class#Type_New(name, bases, dict) abort "{{{1
-  " Create a new type
-  let metaclass = s:type
-  for parent in a:bases
-    if has_key(parent, '__metaclass__')
-      let metaclass = parent.__metaclass__
-      break
-    endif
-  endfor
-  return object#Lib#class#Object_New(metaclass, name, bases, dict)
+function! s:builtins.class(name, ...) "{{{1
+  " class(name,[base]) -> a new class
+  call object#Lib#value#TakeAtMostOptional('class', 1, a:0)
+  let name = object#Lib#value#CheckString('class', 1, a:name)
+  if a:0 == 0
+    let bases = [s:object]
+  elseif object#Lib#value#IsList(a:1)
+    let bases = a:1
+  else
+    let bases = [a:1]
+  endif
+  return object#Lib#type#Type_New(name, bases, {})
 endfunction
 
-function! object#Lib#class#Type__new__(metaclass, name, bases, dict)
-  " Implement type.__new__()
-  let type = object#Lib#class#Object__new__(metaclass)
-  let type.__name__ = a:name
-  let type.__bases__ = copy(a:bases)
-  let type.__base__ = a:bases[0]
-  let type.__classmethods__ = {}
-  let type.__staticmethods__ = {}
-  let type.__mro__ = object#Lib#class#CheckMRO(object#Lib#func#CallFuncref(type.mro))
-  return type
+function! s:builtins.new(type, ...)
+  return object#Lib#class#Object_New_(a:type, a:000)
 endfunction
 
-function! object#Lib#class#Object_mro() dict abort "{{{1
-  " Implement object.mro()
-
-
-endfunction
-
-  " if !object#Lib#value#IsString(a:name)
-  "   call object#TypeError('class name must be a string')
-  " endif
 " vim: set sw=2 sts=2 et fdm=marker:
