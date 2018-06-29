@@ -3,6 +3,10 @@ let s:object = s:builtins.object
 let s:None = s:builtins.None
 let s:type = s:builtins.type
 
+let s:implicit_staticmethods = [
+      \ '__new__',
+      \]
+
 let s:implicit_classmethods = [
       \ '__subclasscheck__',
       \ '__instancecheck__',
@@ -24,22 +28,10 @@ let s:ignored_attros = [
       \ '__staticmethods__',
       \]
 
-function! object#Lib#class#TransformAttro(type, key, val) "{{{1
-  " Transform attros of a class to that of its instance.
-  if !object#Lib#value#IsFuncref(a:val)
-    return a:val
-  endif
-  if index(s:implicit_classmethods, a:key) >= 0 ||
-        \ has_key(a:type.__classmethods__, a:key)
-    return function('s:CallClassmethod', [a:val])
-  endif
-  return a:val
-endfunction
-
-function! s:CallClassmethod(classmethod, ...) dict "{{{1
-  " Forward call to self.__class__.
-  return call(a:classmethod, a:000, self.__class__)
-endfunction
+" Seal away the dictionary of staticmethod.
+" Ban `self` from being modified.
+let s:STATIC_DICT = {}
+lockvar s:STATIC_DICT
 
 function! object#Lib#class#MROAttros(mro) "{{{1
   " Return initial attros of `type`.
@@ -56,14 +48,42 @@ function! object#Lib#class#MROAttros(mro) "{{{1
   return attros
 endfunction
 
+function! s:CallStaticMethod(staticmethod, ...) "{{{1
+  return call(a:staticmethod, a:000, s:STATIC_DICT)
+endfunction
+
+function! s:CallClassMethod(classmethod, ...) dict "{{{1
+  " Forward call to self.__class__.
+  return call(a:classmethod, a:000, self.__class__)
+endfunction
+
+function! s:IsStaticMethod(type, key, val)
+  return index(s:implicit_staticmethods, a:key) >= 0 ||
+        \ has_key(a:type.__staticmethods__, a:key) && object#Lib#value#IsFuncref(a:val)
+endfunction
+
+function! s:IsClassMethod(type, key, val)
+  return index(s:implicit_classmethods, a:key) >= 0 ||
+        \ has_key(a:type.__classmethods__, a:key) && object#Lib#value#IsFuncref(a:val)
+endfunction
+
+function! s:MapInstanceAttros(type, key, val) "{{{1
+  if s:IsClassMethod(a:type, a:key, a:val)
+    return function('s:CallClassMethod', [a:val])
+  endif
+  if s:IsStaticMethod(a:type, a:key, a:val)
+    return function('s:CallStaticMethod', [a:val])
+  endif
+  return a:val
+endfunction
+
 function! object#Lib#class#InstanceAttros(type) abort "{{{1
   " Return attros of `type` that can be put into its instances.
   return map(filter(copy(a:type), 'index(s:ignored_attros, v:key)<0'),
-          \ 'object#Lib#class#TransformAttro(a:type, v:key, v:val)')
+          \ 's:MapInstanceAttros(a:type, v:key, v:val)')
 endfunction
 
 function! object#Lib#class#TypeAttros(type) abort "{{{1
-  " Return attros of `type` that can be put into its subclasses.
   return filter(copy(a:type), 'index(s:ignored_attros, v:key)<0')
 endfunction
 
@@ -135,6 +155,16 @@ function! s:builtins.new(type, ...) "{{{1
   " Create a new object.
   " new(type, *args) ->  a new object.
   return object#Lib#class#Object_New_(a:type, a:000)
+endfunction
+
+function! s:builtins.classmethod(type, name)
+  call object#Lib#class#CheckType(a:type)
+  let a:type.__classmethods__[a:name] = 1
+endfunction
+
+function! s:builtins.staticmethod(type, name)
+  call object#Lib#static#CheckType(a:type)
+  let a:type.__staticmethods__[a:name] = 1
 endfunction
 
 " vim: set sw=2 sts=2 et fdm=marker:

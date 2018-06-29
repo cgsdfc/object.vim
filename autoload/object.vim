@@ -13,6 +13,14 @@ function! object#None(...) abort "{{{1
   return object#Lib#builtins#Get('None')
 endfunction
 
+function! object#classmethod(...) abort "{{{1
+  return object#Lib#builtins#Call_('classmethod', a:000)
+endfunction
+
+function! object#staticmethod(...) abort "{{{1
+  return object#Lib#builtins#Call_('staticmethod', a:000)
+endfunction
+
 function! object#class(...) abort "{{{1
   return object#Lib#builtins#Call_('class', a:000)
 endfunction

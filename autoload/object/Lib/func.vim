@@ -2,6 +2,20 @@ function! object#builtin#FuncName(funcref) "{{{1
 
 endfunction
 
+function! object#Lib#func#CallClassMethod(obj, name, ...) abort "{{{1
+  " When `obj` is a type and we want to invoke its classmethod, such that
+  " `repr(A)`, where `A` is a type.
+  " This is different than when `a` is not a type but we want to invoke
+  " classmethod of its type `A`.
+  " In the former case, the method of metaclass comes into play.
+  let classmethod = obj.__class__[a:name]
+  if !object#Lib#value#IsFuncref(a:classmethod)
+    call object#TypeError("'%s' object is not callable",
+          \ object#Lib#value#TypeName(a:classmethod))
+  endif
+  return object#Lib#func#CallWithDict(classmethod, a:000, a:obj)
+endfunction
+
 function! object#Lib#func#CallFuncref(X, ...) "{{{1
   return object#Lib#func#CallFuncref_(a:X, a:000)
 endfunction
@@ -19,8 +33,12 @@ function! object#Lib#func#Call(X, ...) "{{{1
 endfunction
 
 function! object#Lib#func#Call_(X, args) "{{{1
+  return object#Lib#func#CallWithDict(a:X, a:args, 0)
+endfunction
+
+function! object#Lib#func#CallWithDict(X, args, dict) "{{{1
   try
-    let Val = call(a:X, a:args)
+    let Val = a:dict is 0 ? call(a:X, a:args) : call(a:X, a:args, a:dict)
   catch 'E767:\|E766:\|E118:\|E119:'
     " E118: Too many or not enough args.
     " E119: Too many or not enough args.

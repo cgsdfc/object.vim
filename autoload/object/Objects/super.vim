@@ -101,3 +101,4 @@ function! object#class#super#super_(type, obj, name)
 
   call object#AttributeError('cannot resolve attribute %s', string(name))
 endfunction
+" vim: set sw=2 sts=2 et fdm=marker:

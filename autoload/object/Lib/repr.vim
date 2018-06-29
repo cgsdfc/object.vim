@@ -12,13 +12,11 @@ function! s:gsub(str,pat,rep) abort
   return substitute(a:str,'\v\C'.a:pat,a:rep,'g')
 endfunction
 
-function! object#Lib#repr#ReprImpl(seen, obj)
+function! object#Lib#repr#ReprImpl(seen, obj) abort "{{{1
   if object#Lib#value#IsContainer(a:obj)
-    for i in a:seen
-      if i is a:obj
-        return object#Lib#value#IsList(a:obj) ? '[...]' : '{...}'
-      endif
-    endfor
+    if object#Lib#seqn#Any(a:seen, 'a:obj is v:val')
+      return object#Lib#value#IsList(a:obj) ? '[...]' : '{...}'
+    endif
     call add(a:seen, a:obj)
     let repr = object#Lib#value#IsList(a:obj) ?
           \ object#Lib#repr#List_Repr(a:seen, a:obj):
@@ -30,18 +28,19 @@ function! object#Lib#repr#ReprImpl(seen, obj)
     return object#Lib#repr#String_Repr(a:obj)
   endif
   if object#Lib#value#IsType(a:obj)
-    return object#Lib#func#Call(function(a:obj.__repr__, a:obj.__class__))
+    return object#Lib#func#CallClassMethod(a:obj, '__repr__')
   endif
   if object#Lib#value#IsObj(a:obj)
     return object#Lib#func#CallFuncref(a:obj.__repr__)
   endif
+  "TODO: Funcref
   return string(a:obj)
 endfunction
 
-function! object#Lib#repr#String_Repr(str) " {{{1
+function! object#Lib#repr#String_Repr(str) abort "{{{1
   if a:str =~# "[\001-\037']"
-    return '"'.s:gsub(a:str, "[\001-\037\"\\\\]",
-          \ '\=get(s:escapes, submatch(0), printf("\\%03o", char2nr(submatch(0))))').'"'
+    return printf('"%s"', s:gsub(a:str, "[\001-\037\"\\\\]",
+          \ '\=get(s:escapes, submatch(0), printf("\\%03o", char2nr(submatch(0))))'))
   else
     return string(a:str)
   endif
@@ -57,17 +56,18 @@ function! object#Lib#repr#Object__repr__() dict abort "{{{1
   return printf('<%s object>', self.__class__.__name__)
 endfunction
 
-function! object#Lib#repr#Dict_Repr(dict)
+function! object#Lib#repr#Dict_Repr(seen, dict) abort "{{{1
   return printf('{%s}', join(map(items(a:dict),
-        \ 'printf("''%s'': %s", v:val[0], object#Lib#repr#ReprImpl(a:seen, v:val[1]))'), ', '))
+        \ 'printf("''%s'': %s", v:val[0], object#Lib#repr#ReprImpl(a:seen, v:val[1]))'),
+        \ ', '))
 endfunction
 
-function! object#Lib#repr#List_Repr(seen, list)
+function! object#Lib#repr#List_Repr(seen, list) abort "{{{1
   return printf('[%s]', join(map(copy(a:list),
         \ 'object#Lib#repr#ReprImpl(a:seen, v:val)'), ', '))
 endfunction
 
-function! object#Lib#repr#Repr(obj)
+function! object#Lib#repr#Repr(obj) abort "{{{1
   return object#Lib#func#Call('object#Lib#repr#ReprImpl', [], a:obj)
 endfunction
 " vim: set sw=2 sts=2 et fdm=marker:
