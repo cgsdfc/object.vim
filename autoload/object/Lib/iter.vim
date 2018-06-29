@@ -124,7 +124,7 @@ function! object#Lib#iter#sum(iter, ...) abort "{{{1
 endfunction
 let s:builtins.sum = function('object#Lib#iter#sum')
 
-function! object#Lib#iter#index(iterable, value) abort "{{{1
+function! object#Lib#iter#Index(iterable, value) abort "{{{1
   " Return the index of the first occurence of value.
   " Throw ValueError if not present.
   let iter = object#iter(a:iterable)
@@ -141,7 +141,7 @@ function! object#Lib#iter#index(iterable, value) abort "{{{1
   endtry
 endfunction
 
-function! object#Lib#iter#count(iterable, value) abort "{{{1
+function! object#Lib#iter#Count(iterable, value) abort "{{{1
   " Return the times value appears in iterable.
   let iter = object#iter(a:iterable)
   let sum = 0
@@ -153,6 +153,21 @@ function! object#Lib#iter#count(iterable, value) abort "{{{1
     endwhile
   catch 'StopIteration'
     return sum
+  endtry
+endfunction
+
+function! object#Lib#iter#Contains(iterable, target) abort "{{{1
+  " Return whether `target` is in `iterable`.
+  let iter = object#iter(a:iterable)
+  try
+    while 1
+      " TODO: use object#eq()
+      if maktaba#value#IsEqual(a:target, object#next(iter))
+        return 1
+      endif
+    endwhile
+  catch 'StopIteration'
+    return 0
   endtry
 endfunction
 

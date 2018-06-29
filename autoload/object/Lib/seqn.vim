@@ -1,3 +1,5 @@
+let s:builtins = object#Lib#builtins#GetModuleDict()
+
 function! object#Lib#seqn#Any(seqn, predicate) abort "{{{1
   return !empty(filter(map(copy(a:seqn), a:predicate), '!v:val'))
 endfunction
@@ -8,21 +10,6 @@ endfunction
 
 function! object#Lib#seqn#Dict_Contains(dict, key) abort "{{{1
   return has_key(a:dict, object#Lib#item#CheckKey(a:key))
-endfunction
-
-function! object#Lib#seqn#Iterable_Contains(iterable, target) abort "{{{1
-  " Return whether `target` is in `iterable`.
-  let iter = object#iter(a:iterable)
-  try
-    while 1
-      " TODO: use object#eq()
-      if maktaba#value#IsEqual(a:target, object#next(iter))
-        return 1
-      endif
-    endwhile
-  catch 'StopIteration'
-    return 0
-  endtry
 endfunction
 
 function! object#Lib#seqn#Unicode_Contains(haystack, needle) abort "{{{1
@@ -40,8 +27,9 @@ function! object#Lib#seqn#List_Contains(haystack, needle) abort "{{{1
 endfunction
 
 function! object#Lib#seqn#Call__len__(obj) abort "{{{1
-  let num = object#Lib#value#CheckNumber2(object#Lib#func#CallFuncref(a:obj.__len__))
-  if num >= 0
+  " Call obj.__len__() and check the result.
+  let num = object#Lib#func#CallFuncref(a:obj.__len__)
+  if object#Lib#value#CheckNumber2(num) >= 0
     return num
   endif
   call object#ValueError("__len__() should return >= 0")
@@ -52,6 +40,7 @@ function! object#Lib#seqn#Unicode_Len(X) abort "{{{1
 endfunction
 
 function! object#Lib#seqn#Len(obj) abort "{{{1
+  " Implement len(obj).
   if object#Lib#value#IsString(a:obj)
     return object#Lib#seqn#Unicode_Len(a:obj)
   endif
@@ -64,8 +53,10 @@ function! object#Lib#seqn#Len(obj) abort "{{{1
   call object#TypeError("object of type '%s' has no len()",
         \ object#Lib#value#TypeName(a:obj))
 endfunction
+let s:builtins.len = function('object#Lib#seqn#Len')
 
-function! object#Lib#seqn#in(needle, haystack) abort "{{{1
+function! object#Lib#seqn#IsIn(needle, haystack) abort "{{{1
+  " Implement `needle in haystack`.
   if object#Lib#value#IsList(a:haystack)
     return object#Lib#seqn#List_Contains(a:haystack, a:needle)
   endif
@@ -76,12 +67,12 @@ function! object#Lib#seqn#in(needle, haystack) abort "{{{1
     return object#Lib#seqn#Dict_Contains(a:haystack, a:needle)
   endif
   if object#Lib#proto#HasMethod(a:haystack, '__contains__')
-    " NOTE: return value of __contains__() is a bool context.
     return object#bool(
           \ object#Lib#func#CallFuncref(a:haystack.__contains__, a:needle))
   endif
-  return object#Lib#seqn#Iterable_Contains(a:haystack, a:needle)
+  return object#Lib#iter#Contains(a:haystack, a:needle)
 endfunction
+let s:builtins.in = function('object#Lib#seqn#IsIn')
 
 " TOOD: sorted()
 
