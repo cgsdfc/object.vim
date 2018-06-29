@@ -36,7 +36,7 @@ endfunction
 
 function! object#Lib#builtins#Type_New(...) "{{{1
   " Create and register a builtin type.
-  let type = call('object#Lib#class#SimpleType_New', a:000)
+  let type = call('object#Lib#class#FastType_New', a:000)
   let s:{a:1} = type
 endfunction
 

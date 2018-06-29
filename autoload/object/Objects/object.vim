@@ -1,8 +1,8 @@
 let s:object = object#Lib#builtins#Get('object')
 
 
-function! s:object.__new__(type)
-  if !object#Lib#value#IsType(a:type)
+function! s:object.__new__(type, ...)
+  if !object#Lib#type#IsType(a:type)
     call object#TypeError("object.__new__(X): X is not a type object (%s)",
           \ object#Lib#value#TypeName(a:type))
   endif

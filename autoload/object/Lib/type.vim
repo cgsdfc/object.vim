@@ -1,5 +1,8 @@
 let s:builtins = object#Lib#builtins#GetModuleDict()
 
+" An array mapping type codes to builtin types.
+" such that `s:builtin_typemap[type(0)]` is builtin type `int`.
+" Channel and job are `NotImplemented`.
 let s:builtin_typemap = [
       \ s:builtins.int,
       \ s:builtins.str,
@@ -13,20 +16,47 @@ let s:builtin_typemap = [
       \ s:builtins.NotImplemented,
       \]
 
+let s:BAD_MRO_MSG =
+      \ "Cannot create a consistent method resolution order\n(MRO) for bases %s, %s"
+
+function! s:IsFinal(X)
+  " Helper to tell final class.
+  return has_key(a:X, '__final__') && a:X.__final__ is 1
 endfunction
-function! object#Lib#value#IsType(X) abort "{{{1
-  " Whether X is a type
+
+function! object#Lib#type#IsType(X) abort "{{{1
+  " Whether X is a type.
+  " An object is a type iff it is an instance of `type`.
   return object#Lib#value#IsObj(a:X) &&
         \ object#Lib#type#Type__instancecheck__(s:builtins.type, a:X)
 endfunction
 
-function! object#Lib#type#IsInMRO(cls, type)
+function! object#Lib#type#CheckType(func, nr, X) abort "{{{1
+  " Check that arg `nr` to `func` is a type
+  if object#Lib#type#IsType(a:X)
+    return a:X
+  endif
+  call object#TypeError("%s() arg %d must be a type", a:func, a:nr)
+endfunction
+
+function! object#Lib#type#IsInMRO(cls, type) abort "{{{1
+  " The foundamental tool for all those checking is performing a
+  " linear find on `__mro__`. For example, `a` is an instance of `B`
+  " means the class of `a`, `A`  derives from `B`, which implies `A`
+  " is an subclass of `B`.
+  " When it comes to type object things can get complicated in mind.
+  " Consider a trivial case, `int` is an instance of `type`. This is
+  " because class of `int` is `type`, which is a subclass of itself.
+  " Consider a case involving metaclass, `Meta` derives from `type`
+  " and `A` sets `Meta` as its metaclass. The class of `A`, which is
+  " now `Meta`, derives from `type` so `A` is an instance of `type`.
+  " The class of `Meta` is `type`, so `Meta` is an instance of `type`
+  " trivially.
   return object#Lib#seqn#Any(a:type.__mro__, 'a:cls is v:val')
 endfunction
 
 function! object#Lib#type#Type__instancecheck__(type, obj) abort "{{{1
   " type.__instancecheck__()
-  " By default checks the __mro__.
   return object#Lib#type#IsInMRO(a:obj.__class__, a:type)
 endfunction
 
@@ -36,30 +66,28 @@ function! object#Lib#type#Type__subclasscheck__(type, subclass) abort "{{{1
 endfunction
 
 function! s:builtins.isinstance(obj, classinfo) "{{{1
-  if !object#Lib#type#IsType(a:classinfo)
-    call object#TypeError("isinstance() arg 2 must be a type")
-  endif
+  call object#Lib#type#CheckType('isinstance', 2, a:classinfo)
   return object#Lib#func#CallFuncref(a:classinfo.__instancecheck__, a:obj)
 endfunction
 
 function! s:builtins.issubclass(cls, classinfo) "{{{1
-  if !object#Lib#type#IsType(a:cls)
-    call object#TypeError("issubclass() arg 1 must be a class")
-  endif
-  if !object#Lib#type#IsType(a:classinfo)
-    call object#TypeError("issubclass() arg 2 must be a class")
-  endif
+  call object#Lib#type#CheckType('issubclass', 1, a:cls)
+  call object#Lib#type#CheckType('issubclass', 2, a:classinfo)
   return object#Lib#func#CallFuncref(a:classinfo.__subclasscheck__, a:cls)
 endfunction
 
 function! object#Lib#type#CheckBases(bases) abort "{{{1
+  " Check that all the bases is acceptable.
+  " - No duplicate.
+  " - No final class.
+  " - Must be a type.
   let seen = {}
   for B in a:bases
-    if !object#Lib#value#IsType(B)
-      call object#TypeError("base class should be type, not %s",
+    if !object#Lib#type#IsType(B)
+      call object#TypeError("base class must be a type, not %s",
             \ object#Lib#value#TypeName(B))
     endif
-    if has_key(B, '__final__') && B.__final__ == 1
+    if s:IsFinal(B)
       call object#TypeError("type '%s' is not an acceptable base type",
             \ B.__name__)
     endif
@@ -71,8 +99,18 @@ function! object#Lib#type#CheckBases(bases) abort "{{{1
   return a:bases
 endfunction
 
+function! s:InTail(item, seqn)
+  " Helper routine of `Object_mro()`.
+  " Whether `item` is in the tail of `seqn`.
+  if len(a:seqn) == 1
+    return 0
+  endif
+  return object#Lib#seqn#Any(a:seqn[1:], 'a:item is v:val')
+endfunction
+
 function! object#Lib#type#Object_mro() dict abort "{{{1
   " Implement classmethod object.mro()
+  " Compute the Method Resolution Order of `self`.
   if len(self.__bases__) == 1
     return [self] + self.__base__.__mro__
   endif
@@ -93,9 +131,7 @@ function! object#Lib#type#Object_mro() dict abort "{{{1
       let next = 0
     endfor
     if next is 0
-      call object#TypeError(
-            \ "Cannot create a consistent method resolution order\n(MRO) for bases %s, %s",
-            \ MRO[-1].__name__, next.__name__)
+      call object#TypeError(s:BAD_MRO_MSG, MRO[-1].__name__, next.__name__)
     endif
     call add(MRO, next)
     for seqn in candidates
@@ -107,36 +143,52 @@ function! object#Lib#type#Object_mro() dict abort "{{{1
 endfunction
 
 function! object#Lib#type#Type_New(name, bases, dict) abort "{{{1
-  " Create a new type
-  let base = object#Lib#type#CheckBases(a:bases)
-  let metaclass = s:type
+  " Create a new type with `name`, `bases` and initial attros from `dict`.
+  let name = object#Lib#value#CheckString('type', 1, a:name)
+  let bases = object#Lib#type#CheckBases(a:bases)
+  let dict = object#Lib#value#CheckDict('type', 3, a:dict)
+  let metaclass = s:builtins.type
   for parent in a:bases
     if has_key(parent, '__metaclass__')
       let metaclass = parent.__metaclass__
       break
     endif
   endfor
-  return object#Lib#type#Object_New(metaclass, name, bases, dict)
+  return object#Lib#class#Object_New(metaclass, name, bases, dict)
 endfunction
 
 function! object#Lib#type#CheckMRO(mro) abort "{{{1
-  if object#Lib#value#IsList(a:mro)
-    return a:mro
+  " Check that a customized `mro()` returns something sane.
+  " Honestly I don't know how this part of Python works so just
+  " impose minimal requirements here.
+  if !object#Lib#value#IsList(a:mro)
+    call object#TypeError('mro() should return a list, not %s',
+          \ object#Lib#value#TypeName(a:mro))
   endif
-  call object#TypeError('mro() should return a list, not %s',
-        \ object#Lib#value#TypeName(a:mor))
+  let seen = {}
+  for B in a:mro
+    if !object#Lib#type#IsType(B) ||
+          \ s:IsFinal(B) || has_key(seen, B.__name__)
+      call object#TypeError("mro() returned base with unsuitable layout")
+    endif
+    let seen[B.__name__] = 1
+  endfor
+  return a:mro
 endfunction
 
 function! object#Lib#type#Type__new__(metaclass, name, bases, dict) abort "{{{1
   " Implement type.__new__()
-  let type = object#Lib#class#Object__new__(metaclass)
+  let type = object#Lib#class#TypeAttros(a:metaclass)
+  let type.__class__ = a:metaclass
   let type.__name__ = a:name
   let type.__bases__ = copy(a:bases)
   let type.__base__ = a:bases[0]
-  let type.__classmethods__ = {}
-  let type.__staticmethods__ = {}
-  let type.__mro__ = object#Lib#type#CheckMRO(object#Lib#func#CallFuncref(type.mro))
-  call extend(type, dict, 'force')
+  let mro = object#Lib#func#CallFuncref(type.mro)
+  if type.mro isnot function('object#Lib#type#Object_mro')
+    call object#Lib#type#CheckMRO(mro)
+  endif
+  let type.__mro__ = mro
+  call extend(type, a:dict, 'force')
   return type
 endfunction
 
