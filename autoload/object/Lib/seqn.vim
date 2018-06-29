@@ -11,7 +11,7 @@ function! object#Lib#seqn#Dict_Contains(dict, key) abort "{{{1
 endfunction
 
 function! object#Lib#seqn#Iterable_Contains(iterable, target) abort "{{{1
-  " Return whether target is in iterable.
+  " Return whether `target` is in `iterable`.
   let iter = object#iter(a:iterable)
   try
     while 1
@@ -39,9 +39,8 @@ function! object#Lib#seqn#List_Contains(haystack, needle) abort "{{{1
   return index(a:haystack, a:needle) >= 0
 endfunction
 
-function! object#Lib#seqn#CheckedCallLen(obj) "{{{1
-  let num = object#Lib#value#CheckNumber2(
-        \ object#Lib#func#CallFuncref(a:obj.__len__))
+function! object#Lib#seqn#Call__len__(obj) abort "{{{1
+  let num = object#Lib#value#CheckNumber2(object#Lib#func#CallFuncref(a:obj.__len__))
   if num >= 0
     return num
   endif
@@ -56,49 +55,33 @@ function! object#Lib#seqn#Len(obj) abort "{{{1
   if object#Lib#value#IsString(a:obj)
     return object#Lib#seqn#Unicode_Len(a:obj)
   endif
-  if object#Lib#value#IsList(a:obj)
+  if object#Lib#value#IsContainer(a:obj)
     return len(a:obj)
   endif
-
-  if object#Lib#value#IsDict(a:obj)
-    if !has_key(a:obj, '__class__')
-      " Plain dict
-      return len(a:obj)
-    endif
-    if has_key(a:obj, '__len__')
-      return object#proto#seqn#CheckedCallLen(a:obj)
-    endif
+  if object#Lib#proto#HasProtocol(a:obj, '__len__')
+    return object#proto#seqn#Call__len__(a:obj)
   endif
   call object#TypeError("object of type '%s' has no len()",
         \ object#Lib#value#TypeName(a:obj))
-
 endfunction
 
 function! object#Lib#seqn#in(needle, haystack) abort "{{{1
   if object#Lib#value#IsList(a:haystack)
     return object#Lib#seqn#List_Contains(a:haystack, a:needle)
   endif
-
   if object#Lib#value#IsString(a:haystack)
     return object#Lib#seqn#Unicode_Contains(a:haystack, a:needle)
   endif
-
   if object#Lib#value#IsDict(a:haystack)
-    if !has_key(a:haystack, '__class__')
-      " NOTE: We don't ensure a:needle is a String.
-      " Just let automatic conversion happen.
-      return object#Lib#seqn#Dict_Contains(a:haystack, a:needle)
-    endif
-    if has_key(a:haystack, '__contains__')
-      " NOTE: return value of __contains__() is a bool context.
-      return object#bool(
-            \ object#Lib#func#CallFuncref(a:haystack.__contains__, a:needle))
-    endif
-    return object#Lib#seqn#Iterable_Contains(a:haystack, a:needle)
+    return object#Lib#seqn#Dict_Contains(a:haystack, a:needle)
   endif
+  if object#Lib#proto#HasProtocol(a:haystack, '__contains__')
+    " NOTE: return value of __contains__() is a bool context.
+    return object#bool(
+          \ object#Lib#func#CallFuncref(a:haystack.__contains__, a:needle))
+  endif
+  return object#Lib#seqn#Iterable_Contains(a:haystack, a:needle)
 endfunction
-
-
 
 " TOOD: sorted()
 

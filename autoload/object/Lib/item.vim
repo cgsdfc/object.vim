@@ -1,4 +1,4 @@
-function! object#Lib#item#CheckKey(key) "{{{1
+function! object#Lib#item#CheckKey(key) abort "{{{1
   " Only string and number can be used.
   " By explicitly disallowing other types, we don't need to catch
   " mysterious Vim errors and save the day.
@@ -9,15 +9,15 @@ function! object#Lib#item#CheckKey(key) "{{{1
         \ object#Lib#value#TypeName(a:key))
 endfunction
 
-function! object#Lib#item#CheckIndex(index) "{{{1
+function! object#Lib#item#CheckIndex(index) abort "{{{1
   if object#Lib#value#IsNumber(a:index)
     return a:index
   endif
-  call object#TypeError("list indices must be integers or slices, not %s",
+  call object#TypeError("list indices must be integer, not %s",
         \ object#Lib#value#TypeName(a:index))
 endfunction
 
-function! object#Lib#item#Dict_GetItem(dict, key) "{{{1
+function! object#Lib#item#Dict_GetItem(dict, key) abort "{{{1
   let key = object#Lib#item#CheckKey(a:key)
   try
     let Val = a:dict[key]
@@ -27,7 +27,7 @@ function! object#Lib#item#Dict_GetItem(dict, key) "{{{1
   return Val
 endfunction
 
-function! object#Lib#item#Dict_SetItem(dict, key, val) "{{{1
+function! object#Lib#item#Dict_SetItem(dict, key, val) abort "{{{1
   let key = object#Lib#item#CheckKey(a:key)
   try
     let a:dict[key] = a:val
@@ -37,7 +37,7 @@ function! object#Lib#item#Dict_SetItem(dict, key, val) "{{{1
   endtry
 endfunction
 
-function! object#Lib#item#Dict_DelItem(dict, key) "{{{1
+function! object#Lib#item#Dict_DelItem(dict, key) abort "{{{1
   let key = object#Lib#item#CheckKey(a:key)
   try
     unlet a:dict[key]
@@ -47,7 +47,7 @@ function! object#Lib#item#Dict_DelItem(dict, key) "{{{1
   endtry
 endfunction
 
-function! object#Lib#item#List_GetItem(list, index) "{{{1
+function! object#Lib#item#List_GetItem(list, index) abort "{{{1
   " Python just report 'list index out of range' without giving
   " the explicit index, while Vim makes it wrong for negative index
   " by giving the `index + len`.
@@ -61,7 +61,7 @@ function! object#Lib#item#List_GetItem(list, index) "{{{1
   return Val
 endfunction
 
-function! object#Lib#item#List_SetItem(list, index, val) "{{{1
+function! object#Lib#item#List_SetItem(list, index, val) abort "{{{1
   let index = object#Lib#item#CheckIndex(a:index)
   try
     let a:list[index] = a:val
@@ -74,7 +74,7 @@ function! object#Lib#item#List_SetItem(list, index, val) "{{{1
 endfunction
 
 " TODO: do the range check in CheckIndex() and save the day!
-function! object#Lib#item#List_DelItem(list, index) "{{{1
+function! object#Lib#item#List_DelItem(list, index) abort "{{{1
   let index = object#Lib#item#CheckIndex(a:index)
   try
     unlet a:list[index]
