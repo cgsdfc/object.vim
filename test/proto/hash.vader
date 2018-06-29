@@ -1,6 +1,0 @@
-Include(String Hashing): mapping/strhash.vader
-Include(Other Hashing): mapping/hash.vader
-Include(Number Info): mapping/nrinfo.vader
-
-" vim:ft=vim
-" vim: set sw=2 sts=2 et fdm=marker:

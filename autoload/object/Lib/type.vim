@@ -179,16 +179,17 @@ endfunction
 function! object#Lib#type#Type__new__(metaclass, name, bases, dict) abort "{{{1
   " Implement type.__new__()
   let type = object#Lib#class#TypeAttros(a:metaclass)
-  let type.__class__ = a:metaclass
-  let type.__name__ = a:name
-  let type.__bases__ = copy(a:bases)
-  let type.__base__ = a:bases[0]
   let mro = object#Lib#func#CallFuncref(type.mro)
   if type.mro isnot function('object#Lib#type#Object_mro')
     call object#Lib#type#CheckMRO(mro)
   endif
   let type.__mro__ = mro
-  call extend(type, a:dict, 'force')
+  let type.__class__ = a:metaclass
+  let type.__name__ = a:name
+  let type.__bases__ = copy(a:bases)
+  let type.__base__ = a:bases[0]
+  call extend(type, object#Lib#class#MROAttros(mro[1:]))
+  call extend(type, a:dict)
   return type
 endfunction
 

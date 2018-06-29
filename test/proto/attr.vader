@@ -1,6 +1,0 @@
-" TODO: delattr()
-Include(Test getattr()): attr/getattr.vader
-Include(Test setattr()): attr/setattr.vader
-Include(Test hasattr()): attr/hasattr.vader
-Include(Test dir()): attr/dir.vader
-" vim: ft=vim

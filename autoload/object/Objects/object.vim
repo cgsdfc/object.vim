@@ -20,4 +20,16 @@ function! s:object.__init__()
 
 endfunction
 
+function! s:object.__eq__(v)
+  return self is# a:v
+endfunction
+
+function! s:object.__ne__(v)
+  return self isnot# a:v
+endfunction
+
+function! s:object.__hash__()
+  return 0
+endfunction
+
 " vim: set sw=2 sts=2 et fdm=marker:
