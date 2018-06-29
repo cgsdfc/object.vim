@@ -3,6 +3,11 @@ let s:object = s:builtins.object
 let s:None = s:builtins.None
 let s:type = s:builtins.type
 
+" Seal away the dictionary of staticmethod.
+" Ban `self` from being modified.
+let s:STATIC_DICT = {}
+lockvar s:STATIC_DICT
+
 let s:implicit_staticmethods = [
       \ '__new__',
       \]
@@ -28,25 +33,6 @@ let s:ignored_attros = [
       \ '__staticmethods__',
       \]
 
-" Seal away the dictionary of staticmethod.
-" Ban `self` from being modified.
-let s:STATIC_DICT = {}
-lockvar s:STATIC_DICT
-
-function! object#Lib#class#MROAttros(mro) "{{{1
-  " Return initial attros of `type`.
-  let attros = {
-        \ '__classmethods__': {},
-        \ '__staticmethods__': {},
-        \}
-  for parent in a:mro
-    call extend(a:attros.__classmethods__, parent.__classmethods__, 'keep')
-    call extend(a:attros.__staticmethods__, parent.__staticmethods__, 'keep')
-    call extend(attros, filter(copy(parent),
-          \ 'index(s:ignored_attros, v:key)<0)'), 'keep')
-  endfor
-  return attros
-endfunction
 
 function! s:CallStaticMethod(staticmethod, ...) "{{{1
   return call(a:staticmethod, a:000, s:STATIC_DICT)
@@ -77,10 +63,34 @@ function! s:MapInstanceAttros(type, key, val) "{{{1
   return a:val
 endfunction
 
+function! s:CheckType(X) abort "{{{1
+  if object#Lib#type#IsType(a:X)
+    return a:X
+  endif
+  call object#TypeError("%s in not a type object",
+        \ object#Lib#value#TypeName(a:X))
+endfunction
+
+
+function! object#Lib#class#MROAttros(mro) "{{{1
+  " Return initial attros of `type`.
+  let attros = {
+        \ '__classmethods__': {},
+        \ '__staticmethods__': {},
+        \}
+  for parent in a:mro
+    call extend(a:attros.__classmethods__, parent.__classmethods__, 'keep')
+    call extend(a:attros.__staticmethods__, parent.__staticmethods__, 'keep')
+    call extend(attros, filter(copy(parent),
+          \ 'index(s:ignored_attros, v:key)<0)'), 'keep')
+  endfor
+  return attros
+endfunction
+
 function! object#Lib#class#InstanceAttros(type) abort "{{{1
   " Return attros of `type` that can be put into its instances.
   return map(filter(copy(a:type), 'index(s:ignored_attros, v:key)<0'),
-          \ 's:MapInstanceAttros(a:type, v:key, v:val)')
+        \ 's:MapInstanceAttros(a:type, v:key, v:val)')
 endfunction
 
 function! object#Lib#class#TypeAttros(type) abort "{{{1
@@ -96,17 +106,9 @@ function! object#Lib#class#Object__new__(type) abort " {{{1
   return obj
 endfunction
 
-function! object#Lib#class#CheckType(X) abort "{{{1
-  if object#Lib#type#IsType(a:X)
-    return a:X
-  endif
-  call object#TypeError("%s in not a type object",
-        \ object#Lib#value#TypeName(a:X))
-endfunction
-
 function! object#Lib#class#Object_New_(type, args) abort "{{{1
   " `type(*args)` => object of type.
-  let type = object#Lib#class#CheckType(a:type)
+  let type = s:CheckType(a:type)
   let obj = object#Lib#func#CallFuncref_(type.__new__, [a:type] + a:args)
   if obj.__class__ is a:type
     let v = object#Lib#func#CallFuncref_(a:obj.__init__, a:args)
@@ -120,6 +122,10 @@ endfunction
 
 function! object#Lib#class#Object_New(type, ...) abort "{{{1
   return object#Lib#class#Object_New_(a:type, a:000)
+endfunction
+
+function! object#Lib#class#GetIgnoredAttros() abort "{{{1
+  return s:ignored_attros
 endfunction
 
 function! object#Lib#class#FastType_New(name, ...) abort "{{{1
@@ -158,12 +164,14 @@ function! s:builtins.new(type, ...) "{{{1
 endfunction
 
 function! s:builtins.classmethod(type, name)
-  call object#Lib#class#CheckType(a:type)
+  call s:CheckType(a:type)
+  call object#Lib#value#CheckString2(a:name)
   let a:type.__classmethods__[a:name] = 1
 endfunction
 
 function! s:builtins.staticmethod(type, name)
-  call object#Lib#static#CheckType(a:type)
+  call s:CheckType(a:type)
+  call object#Lib#value#CheckString2(a:name)
   let a:type.__staticmethods__[a:name] = 1
 endfunction
 

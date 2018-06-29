@@ -1,8 +1,8 @@
 let s:reprobj = {
       \ 'seen': [],
-      \ 'List_Repr': function('object#Lib#List_Repr'),
-      \ 'Dict_Repr': function('object#Lib#Dict_Repr'),
-      \ 'ReprImpl': function('object#Lib#ReprImpl'),
+      \ 'List_Repr': function('object#Lib#repr#List_Repr'),
+      \ 'Dict_Repr': function('object#Lib#repr#Dict_Repr'),
+      \ 'ReprImpl': function('object#Lib#repr#ReprImpl'),
       \}
 
 let s:escapes = {
@@ -44,7 +44,7 @@ function! object#Lib#repr#ReprImpl(obj) dict abort "{{{1
   if object#Lib#value#IsString(a:obj)
     return object#Lib#repr#String_Repr(a:obj)
   endif
-  if object#Lib#value#IsType(a:obj)
+  if object#Lib#type#IsType(a:obj)
     return object#Lib#func#CallClassMethod(a:obj, '__repr__')
   endif
   if object#Lib#value#IsObj(a:obj)

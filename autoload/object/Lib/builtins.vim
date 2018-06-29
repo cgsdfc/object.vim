@@ -1,4 +1,7 @@
 " Serves as the builtins module.
+let s:PATH_TO_OBJECTS = printf('%s/Objects/*.vim',
+      \ fnamemodify(expand('<sfile>'), ':h:h'))
+
 let s:builtins = {
       \ 'object': {},
       \ 'type': {},
@@ -24,7 +27,7 @@ call extend(s:builtins.type, {
 
 function! object#Lib#builtins#Bootstrap() abort "{{{1
   " Bootstrap the builtin types.
-  let files = glob(expand('<sfile>:p:p').'./Objects/*.vim', 1)
+  let files = glob(s:PATH_TO_OBJECTS, 0, 1)
   for f in files
     silent! source f
   endfor
@@ -65,5 +68,7 @@ function! object#Lib#builtins#Call(name, ...) " {{{1
   " Call a builtin function by name.
   return object#Lib#func#Call_(get(s:builtins, a:name), a:000)
 endfunction
+
+" Load all the builtin functions that are not loaded.
 
 " vim: set sw=2 sts=2 et fdm=marker:
