@@ -1,15 +1,15 @@
+function! object#Lib#list#List_New(...) abort "{{{1
+  return object#Lib#func#Call('object#Lib#list#List_NewImpl', a:000)
+endfunction
 
-" FUNCTION: list() {{{1
-""
-" @function list(...)
-" Create a plain |List|.
-" >
-"   list() -> an empty list.
-"   list(plain list) -> a shallow copy of it.
-"   list(iterable) -> initiazed with items of iterable.
-"   list(list object) -> a copy of the underlying list.
-" <
-function! object#list#list(...)
+function! object#Lib#list#List_NewImpl(...) abort "{{{1
+  " Create a plain |List|.
+  " >
+  "   list() -> an empty list.
+  "   list(plain list) -> a shallow copy of it.
+  "   list(iterable) -> initiazed with items of iterable.
+  "   list(list object) -> a copy of the underlying list.
+  " <
   call object#builtin#TakeAtMostOptional('list', 1, a:0)
   if !a:0
     return []
