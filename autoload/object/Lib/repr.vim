@@ -1,3 +1,10 @@
+let s:reprobj = {
+      \ 'seen': [],
+      \ 'List_Repr': function('object#Lib#List_Repr'),
+      \ 'Dict_Repr': function('object#Lib#Dict_Repr'),
+      \ 'ReprImpl': function('object#Lib#ReprImpl'),
+      \}
+
 let s:escapes = {
       \ "\b": '\b',
       \ "\e": '\e',
@@ -12,16 +19,26 @@ function! s:gsub(str,pat,rep) abort
   return substitute(a:str,'\v\C'.a:pat,a:rep,'g')
 endfunction
 
-function! object#Lib#repr#ReprImpl(seen, obj) abort "{{{1
+function! object#Lib#repr#Dict_Repr(obj) dict abort "{{{1
+  return printf('{%s}', join(map(items(a:obj),
+        \ 'printf("''%s'': %s", v:val[0], self.ReprImpl(v:val[1]))'),
+        \ ', '))
+endfunction
+
+function! object#Lib#repr#List_Repr(obj) dict abort "{{{1
+  return printf('[%s]', join(map(copy(a:obj),
+        \ 'self.ReprImpl(v:val)'), ', '))
+endfunction
+
+function! object#Lib#repr#ReprImpl(obj) dict abort "{{{1
   if object#Lib#value#IsContainer(a:obj)
-    if object#Lib#seqn#Any(a:seen, 'a:obj is v:val')
+    if object#Lib#seqn#Any(self.seen, 'a:obj is v:val')
       return object#Lib#value#IsList(a:obj) ? '[...]' : '{...}'
     endif
-    call add(a:seen, a:obj)
+    call add(self.seen, a:obj)
     let repr = object#Lib#value#IsList(a:obj) ?
-          \ object#Lib#repr#List_Repr(a:seen, a:obj):
-          \ object#Lib#repr#Dict_Repr(a:seen, a:obj)
-    call remove(a:seen, -1)
+          \ self.List_Repr(a:obj): self.Dict_Repr(a:obj)
+    call remove(self.seen, -1)
     return repr
   endif
   if object#Lib#value#IsString(a:obj)
@@ -56,18 +73,7 @@ function! object#Lib#repr#Object__repr__() dict abort "{{{1
   return printf('<%s object>', self.__class__.__name__)
 endfunction
 
-function! object#Lib#repr#Dict_Repr(seen, dict) abort "{{{1
-  return printf('{%s}', join(map(items(a:dict),
-        \ 'printf("''%s'': %s", v:val[0], object#Lib#repr#ReprImpl(a:seen, v:val[1]))'),
-        \ ', '))
-endfunction
-
-function! object#Lib#repr#List_Repr(seen, list) abort "{{{1
-  return printf('[%s]', join(map(copy(a:list),
-        \ 'object#Lib#repr#ReprImpl(a:seen, v:val)'), ', '))
-endfunction
-
 function! object#Lib#repr#Repr(obj) abort "{{{1
-  return object#Lib#func#Call('object#Lib#repr#ReprImpl', [], a:obj)
+  return deepcopy(s:reprobj).ReprImpl(a:obj)
 endfunction
 " vim: set sw=2 sts=2 et fdm=marker:
