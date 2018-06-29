@@ -5,19 +5,23 @@ function! object#Lib#callable#Lambda_New(...) abort "{{{1
   return function('object#Objects#lambda#Eval', [lmbd])
 endfunction
 
+function! s:UnpackList(names, args) "{{{1
+  let i = 0
+  while i < len(a:names)
+    let {a:names[i]} = a:args[i]
+    let i += 1
+  endwhile
+  unlet i
+  return l:
+endfunction
+
 function! object#Lib#callable#UnpackArgs(formal, actual) abort "{{{1
   " Unpack `actual` into `formal` in such a list that,
   " [[formal1, actual1], ...]
   if len(a:formal) != len(a:actual)
     call object#TypeError("cannot unpack arguments")
   endif
-  let i = 0
-  while i < len(a:formal)
-    let {a:formal[i]} = a:actual[i]
-    let i += 1
-  endwhile
-  unlet i
-  return l:
+  return s:UnpackList(a:formal, a:actual)
 endfunction
 
 function! object#Lib#callable#UnpackIterator(iter, args) abort "{{{1
@@ -26,17 +30,11 @@ function! object#Lib#callable#UnpackIterator(iter, args) abort "{{{1
   " or for i in dict.items()```
   " both work.
   if len(a:iter) == 1
-    let {a:iter[0]} = a:args
+    return {a:iter[0]: a:args}
   elseif len(a:iter) == len(a:args)
-    let i = 0
-    while i < len(a:iter)
-      let {a:iter[i]} = a:iter[i]
-      let i += 1
-    endwhile
-    unlet i
+    return s:UnpackList(a:iter, a:args)
   else
     call object#TypeError("cannot unpack arguments")
   endif
-  return l:
 endfunction
 " vim: set sw=2 sts=2 et fdm=marker:
