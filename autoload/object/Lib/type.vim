@@ -65,16 +65,18 @@ function! object#Lib#type#Type__subclasscheck__(type, subclass) abort "{{{1
   return object#Lib#type#IsInMRO(a:subclass, a:type)
 endfunction
 
-function! s:builtins.isinstance(obj, classinfo) "{{{1
+function! object#Lib#type#IsInstance(obj, classinfo) "{{{1
   call object#Lib#type#CheckType('isinstance', 2, a:classinfo)
   return object#Lib#func#CallFuncref(a:classinfo.__instancecheck__, a:obj)
 endfunction
+let s:builtins.isinstance = function('object#Lib#type#IsInstance')
 
-function! s:builtins.issubclass(cls, classinfo) "{{{1
+function! object#Lib#type#IsSubclass(cls, classinfo) abort "{{{1
   call object#Lib#type#CheckType('issubclass', 1, a:cls)
   call object#Lib#type#CheckType('issubclass', 2, a:classinfo)
   return object#Lib#func#CallFuncref(a:classinfo.__subclasscheck__, a:cls)
 endfunction
+let s:builtins.issubclass = function('object#Lib#type#IsSubclass')
 
 function! object#Lib#type#CheckBases(bases) abort "{{{1
   " Check that all the bases is acceptable.

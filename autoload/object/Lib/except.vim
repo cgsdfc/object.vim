@@ -1,57 +1,46 @@
-let s:BaseException = object#except#builtin#BaseException()
+let s:builtins = object#Lib#builtins#GetModuleDict()
 
-" FUNCTION: raise() {{{1
-""
-" @function raise(...)
-" Raise an exception.
-" >
-"   raise() -> Re-throw v:exception.
-"   raise(type, ...) -> throw str(type(...)).
-" <
-function! object#except#raise(...)
+function! object#Lib#except#Raise(...) abort "{{{1
+  " raise() -> Re-throw v:exception.
+  " raise(type, ...) -> throw str(type(...)).
   if !a:0
     if v:exception isnot ''
       throw v:exception
     endif
     call object#RuntimeError('No active exception to reraise')
   endif
-  if object#issubclass(a:1, s:BaseException)
-    call call('object#except#throw', a:000)
+  if object#Lib#type#IsSubclass(a:1, s:BaseException)
+    let e = object#Lib#class#Object_New_(a:except, a:args)
+    throw printf('%s: %s', a:except.__name__, e.__str__())
   else
     call object#TypeError('exceptions must derive from BaseException')
   endif
 endfunction
+let s:builtins.raise = function('object#Lib#except#Raise')
 
-" Instantiate except with argument and throw the str of it.
-" Without validate except.
-function! object#except#throw_(except, args)
-  let e = object#new_(a:except, a:args)
-  throw printf('%s: %s', a:except.__name__, e.__str__())
+function! object#Lib#except#FastThrowException(name, args) abort "{{{1
+  " Implement functions like `object#ValueError()`.
+  throw printf('%s: %s', a:name, len(a:args) == 0 ? '' :
+        \ len(a:args) == 1 ? a:args[0]: call('printf', a:args))
 endfunction
 
-function! object#except#throw(except, ...)
-  return object#except#throw_(a:except, a:000)
-endfunction
-
-" FUNCTION: FormatVimError() {{{1
-" Prettify v:exception.
-" >
-"   Vim(let): E111: something bad happened
-"   becomes
-"   something bad happens (E111)
-" <
-" I don't think the let is any useful.
-" What is really useful is the complete line of code
-" that goes wrong, the filename and the line number.
-" A plain let gives you too little than nothing.
-"
-" The oddness of the format of v:exception:
-" - When it is `throw`, it is the string that was thrown.
-" - When it is run in the prompt (interactively), the `Vim(xxx)`
-"   disappear.
-" - When run in a script, we have the full `Vim(xxx): E111: xxxx`.
-" TODO: Is there a better name for it? It sounds very like an exception.
-function! object#builtin#FormatVimError(error)
+function! object#Lib#except#FormatVimError(error) abort "{{{1
+  " Prettify v:exception.
+  " ```
+  "   Vim(let): E111: something bad happened
+  "   becomes
+  "   something bad happened (E111)
+  " ```
+  " I don't think the let is any useful.
+  " What is really useful is the complete line of code
+  " that goes wrong, the filename and the line number.
+  " A plain let gives you too little than nothing.
+  "
+  " The oddness of the format of v:exception:
+  " - When it is `throw`, it is the string that was thrown.
+  " - When it is run in the prompt (interactively), the `Vim(xxx)`
+  "   disappear.
+  " - When run in a script, we have the full `Vim(xxx): E111: xxxx`.
   let list = matchlist(a:error, '\V\C\^\.\*\(E\d\+\): \(\.\+\)\$')
   if empty(list)
     return a:error

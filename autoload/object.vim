@@ -1,345 +1,252 @@
-if exists('s:loaded')
+if exists('s:loaded') && s:loaded is 1
   finish
 endif
 
-call object#Lib#bootstrap#Initialize()
+call object#Lib#builtins#Bootstrap()
 let s:loaded = 1
 
-" TODO: Use the Lib.builtins
-" MODULE: types.vim {{{1
-
-function! object#object(...) abort
-  return object#Lib#builtin#New_('object', a:000)
-endfunction
-
-function! object#None(...) abort
-  return call('object#class#types#None', a:000)
-endfunction
-" }}}1
-
-" MODULE: class.vim {{{1
-
-function! object#class(...) abort
-  return call('object#class#class', a:000)
-endfunction
-
-function! object#type(...) abort
-  return call('object#class#type', a:000)
+function! object#object() abort "{{{1
+  return object#Lib#builtins#Object_New('object')
 endfunction
 
-function! object#new_(...) abort
-  return call('object#class#new_', a:000)
+function! object#None(...) abort "{{{1
+  return object#Lib#builtins#Get('None')
 endfunction
 
-function! object#new(...) abort
-  return call('object#class#new', a:000)
+function! object#class(...) abort "{{{1
+  return object#Lib#builtins#Call_('class', a:000)
 endfunction
 
-function! object#isinstance(...) abort
-  return call('object#class#isinstance', a:000)
+function! object#type(...) abort "{{{1
+  return object#Lib#builtins#Object_New_('type', a:000)
 endfunction
 
-function! object#issubclass(...) abort
-  return call('object#class#issubclass', a:000)
+function! object#new(...) abort "{{{1
+  return object#Lib#builtins#Call_('new', a:000)
 endfunction
-" }}}1
 
-" MODULE: proto.vim {{{1
-function! object#repr(...) abort
-  return call('object#proto#repr', a:000)
+function! object#isinstance(...) abort "{{{1
+  return object#Lib#builtins#Call_('isinstance', a:000)
 endfunction
-" }}}1
 
-" MODULE: attr.vim {{{1
-function! object#dir(...) abort
-  return call('object#proto#attr#dir', a:000)
+function! object#issubclass(...) abort "{{{1
+  return object#Lib#builtins#Call_('issubclass', a:000)
 endfunction
 
-function! object#getattr(...) abort
-  return call('object#proto#attr#getattr', a:000)
+function! object#repr(...) abort "{{{1
+  return object#Lib#builtins#Call_('repr', a:000)
 endfunction
 
-function! object#delattr(...) abort
-  return call('object#proto#attr#delattr', a:000)
+function! object#dir(...) abort "{{{1
+  return object#Lib#builtins#Call_('dir', a:000)
 endfunction
 
-function! object#setattr(...) abort
-  return call('object#proto#attr#setattr', a:000)
+function! object#getattr(...) abort "{{{1
+  return object#Lib#builtins#Call_('getattr', a:000)
 endfunction
 
-function! object#hasattr(...) abort
-  return call('object#proto#attr#hasattr', a:000)
+function! object#delattr(...) abort "{{{1
+  return object#Lib#builtins#Call_('delattr', a:000)
 endfunction
-" }}}1
 
-" MODULE: seqn.vim Sequence Protocols {{{1
-function! object#len(...) abort
-  return call('object#proto#seqn#len', a:000)
+function! object#setattr(...) abort "{{{1
+  return object#Lib#builtins#Call_('setattr', a:000)
 endfunction
 
-function! object#in(...) abort
-  return call('object#proto#seqn#in', a:000)
+function! object#hasattr(...) abort "{{{1
+  return object#Lib#builtins#Call_('hasattr', a:000)
 endfunction
-" }}}1
-" }}}1
 
-" MODULE: hash.vim {{{1
-function! object#hash(...) abort
-  return call('object#hash#hash', a:000)
+function! object#len(...) abort "{{{1
+  return object#Lib#builtins#Call_('len', a:000)
 endfunction
-" }}}1
 
-" MODULE: mapping.vim {{{1
-function! object#delitem(...) abort
-  return call('object#proto#mapping#delitem', a:000)
-  return object#Modules#builtin('delitem', a:000)
+function! object#in(...) abort "{{{1
+  return object#Lib#builtins#Call_('in', a:000)
 endfunction
 
-function! object#getitem(...) abort
-  return call('object#proto#mapping#getitem', a:000)
+function! object#hash(...) abort "{{{1
+  return object#Lib#builtins#Call_('hash', a:000)
 endfunction
-
-function! object#setitem(...) abort
-  return call('object#proto#mapping#setitem', a:000)
-endfunction
-" }}}1
-
-" MODULE: except.vim: raise() and Exception Hierarchy {{{1
 
-function! object#raise(...) abort
-  return call('object#except#raise', a:000)
+function! object#delitem(...) abort "{{{1
+  return object#Lib#builtins#Call_('delitem', a:000)
 endfunction
 
-function! object#Exception(...) abort
-  return call('object#except#throw#Exception', a:000)
+function! object#getitem(...) abort "{{{1
+  return object#Lib#builtins#Call_('getitem', a:000)
 endfunction
 
-function! object#ValueError(...) abort
-  return call('object#except#throw#ValueError', a:000)
+function! object#setitem(...) abort "{{{1
+  return object#Lib#builtins#Call_('setitem', a:000)
 endfunction
 
-function! object#TypeError(...) abort
-  return call('object#except#throw#TypeError', a:000)
-endfunction
 
-function! object#StopIteration(...) abort
-  return call('object#except#throw#StopIteration', a:000)
+function! object#raise(...) abort "{{{1
+  return object#Lib#builtins#Call_('raise', a:000)
 endfunction
 
-function! object#AttributeError(...) abort
-  return call('object#except#throw#AttributeError', a:000)
+" TODO: Since they are frequently used, don't rely on
+" the system, just throw them.
+function! object#Exception(...) abort "{{{1
+  return object#Lib#except#FastThrowException('Exception', a:000)
 endfunction
 
-function! object#IndexError(...) abort
-  return call('object#except#throw#IndexError', a:000)
+function! object#ValueError(...) abort "{{{1
+  return object#Lib#except#FastThrowException('ValueError', a:000)
 endfunction
 
-function! object#KeyError(...) abort
-  return call('object#except#throw#KeyError', a:000)
+function! object#TypeError(...) abort "{{{1
+  return object#Lib#except#FastThrowException('TypeError', a:000)
 endfunction
 
-function! object#OSError(...) abort
-  return call('object#except#throw#OSError', a:000)
+function! object#StopIteration(...) abort "{{{1
+  return object#Lib#except#FastThrowException('StopIteration', a:000)
 endfunction
 
-function! object#NameError(...) abort
-  return call('object#except#throw#NameError', a:000)
+function! object#AttributeError(...) abort "{{{1
+  return object#Lib#except#FastThrowException('AttributeError', a:000)
 endfunction
 
-function! object#VimError(...) abort
-  return call('object#except#throw#VimError', a:000)
+function! object#IndexError(...) abort "{{{1
+  return object#Lib#except#FastThrowException('IndexError', a:000)
 endfunction
 
-function! object#RuntimeError(...) abort
-  return call('object#except#throw#RuntimeError', a:000)
+function! object#KeyError(...) abort "{{{1
+  return object#Lib#except#FastThrowException('KeyError', a:000)
 endfunction
 
-function! object#SyntaxError(...) abort
-  return call('object#except#throw#SyntaxError', a:000)
+function! object#OSError(...) abort "{{{1
+  return object#Lib#except#FastThrowException('OSError', a:000)
 endfunction
-" }}}1
 
-" MODULE: iter.vim {{{1
-
-function! object#iter(...) abort
-  return call('object#iter#iter', a:000)
+function! object#NameError(...) abort "{{{1
+  return object#Lib#except#FastThrowException('NameError', a:000)
 endfunction
 
-function! object#next(...) abort
-  return call('object#iter#next', a:000)
+function! object#VimError(...) abort "{{{1
+  return object#Lib#except#FastThrowException('VimError', a:000)
 endfunction
 
-function! object#all(...) abort
-  return call('object#iter#all', a:000)
+function! object#RuntimeError(...) abort "{{{1
+  return object#Lib#except#FastThrowException('RuntimeError', a:000)
 endfunction
 
-function! object#any(...) abort
-  return call('object#iter#any', a:000)
+function! object#SyntaxError(...) abort "{{{1
+  return object#Lib#except#FastThrowException('SyntaxError', a:000)
 endfunction
 
-function! object#sum(...) abort
-  return call('object#iter#sum', a:000)
-endfunction
-" }}}1
 
-" MODULE: enumerate, zip, map, filter {{{1
-function! object#enumerate(...) abort
-  return object#Lib#BuiltinType_New('enumerate', a:000)
+function! object#iter(...) abort "{{{1
+  return object#Lib#builtins#Call_('iter', a:000)
 endfunction
 
-function! object#zip(...) abort
-  return call('object#iter#zip#zip', a:000)
+function! object#next(...) abort "{{{1
+  return object#Lib#builtins#Call_('next', a:000)
 endfunction
 
-function! object#map(...) abort
-  return call('object#iter#map#map', a:000)
+function! object#all(...) abort "{{{1
+  return object#Lib#builtins#Call_('all', a:000)
 endfunction
 
-function! object#filter(...) abort
-  return call('object#iter#filter#filter', a:000)
+function! object#any(...) abort "{{{1
+  return object#Lib#builtins#Call_('any', a:000)
 endfunction
-" }}}1
 
-" MODULE: range {{{1
-function! object#range(...) abort
-  return call('object#iter#range#range', a:000)
+function! object#sum(...) abort "{{{1
+  return object#Lib#builtins#Call_('sum', a:000)
 endfunction
-" }}}1
 
-" MODULE: reversed {{{1
-function! object#reversed(...) abort
-  return call('object#iter#reversed#reversed', a:000)
+function! object#enumerate(...) abort "{{{1
+  return object#Lib#builtins#Object_New_('enumerate', a:000)
 endfunction
-" }}}1
 
-" MODULE: file.vim {{{1
-
-function! object#open(...) abort
-  return call('object#io#file#open', a:000)
+function! object#zip(...) abort "{{{1
+  return object#Lib#builtins#Object_New_('zip', a:000)
 endfunction
 
-function! object#file_(...) abort
-  return call('object#io#file#file_', a:000)
+function! object#map(...) abort "{{{1
+  return object#Lib#builtins#Object_New_('map', a:000)
 endfunction
-" }}}1
 
-" MODULE: lambda.vim {{{1
-
-function! object#lambda(...) abort
-  return call('object#lambda#lambda', a:000)
+function! object#filter(...) abort "{{{1
+  return object#Lib#builtins#Object_New_('filter', a:000)
 endfunction
 
-function! object#_lambda(...) abort
-  return call('object#lambda#_lambda', a:000)
+function! object#range(...) abort "{{{1
+  return object#Lib#builtins#Object_New_('range', a:000)
 endfunction
 
-function! object#lambda_(...) abort
-  return call('object#lambda#lambda_', a:000)
+function! object#reversed(...) abort "{{{1
+  return object#Lib#builtins#Object_New_('reversed', a:000)
 endfunction
 
-function! object#for(...) abort
-  return call('object#lambda#for', a:000)
-endfunction
-" }}}1
 
-" MODULE: super.vim {{{1
 
-function! object#super(...) abort
-  return call('object#class#super#super', a:000)
-endfunction
 
-function! object#super_(...) abort
-  return call('object#class#super#super_', a:000)
+function! object#lambda(...) abort "{{{1
+  return object#Lib#builtins#Object_New_('lambda', a:000)
 endfunction
-" }}}1
 
-" MODULE: list.vim {{{1
-"
-function! object#list_(...) abort
-  return call('object#list#list#list_', a:000)
+function! object#for(...) abort "{{{1
+  return object#Lib#builtins#Call_('for', a:000)
 endfunction
 
-function! object#list(...) abort
-  return call('object#list#list', a:000)
-endfunction
 
-function! object#_list(...) abort
-  return call('object#list#list#_list', a:000)
+function! object#super(...) abort "{{{1
+  return object#Lib#builtins#Object_New_('super', a:000)
 endfunction
-" }}}1
 
-" MODULE: dict.vim {{{1
-"
-function! object#dict_(...) abort
-  return call('object#dict#dict#dict_', a:000)
+function! object#super_(...) abort "{{{1
+  return object#Lib#builtins#Call_('super_', a:000)
 endfunction
 
-function! object#dict(...) abort
-  return call('object#dict#dict', a:000)
-endfunction
 
-function! object#_dict(...) abort
-  return call('object#dict#dict#_dict', a:000)
+function! object#list(...) abort "{{{1
+  return object#Lib#builtins#Object_New_('list', a:000)
 endfunction
-" }}}1
 
-" MODULE: str.vim {{{1
-"
-function! object#str(...) abort
-  return call('object#str#str', a:000)
-endfunction
 
-function! object#chr(...) abort
-  return call('object#str#chr', a:000)
-endfunction
 
-function! object#ord(...) abort
-  return call('object#str#ord', a:000)
+function! object#dict(...) abort "{{{1
+  return object#Lib#builtins#Object_New_('dict', a:000)
 endfunction
 
-function! object#_str(...) abort
-  return call('object#str#str#_str', a:000)
-endfunction
 
-function! object#str_(...) abort
-  return call('object#str#str#str_', a:000)
+function! object#str(...) abort "{{{1
+  return object#Lib#builtins#Object_New_('str', a:000)
 endfunction
-" }}}1
 
-" MODULE: int.vim {{{1
-function! object#int(...) abort
-  return call('object#number#int#int', a:000)
+function! object#chr(...) abort "{{{1
+  return object#Lib#builtins#Call_('chr', a:000)
 endfunction
 
-function! object#_int(...) abort
-  return call('object#number#int#_int', a:000)
+function! object#ord(...) abort "{{{1
+  return object#Lib#builtins#Call_('ord', a:000)
 endfunction
 
-function! object#int_(...) abort
-  return call('object#number#int#int_', a:000)
+function! object#int(...) abort "{{{1
+  return object#Lib#builtins#Call_('int', a:000)
 endfunction
 
-function! object#bin(...) abort
-  return call('object#number#int#bin', a:000)
+function! object#bin(...) abort "{{{1
+  return object#Lib#builtins#Call_('bin', a:000)
 endfunction
 
-function! object#hex(...) abort
-  return call('object#number#int#hex', a:000)
+function! object#hex(...) abort "{{{1
+  return object#Lib#builtins#Call_('hex', a:000)
 endfunction
 
-function! object#oct(...) abort
-  return call('object#number#int#oct', a:000)
+function! object#oct(...) abort "{{{1
+  return object#Lib#builtins#Call_('oct', a:000)
 endfunction
 
-function! object#abs(...) abort
-  return call('object#number#int#abs', a:000)
+function! object#abs(...) abort "{{{1
+  return object#Lib#builtins#Call_('abs', a:000)
 endfunction
-" }}}1
 
-" MODULE: bool.vim {{{1
-function! object#bool(...) abort
-  return call('object#bool#bool', a:000)
+function! object#bool(...) abort "{{{1
+  return call('object#Lib#bool#Bool', a:000)
 endfunction
-" }}}1
 
 " vim: set sw=2 sts=2 et fdm=marker:
