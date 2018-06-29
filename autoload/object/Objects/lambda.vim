@@ -22,17 +22,14 @@ endfunction
 
 function! object#Objects#lambda#Eval(lmbd, ...) abort "{{{1
   try
-    let args = object#Lib#callable#UnpackArgs(a:lmbd.__args__, a:000)
+    call extend(l:, object#Lib#callable#UnpackArgs(a:lmbd.__args__, a:000))
   catch 'TypeError'
     call object#TypeError('lambda takes exactly %d arguments (%d given)',
           \ len(a:lmbd.__args__), len(a:000))
   endtry
-  for [Key, Val] in args
-    let {Key} = Val
-  endfor
   if has_key(a:lmbd, '__closure__')
     let c = a:lmbd.__closure__
   endif
-  return object#Lib#func#Call('eval', a:lmbd.__code__)
+  return eval(a:lmbd.__code__)
 endfunction
 " vim: set sw=2 sts=2 et fdm=marker:

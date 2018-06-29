@@ -9,27 +9,34 @@ function! object#Lib#callable#UnpackArgs(formal, actual) abort "{{{1
   " Unpack `actual` into `formal` in such a list that,
   " [[formal1, actual1], ...]
   if len(a:formal) != len(a:actual)
-    call object#TypeError("cannot unpack %d arguments to %d names",
-          \ len(a:actual), len(a:formal))
+    call object#TypeError("cannot unpack arguments")
   endif
-  let args = []
   let i = 0
   while i < len(a:formal)
-    call add(args, [a:formal[i], a:actual[i]])
+    let {a:formal[i]} = a:actual[i]
     let i += 1
   endwhile
-  return args
+  unlet i
+  return l:
 endfunction
 
-"
-" Execute {__excmds} with {__items} set as items
-" from the iterator.
-function! object#Lib#callable#execute_cmds(__excmds, __items, __closure)
-  let c = a:__closure
-  for __i in a:__items
-    let {__i[0]} = __i[1]
-  endfor
-  execute a:__excmds
+function! object#Lib#callable#UnpackIterator(iter, args) abort "{{{1
+  " Unpack `args` into `iter` such that
+  " ```for key, val in dict.items()
+  " or for i in dict.items()```
+  " both work.
+  if len(a:iter) == 1
+    let {a:iter[0]} = a:args
+  elseif len(a:iter) == len(a:args)
+    let i = 0
+    while i < len(a:iter)
+      let {a:iter[i]} = a:iter[i]
+      let i += 1
+    endwhile
+    unlet i
+  else
+    call object#TypeError("cannot unpack arguments")
+  endif
+  return l:
 endfunction
-
 " vim: set sw=2 sts=2 et fdm=marker:

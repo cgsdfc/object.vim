@@ -145,8 +145,14 @@ function! object#Lib#value#TypeName(X) abort "{{{1
   return s:typenames[type(a:X)]
 endfunction
 
-" TODO: Move it to number.vim
-" Alternative forms of type-check.
+function! object#Lib#value#CheckString2(X) abort "{{{1
+  if object#Lib#value#IsString(a:X)
+    return a:X
+  endif
+  call object#TypeError("'%s' object cannot be interpreted as a string",
+        \ object#Lib#value#TypeName(a:X))
+endfunction
+
 function! object#Lib#value#CheckNumber2(X) abort "{{{1
   if object#Lib#value#IsNumber(a:X)
     return a:X

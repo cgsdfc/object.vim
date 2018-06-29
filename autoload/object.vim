@@ -185,7 +185,7 @@ endfunction
 
 
 function! object#lambda(...) abort "{{{1
-  return object#Lib#builtins#Object_New_('lambda', a:000)
+  return object#Lib#callable#Lambda_New(a:000)
 endfunction
 
 function! object#for(...) abort "{{{1
