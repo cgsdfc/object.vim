@@ -1,9 +1,4 @@
 let s:builtins = object#Lib#builtins#GetModuleDict()
-" PERF: next() and iter() both do CheckIterator(),
-" In all(), the check of next() is rebundant.
-function! object#Lib#iter#IterSelf() dict abort "{{{1
-  return self
-endfunction
 
 function! object#Lib#iter#iter(...) abort "{{{1
   " Return an iterator from {obj}.
@@ -25,35 +20,32 @@ function! object#Lib#iter#iter(...) abort "{{{1
     endif
     return object#Lib#builtins#Object_New_('callable_iterator', a:000)
   endif
-
-  let obj = object#Lib#iter#CheckIterable(a:1)
+  if object#Lib#proto#IsIterable(a:1)
+    let obj = a:1
+  else
+    call object#TypeError("'%s' object is not iterable",
+          \ object#Lib#value#TypeName(a:X))
+  endif
   if object#Lib#value#IsList(obj)
-    return object#list#Lib#iter#iter(obj)
+    return object#Lib#builtins#Object_New('list_iterator', obj)
   endif
   if object#Lib#value#IsString(obj)
-    return object#str#iter#iter(obj)
+    return object#Lib#builtins#Object_New('str_iterator', obj)
   endif
-
   let iter = object#Lib#func#CallFuncref(obj.__iter__)
-  return object#Lib#iter#CheckIterator(iter,
-        \ printf("iter() returned non-iterator of type '%s'",
-        \ object#Lib#value#TypeName(iter)))
+  if !object#Lib#proto#IsIterator(iter)
+    call object#TypeError("iter() returned non-iterator of type '%s'",
+          \ object#Lib#value#TypeName(iter))
+  endif
+  return iter
 endfunction
 let s:builtins.iter = function('object#Lib#iter#iter')
 
-function! object#Lib#iter#CheckIterator(X, msg) abort "{{{1
+function! s:CheckIterator(X, msg) abort "{{{1
   if object#Lib#proto#IsIterator(a:X)
     return a:X
   endif
   call object#TypeError(a:msg)
-endfunction
-
-function! object#Lib#iter#CheckIterable(X) abort "{{{1
-  if object#Lib#proto#IsIterable(a:X)
-    return a:X
-  endif
-  call object#TypeError("'%s' object is not iterable",
-        \ object#Lib#value#TypeName(a:X))
 endfunction
 
 function! object#Lib#iter#next(obj, ...) abort "{{{1
@@ -62,52 +54,21 @@ function! object#Lib#iter#next(obj, ...) abort "{{{1
   "   next(iter) -> next item from iter
   " <
   call object#Lib#value#TakeAtMostOptional('next', 1, a:0)
-  let obj = object#Lib#iter#CheckIterator(a:obj,
-        \ printf("'%s' object is not an iterator",
-        \ object#Lib#value#TypeName(a:obj)))
+  if !object#Lib#proto#IsIterator(a:obj)
+    call object#TypeError("'%s' object is not an iterator",
+          \ object#Lib#value#TypeName(a:obj))
+  endif
   try
-    let Val = object#Lib#func#CallFuncref(obj.__next__)
+    let Val = object#Lib#func#CallFuncref(a:obj.__next__)
+    return Val
   catch 'StopIteration'
     if a:0 == 1
       return a:1
     endif
     throw v:exception
   endtry
-  return Val
 endfunction
 let s:builtins.next = function('object#Lib#iter#next')
-
-function! object#Lib#iter#index(iterable, value) abort "{{{1
-  " Return the index of the first occurence of value.
-  " Throw ValueError if not present.
-  let iter = object#iter(a:iterable)
-  let index = 0
-  try
-    while 1
-      if maktaba#value#IsEqual(a:value, object#next(iter))
-        return index
-      endif
-      let index += 1
-    endwhile
-  catch 'StopIteration'
-    call object#ValueError("sequence.index(x): x not in sequence")
-  endtry
-endfunction
-
-function! object#Lib#iter#count(iterable, value) abort "{{{1
-  " Return the times value appears in iterable.
-  let iter = object#iter(a:iterable)
-  let sum = 0
-  try
-    while 1
-      if maktaba#value#IsEqual(a:value, object#next(iter))
-        let sum += 1
-      endif
-    endwhile
-  catch 'StopIteration'
-    return sum
-  endtry
-endfunction
 
 function! object#Lib#iter#any(iter) abort "{{{1
   " any(iterable) -> if any of the items is True
@@ -153,7 +114,7 @@ function! object#Lib#iter#sum(iter, ...) abort "{{{1
       " TODO use add()
       let N = object#next(iter)
       if !object#Lib#value#IsNumeric(N)
-        call object#TypeError("sum() can only sum numerics")
+        call object#TypeError("sum() only accepts numerics")
       endif
       let start += N
     endwhile
@@ -163,4 +124,39 @@ function! object#Lib#iter#sum(iter, ...) abort "{{{1
 endfunction
 let s:builtins.sum = function('object#Lib#iter#sum')
 
+function! object#Lib#iter#index(iterable, value) abort "{{{1
+  " Return the index of the first occurence of value.
+  " Throw ValueError if not present.
+  let iter = object#iter(a:iterable)
+  let index = 0
+  try
+    while 1
+      if maktaba#value#IsEqual(a:value, object#next(iter))
+        return index
+      endif
+      let index += 1
+    endwhile
+  catch 'StopIteration'
+    call object#ValueError("sequence.index(x): x not in sequence")
+  endtry
+endfunction
+
+function! object#Lib#iter#count(iterable, value) abort "{{{1
+  " Return the times value appears in iterable.
+  let iter = object#iter(a:iterable)
+  let sum = 0
+  try
+    while 1
+      if maktaba#value#IsEqual(a:value, object#next(iter))
+        let sum += 1
+      endif
+    endwhile
+  catch 'StopIteration'
+    return sum
+  endtry
+endfunction
+
+function! object#Lib#iter#IterSelf() dict abort "{{{1
+  return self
+endfunction
 " vim: set sw=2 sts=2 et fdm=marker:

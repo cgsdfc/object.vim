@@ -5,7 +5,7 @@ function! s:reversed.__new__(seqn) "{{{1
   if object#Lib#value#IsList(seqn)
     return object#Lib#builtins#Object_New('list_reverseiterator', seqn)
   endif
-  if object#Lib#proto#HasProtocol(seqn, '__reversed__')
+  if object#Lib#proto#HasMethod(seqn, '__reversed__')
     return object#builtin#func#CallFuncref(seqn.__reversed__)
   endif
   let obj = object#Lib#class#Object_New(s:reversed)
@@ -35,7 +35,7 @@ endfunction
 " - Sequence object
 " - Builtin sequence.
 function! s:IsReversible(X) "{{{1
-  return object#Lib#proto#HasProtocol(a:X, '__reversed__') ||
+  return object#Lib#proto#HasMethod(a:X, '__reversed__') ||
         \ object#Lib#proto#IsSequence(a:X)
 endfunction
 

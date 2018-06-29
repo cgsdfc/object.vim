@@ -107,7 +107,7 @@ function! object#Lib#hash#hash(obj) abort "{{{1
   if object#Lib#value#IsString(obj)
     return object#Lib#hash#HashString(obj)
   endif
-  if object#Lib#proto#HasProtocol(obj, '__hash__')
+  if object#Lib#proto#HasMethod(obj, '__hash__')
     return object#Lib#hash#CheckNumber(object#Lib#func#CallFuncref(obj.__hash__))
   endif
   if object#Lib#type#IsType(obj)

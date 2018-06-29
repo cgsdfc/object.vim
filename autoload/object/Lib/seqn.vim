@@ -58,7 +58,7 @@ function! object#Lib#seqn#Len(obj) abort "{{{1
   if object#Lib#value#IsContainer(a:obj)
     return len(a:obj)
   endif
-  if object#Lib#proto#HasProtocol(a:obj, '__len__')
+  if object#Lib#proto#HasMethod(a:obj, '__len__')
     return object#proto#seqn#Call__len__(a:obj)
   endif
   call object#TypeError("object of type '%s' has no len()",
@@ -75,7 +75,7 @@ function! object#Lib#seqn#in(needle, haystack) abort "{{{1
   if object#Lib#value#IsDict(a:haystack)
     return object#Lib#seqn#Dict_Contains(a:haystack, a:needle)
   endif
-  if object#Lib#proto#HasProtocol(a:haystack, '__contains__')
+  if object#Lib#proto#HasMethod(a:haystack, '__contains__')
     " NOTE: return value of __contains__() is a bool context.
     return object#bool(
           \ object#Lib#func#CallFuncref(a:haystack.__contains__, a:needle))

@@ -141,7 +141,7 @@ function! object#Lib#type#Object_mro() dict abort "{{{1
   let MRO = [self]
   while 1
     call filter(candidates, '!empty(v:val)')
-    if empty(candidate)
+    if empty(candidates)
       return MRO
     endif
     for seqn in candidates

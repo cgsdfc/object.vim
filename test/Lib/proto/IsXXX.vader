@@ -13,12 +13,12 @@ for func in Testers
   let {func} = function(printf('object#proto#%s', func))
 endfor
 
-let HasProtocol = function('object#proto#HasProtocol')
+let HasMethod = function('object#proto#HasMethod')
 
 
-Execute(HasProtocol);
-Assert HasProtocol(object#range(2), '__iter__')
-Assert !HasProtocol(object#range(2), 'start')
+Execute(HasMethod);
+Assert HasMethod(object#range(2), '__iter__')
+Assert !HasMethod(object#range(2), 'start')
 
 
 Execute(IsSequence);

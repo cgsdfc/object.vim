@@ -34,7 +34,7 @@ function! object#Functions#mapping#getitem(obj, key)
   if object#builtin#IsList(obj)
     return object#list#getitem(obj, a:key)
   endif
-  if object#Functions#HasProtocol(obj, '__getitem__')
+  if object#Functions#HasMethod(obj, '__getitem__')
     return object#builtin#CallFuncref(obj.__getitem__, a:key)
   endif
   " TODO: IsDict should exclude Obj.
@@ -47,7 +47,7 @@ function! object#proto#mapping#setitem(obj, key, val)
   if object#builtin#IsList(obj)
     return object#list#setitem(obj, a:key, a:val)
   endif
-  if object#proto#HasProtocol(obj, '__setitem__')
+  if object#proto#HasMethod(obj, '__setitem__')
     return object#builtin#CallFuncref(obj.__setitem__, a:key, a:val)
   endif
   return object#dict#setitem(obj, a:key, a:val)
@@ -59,7 +59,7 @@ function! object#Functions#mapping#delitem(obj, key)
   if object#builtin#IsList(obj)
     return object#list#delitem(obj, a:key)
   endif
-  if object#proto#HasProtocol(obj, '__delitem__')
+  if object#proto#HasMethod(obj, '__delitem__')
     return object#builtin#CallFuncref(obj.__delitem__, a:key)
   endif
   return object#dict#delitem(obj, a:key)

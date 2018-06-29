@@ -39,10 +39,10 @@ function! object#bool#bool(...)
   if object#builtin#IsNumeric(a:1)
     return a:1 != 0
   endif
-  if object#protocol#HasProtocol(a:1, '__bool__')
+  if object#protocol#HasMethod(a:1, '__bool__')
     return object#bool#CheckBool(object#builtin#Call(a:1.__bool__))
   endif
-  if object#protocol#HasProtocol(a:1, '__len__')
+  if object#protocol#HasMethod(a:1, '__len__')
     return !!object#seqn#CheckedCallLen(a:1)
   endif
   return 1
