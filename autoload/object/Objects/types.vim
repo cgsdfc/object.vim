@@ -1,3 +1,4 @@
+" Deprecation: This file is outdated
 " Install special attrs.
 function! object#class#types#install(obj, name, class, base, mro)
   let a:obj.__name__ = a:name

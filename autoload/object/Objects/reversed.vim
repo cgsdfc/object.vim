@@ -1,15 +1,20 @@
-" CLASS: reversed {{{1
-let s:object = object#object_()
-call object#class#builtin_class('reversed', s:object, s:)
+let s:reversed = object#Lib#builtins#IteratorType_New('reversed')
 
-" METHOD: __init__() {{1
-function! s:reversed.__init__(seqn)
-  let self._seqn = a:seqn
-  let self._index = object#len(a:seqn) - 1
+function! s:reversed.__new__(seqn) "{{{1
+  let seqn = s:CheckReversible(a:seqn)
+  if object#Lib#value#IsList(seqn)
+    return object#Lib#builtins#Object_New('list_reverseiterator', seqn)
+  endif
+  if object#Lib#proto#HasProtocol(seqn, '__reversed__')
+    return object#builtin#func#CallFuncref(seqn.__reversed__)
+  endif
+  let obj = object#Lib#class#Object_New(s:reversed)
+  let obj._seqn = a:seqn
+  let obj._index = object#len(a:seqn) - 1
+  return obj
 endfunction
 
-" METHOD: __next__() {{{1
-function! s:reversed.__next__()
+function! s:reversed.__next__() "{{{1
   if self._index == -1
     call object#StopIteration()
   endif
@@ -18,38 +23,20 @@ function! s:reversed.__next__()
   return N
 endfunction
 
-let s:reversed.__iter__ = object#slots#iter_self()
-let s:reversed.__setattr__ = object#slots#readonly_attribute2()
-
-" FUNCTION: reversed() {{{1
-function! object#iter#reversed#reversed(obj)
-  let obj = s:CheckReversible(a:obj)
-  if object#builtin#IsList(obj)
-    return object#list#iter#reversed(obj)
-  endif
-  if object#protocol#HasProtocol(obj, '__reversed__')
-    return object#builtin#Call(obj.__reversed__)
-  endif
-  return object#new(s:reversed, obj)
-endfunction
-
-" FUNCTION: CheckReversible() {{{1
-function! s:CheckReversible(X)
+function! s:CheckReversible(X) "{{{1
   if s:IsReversible(a:X)
     return a:X
   endif
   call object#TypeError("'%s' object is not reversible",
-        \ object#builtin#TypeName(a:X))
+        \ object#Lib#value#TypeName(a:X))
 endfunction
 
-" FUNCTION: IsReversible() {{{1
 " - object with __reversed__()
 " - Sequence object
 " - Builtin sequence.
-function! s:IsReversible(X)
-  return object#protocol#HasProtocol(a:X, '__reversed__') ||
-        \ object#protocol#IsSequence(a:X)
+function! s:IsReversible(X) "{{{1
+  return object#Lib#proto#HasProtocol(a:X, '__reversed__') ||
+        \ object#Lib#proto#IsSequence(a:X)
 endfunction
-" }}}1
 
 " vim: set sw=2 sts=2 et fdm=marker:

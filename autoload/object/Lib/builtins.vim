@@ -50,6 +50,12 @@ function! object#Lib#builtins#Type_New(...) "{{{1
   let s:builtins[a:1] = type
 endfunction
 
+function! object#Lib#builtins#IteratorType_New(...) abort "{{{1
+  let type = call('object#Lib#builtin#Type_New', a:000)
+  let type.__iter__ = function('object#Lib#iter#IterSelf')
+  let type.__setattr__ = function('object#Lib#attr#ReadonlyAttros')
+  return type
+endfunction
 function! object#Lib#builtins#Call_(name, args) " {{{1
   " Call a builtin function by name.
   return object#Lib#func#Call_(get(s:builtins, a:name), a:args)

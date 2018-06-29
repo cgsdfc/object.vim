@@ -101,7 +101,7 @@ function! object#TypeError(...) abort "{{{1
 endfunction
 
 function! object#StopIteration(...) abort "{{{1
-  return object#Lib#except#FastThrowException('StopIteration', a:000)
+  throw 'StopIteration'
 endfunction
 
 function! object#AttributeError(...) abort "{{{1

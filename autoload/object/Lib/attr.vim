@@ -2,8 +2,7 @@
 " NOTE: Currently, special attrs not not lookuped through
 " getattr().
 
-" FUNCTION: CheckName() {{{1
-function! object#Lib#attr#CheckName(name)
+function! object#Lib#attr#CheckName(name) abort "{{{1
   if object#Lib#value#IsString(a:name)
     return a:name
   endif

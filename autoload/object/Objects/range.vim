@@ -1,12 +1,8 @@
-let s:object = object#object_()
+let rangeobj = object#Lib#builtins#Type_New('range')
+let s:rangeobj.__final__ = 1
 
-" FINAL CLASS: range {{{1
-call object#class#builtin_class('range', s:object, s:)
-let s:range.__final__ = 1
-
-" METHOD: __init__() {{{1
 " Note: all of these attributes are readonly.
-function! s:range.__init__(...)
+function! s:rangeobj.__init__(...) "{{{1
   if a:0 < 1
     call object#TypeError("range expected at least 1 arguments, got 0")
   endif
@@ -14,7 +10,7 @@ function! s:range.__init__(...)
     call object#TypeError("range expected at most 3 arguments, got %d", a:0)
   endif
   " Check all args are int.
-  call map(copy(a:000), 'object#builtin#CheckNumber2(v:val)')
+  call map(copy(a:000), 'object#Lib#value#CheckNumber2(v:val)')
   if a:0 == 3 && a:3 == 0
     call object#ValueError("range() arg 3 must not be zero")
   endif
@@ -24,26 +20,22 @@ function! s:range.__init__(...)
   let self._length = s:ComputeLength(self.start, self.stop, self.step)
 endfunction
 
-" METHOD: __repr__() {{{1
-function! s:range.__repr__()
+function! s:rangeobj.__repr__() "{{{1
   return self.step == 1 ? printf('range(%d, %d)', self.start, self.stop):
         \ printf('range(%d, %d, %d)', self.start, self.stop, self.step)
 endfunction
 
-let s:range.__str__ = s:range.__repr__
+let s:rangeobj.__str__ = s:rangeobj.__repr__
+let s:rangeobj.__setattr__ = function('object#Lib#attr#ReadonlyAttro')
 
-" METHOD: __setattr__() {{{1
-let s:range.__setattr__ = object#slots#readonly_attribute()
-
-" METHOD: __eq__() {{{1
-function! s:range.__eq__(other)
-  if !object#builtin#IsObj(a:other)
+function! s:rangeobj.__eq__(other) "{{{1
+  if !object#Lib#value#IsObj(a:other)
     return 0
   endif
   if self is a:other
     return 1
   endif
-  if a:other.__class__ isnot s:range
+  if a:other.__class__ isnot s:rangeobj
     return 0
   endif
   if self._length != a:other._length
@@ -61,14 +53,13 @@ function! s:range.__eq__(other)
   return self.step == a:other.step
 endfunction
 
-function! s:range.__ne__(other)
+function! s:rangeobj.__ne__(other) "{{{1
   return !self.__eq__(a:other)
 endfunction
 
-" METHOD: __contains__() {{{1
-function! s:range.__contains__(value)
-  if !object#builtin#IsNumber(a:value)
-    return object#iter#contains(self, a:value)
+function! s:rangeobj.__contains__(value) "{{{1
+  if !object#Lib#value#IsNumber(a:value)
+    return object#Lib#seqn#Iterable_Contains(self, a:value)
   endif
   " Check if value is ever possible to be in range.
   if self.step > 0
@@ -85,53 +76,46 @@ function! s:range.__contains__(value)
   return 0 == (a:value - self.start) % self.step
 endfunction
 
-" METHOD: __getitem__() {{{1
-function! s:range.__getitem__(index)
-  if object#builtin#IsNumber(a:index)
+function! s:rangeobj.__getitem__(index) "{{{1
+  if object#Lib#value#IsNumber(a:index)
     let index = a:index < 0 ? a:index + self._length : a:index
     if 0 <= index && index < self._length
       return self.start + index * self.step
     endif
     call object#IndexError("range object index out of range")
   endif
-
   " TODO slice
-  call object#TypeError("range indices must be integers or slices, not %s",
-          \ object#builtin#TypeName(a:index))
+  call object#TypeError("range indices must be integer, not %s",
+          \ object#Lib#value#TypeName(a:index))
 endfunction
 
-" METHOD: __iter__() {{{1
-function! s:range.__iter__()
-  return object#new(s:range_iterator,
+function! s:rangeobj.__iter__() "{{{1
+  return object#Lib#builtins#Object_New('range_iterator',
         \ self.start,
         \ self.step,
         \ self._length)
 endfunction
 
-" METHOD: __reversed__() {{{1
-function! s:range.__reversed__()
-  return object#new(s:range_iterator,
+function! s:rangeobj.__reversed__() "{{{1
+  return object#Lib#builtins#Object_New('range_iterator',
         \ self.start + (self._length-1) * self.step,
         \ -self.step,
         \ self._length)
 endfunction
 
-" METHOD: __len__() {{{1
-function! s:range.__len__()
+function! s:rangeobj.__len__() "{{{1
   return self._length
 endfunction
 
-" METHOD: count() {{{1
-function! s:range.count(value)
-  if object#builtin#IsNumber(a:value)
+function! s:rangeobj.count(value) "{{{1
+  if object#Lib#value#IsNumber(a:value)
     return self.__contains__(a:value)
   endif
   return object#iter#count(self, a:value)
 endfunction
 
-" METHOD: index() {{{1
-function! s:range.index(value)
-  if !object#builtin#IsNumber(a:value)
+function! s:rangeobj.index(value) "{{{1
+  if !object#Lib#value#IsNumber(a:value)
     return object#iter#index(self, a:value)
   endif
   if self.__contains__(a:value)
@@ -140,26 +124,20 @@ function! s:range.index(value)
   call object#ValueError("%d is not in range", a:value)
 endfunction
 
-" }}}1
+let s:rangeiter = object#Lib#builtins#IteratorType_New('range_iterator')
+let s:rangeiter.__final__ = 1
 
-" FINAL CLASS: range_iterator {{{1
-call object#class#builtin_class('range_iterator', s:object, s:)
-let s:range_iterator.__final__ = 1
-
-" METHOD: __init__() {{{1
-function! s:range_iterator.__init__(start, step, length)
+function! s:rangeiter.__init__(start, step, length) "{{{1
   let self._start = a:start
   let self._step = a:step
   let self._length = a:length
   let self._index = 0
 endfunction
 
-" SLOTS: {{{1
-let s:range_iterator.__iter__ = object#slots#iter_self()
-let s:range_iterator.__setattr__ = object#slots#readonly_attribute()
+let s:rangeiter.__iter__ = function('object#Lib#iter#IterSelf')
+let s:rangeiter.__setattr__ = function('object#Lib#attr#ReadonlyAttro')
 
-" METHOD: __next__() {{{1
-function! s:range_iterator.__next__()
+function! s:rangeiter.__next__() "{{{1
   if self._index < self._length
     let N = self._index * self._step + self._start
     let self._index += 1
@@ -167,15 +145,8 @@ function! s:range_iterator.__next__()
   endif
   call object#StopIteration()
 endfunction
-" }}}1
 
-" FUNCTION: range() {{{1
-function! object#iter#range#range(...)
-  return object#new_(s:range, a:000)
-endfunction
-
-" FUNCTION: ComputeLength() {{{1
-function! s:ComputeLength(start, stop, step)
+function! s:ComputeLength(start, stop, step) "{{{1
   " Reference: Python-3.6.5/Objects/rangeobject.c
   if a:step > 0
     let lo = a:start
