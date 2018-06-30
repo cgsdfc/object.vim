@@ -1,12 +1,12 @@
 let s:intobj = object#Lib#builtins#Type_New('int')
 
 function! s:intobj.__new__(...)
-  let self = object#Lib#class#Object_New(s:intobj)
-  let self.real = call('object#lib#number#int', a:000)
-  let self.imag = 0
-  let self.denominator = 1
-  let self.numerator = self.real
-  return self
+  let obj = object#Lib#class#Object__new__(s:intobj)
+  let obj.real = call('object#lib#number#int', a:000)
+  let obj.imag = 0
+  let obj.denominator = 1
+  let obj.numerator = obj.real
+  return obj
 endfunction
 
 function! s:intobj.__abs__()
