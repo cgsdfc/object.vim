@@ -1,3 +1,25 @@
+" MIT License
+" 
+" Copyright (c) 2018 cgsdfc
+" 
+" Permission is hereby granted, free of charge, to any person obtaining a copy
+" of this software and associated documentation files (the "Software"), to deal
+" in the Software without restriction, including without limitation the rights
+" to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+" copies of the Software, and to permit persons to whom the Software is
+" furnished to do so, subject to the following conditions:
+" 
+" The above copyright notice and this permission notice shall be included in all
+" copies or substantial portions of the Software.
+" 
+" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+" AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+" LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+" OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+" SOFTWARE.
+
 ""
 " @section Mapping, mapping
 " An interface to key-value containers.
@@ -12,9 +34,9 @@
 
 
 " Any better way to guess the bitwidth of Number?
-" TODO: Add performance test for the strhash().
-" TODO: delitem()
-" TODO: Check for OverflowError for hash(int).
+" 
+" 
+" 
 
 
 let s:INT32_MAX = 2147483647
@@ -87,7 +109,7 @@ endif
 " type in Vim, the sign digit will be cut off when turning
 " a negative signed number to an unsigned one. Thus, -1 will
 " be turned into INT_MAX but not UINT_MAX (if present).
-" TODO: watch out for OverflowError when {nr} is INT_MIN
+" 
 " This algorithm is clever enough so that INT_MIN -> 0.
 " Since there is one more negative number than positive ones,
 " it uses zero to fill the hole. However, I still wonder if abs()

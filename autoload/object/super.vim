@@ -1,3 +1,25 @@
+" MIT License
+" 
+" Copyright (c) 2018 cgsdfc
+" 
+" Permission is hereby granted, free of charge, to any person obtaining a copy
+" of this software and associated documentation files (the "Software"), to deal
+" in the Software without restriction, including without limitation the rights
+" to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+" copies of the Software, and to permit persons to whom the Software is
+" furnished to do so, subject to the following conditions:
+" 
+" The above copyright notice and this permission notice shall be included in all
+" copies or substantial portions of the Software.
+" 
+" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+" AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+" LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+" OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+" SOFTWARE.
+
 ""
 " @section Super, super
 " `super()` is a way for a class to call methods of their parents and siblings while
@@ -105,7 +127,7 @@ let s:super = object#class('super')
 " @throws TypeError if object#isinstance({obj}, {type}) is false.
 " @throws TypeError if {type} is at the end of the MRO of {obj}.
 function! object#super#super(type, obj)
-  " TODO: if we have __new__()
+  " 
   let type = object#class#ensure_class(a:type)
   let obj = object#class#ensure_object(a:obj)
 

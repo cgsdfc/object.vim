@@ -1,3 +1,25 @@
+" MIT License
+" 
+" Copyright (c) 2018 cgsdfc
+" 
+" Permission is hereby granted, free of charge, to any person obtaining a copy
+" of this software and associated documentation files (the "Software"), to deal
+" in the Software without restriction, including without limitation the rights
+" to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+" copies of the Software, and to permit persons to whom the Software is
+" furnished to do so, subject to the following conditions:
+" 
+" The above copyright notice and this permission notice shall be included in all
+" copies or substantial portions of the Software.
+" 
+" THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+" IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+" FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+" AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+" LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+" OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+" SOFTWARE.
+
 ""
 " @dict list
 " A wrapper class of built-in |List|.
@@ -118,7 +140,7 @@ endfunction
 " @dict list
 " Count the occurrences of {value}.
 function! s:list.count(Value)
-  " TODO: use object#equal()
+  " 
   return count(self._list, a:Value)
 endfunction
 
@@ -141,7 +163,7 @@ endfunction
 " Return the first index of {value} starting from [start].
 " @throws ValueError if the {value} is not present.
 function! s:list.index(Value, ...)
-  " TODO: use object#equal()
+  " 
   call object#util#ensure_argc(1, a:0)
   let start = a:0 >= 1 ? maktaba#ensure#IsNumber(a:1) : 0
   return index(self._list, a:Value, start)
@@ -173,7 +195,7 @@ endfunction
 " Remove the first occurrence of {value}.
 " @throws ValueError if {value} is not present.
 function! s:list.remove(Val)
-  " TODO: use object#equal()
+  " 
   let idx = index(self._list, a:Val)
   if idx < 0
     throw object#ValueError('value not in list')
@@ -194,7 +216,7 @@ endfunction
 " A [cmp] |Funcref| can be used to customize ordering
 " of elements.
 function! s:list.sort(...)
-  " TODO: use object#cmp()
+  " 
   call object#util#ensure_argc(1, a:0)
   let Order = a:0 == 1? maktaba#ensure#IsFuncref(a:1):
         \ function('object#cmp')
