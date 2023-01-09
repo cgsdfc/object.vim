@@ -3,12 +3,12 @@
 " The `int()` converter and the wrapper type `int`.
 "
 " @subsection checked-conversion-to-int
-" The built-in `str2nr()` does no checking to the string to be
+" The built-in `str2nr()` does not check the string to be
 " converted while with simple regex it can be achieved.
 " `int()` ensures that the base and the string literal are valid
 " and it can handle |Float| much like |float2nr()| does. When called
 " with no argument, it returns the constant `0`, which can be useful
-" to supply default value. It also hooks into `__int__()`. Very nice.
+" to supply a default value. It also hooks into `__int__()`. Very nice.
 " See some examples:
 " >
 "   >>> object#int()
@@ -26,7 +26,7 @@
 " @subsection handy-formatter-of-various-bases
 " You can use `bin()`, `oct()` and `hex()` to get a |String| representations
 " of various bases from an integer.
-" What was return can be parsed back to
+" What was returned can be parsed back to
 " an `int` with `int()`. Different from `printf()` with specifiers, these
 " do not pull out the 2-complementary digits when the argument is negative.
 " Rather, they prefix it with a negative sign:
@@ -44,7 +44,7 @@
 " @subsection wrapper-type-int
 " A wrapper type `int` is defined for the cases when object-oriented
 " interface is handy. `int` can be extended just as any other built-in
-" type can. Just rememebr keeping it at the very end of your base list since
+" type can. Just remember to keep it at the very end of your base list since
 " for efficiency, `__init__()` of it does not call `super()`.
 "
 " Data descriptor for `int`:

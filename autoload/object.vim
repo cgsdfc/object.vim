@@ -61,18 +61,18 @@
 "   * file:     plain old file object for line-oriented I/O.
 "   * lambda:   create one-liner easily and `for()` loop construct.
 "   * mapping:  hash arbitrary object and generic `getitem()`, `setitem()`.
-"   * types:    top level classes like `object`, `type` and conversion protocols like `bool()`.
+"   * types:    top-level classes like `object`, `type` and conversion protocols like `bool()`.
 "
 " Note that although these features are implemented in separate files, they
-" are kind-of imported into a shallow namespace for the ease of use so please
+" are kind-of imported into a shallow namespace for ease of use so please
 " use `object#class()` instead of `object#class#class()`. Please consider
 " everything in namespaces deeper than `object` as implementation details and
-" avoid using them as much as you can. However, each individual function is still
+" avoid using them as much as you can. However, each function is still
 " documented with its full name, as found in @section(functions).
 "
 " @subsection testing
 " I use `vader.vim` for unit tests. A comprehensive test suite for each module
-" can be found in `object.vim/test`. To run all the test, use:
+" can be found in `object.vim/test`. To run all the tests, use:
 " >
 "   object.vim/test/run-tests.sh
 " <
@@ -91,29 +91,6 @@
 
 ""
 " @section Motivation, motivation
-" Well the first question that I asked myself at the beginning of this project
-" is: What? you want to create a DSL in Vim that looks like Python and you
-" expect those who use pure Python or pure Vimscript for their plugins to like
-" your hybridization that sounds like Vimthon?
-"
-" Well first of all, I don't expect people to like my plugin and I just
-" find it fun to write an OOP framework for Vim. That's my motivation.
-"
-" Second, I personally don't
-" think it is a DSL because it is just a bunch of functions that work
-" together. There is no new syntax to learn (which means extra rules to
-" obey).
-" You just pick up a piece of tool you want to use and it (should) works out of the
-" box.
-"
-" Third, I am not doing hybridization like Emacs in Vim or vice versa, which
-" explains why we have such a limited number of functions compared with the
-" versatile libraries of Python. Those who expect a complete Python layer
-" over Vimscript will be disappointed by the fact that not even the standard library `sys`
-" is found. What's more, some counterparts of Python have different signatures
-" or even different behaviors, which will be explained in details. Most of
-" the time, we strive for Python compatibility since that won't surprise people
-" gravely.
 "
 " In short, what we provide is an OOP framework that feels familiar to Python
 " and hopefully, useful for Vim plugin writers.

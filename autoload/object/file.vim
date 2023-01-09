@@ -18,7 +18,7 @@
 "
 " Note:
 "   * Unlike the counterparts from Python, readlines() always strips tailing newlines and
-"   * writelines() always adds tailing newlines.
+"   * writelines() always adds trailing newlines.
 "
 " Examples:
 " >
@@ -36,14 +36,12 @@
 "   2
 "   3
 " <
-" This is rooted at the nature of |readfile()| and |writefile()|.
+" This is rooted in the |readfile()| and |writefile()|.
 
 let s:readable =    '\V\C\^\(r\[aw+]\?\|\[aw]\[r+]\)b\?\$'
 let s:writable =    '\V\C\^\(\[aw]\[r+]\?\|r\[aw+]\)b\?\$'
 let s:valid_mode =  '\V\C\^\(r\[aw+]\?\|\[aw]\[r+]\|\[aw]\[r+]\?\|r\[aw+]\)b\?\$'
 
-" TODO: I haven't think of a way to document the methods of a class, but the
-" current doc is likely outdated.
 
 ""
 " @dict file
@@ -185,8 +183,8 @@ endfunction
 
 ""
 " @dict file
-" Write a {str} to the file.
-" {str} is appended to the last line of file.
+" Write an {str} to the file.
+" {str} is appended to the last line of the file.
 "
 " Note: If {str} becomes the first line of the file, a newline will be added
 " right after this line as if it is done with writeline().
@@ -242,8 +240,8 @@ endfunction
 
 ""
 " @dict file
-" Close the file and flush it. After that any file operation will fail.
-" Calling close() multiple times does not causes errors.
+" Close the file and flush it. After that, any file operation will fail.
+" Calling close() multiple times does not cause errors.
 function! s:file.close()
   if self.closed
     return

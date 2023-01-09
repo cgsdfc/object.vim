@@ -1,5 +1,6 @@
 # object.vim
-> An object-oriented framework for Vimscript.
+
+A minimal framework for Python-like programming in VimScript. 
 
 [![Build Status](https://travis-ci.org/cgsdfc/object.vim.svg?branch=master)](https://travis-ci.org/cgsdfc/object.vim)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
@@ -16,9 +17,9 @@
 An object-oriented framework for Vimscript that looks and feels like Python and
 strives for maximum convenience and compatibility with built-in functions.
 
-**Read:** Vim and Python are friends, let's do both of them more!
 
 # Examples
+
 - Defining classes and creating instances.
 ```vim
 let MyClass = object#class('MyClass')
@@ -74,7 +75,7 @@ echo var.values()
 [['foo', 1]]
 ```
 
-- A bunch of hookable protocol functions.
+- A bunch of customizable protocol functions.
 ```vim
 echo object#len(range(10))
 10
@@ -108,8 +109,9 @@ E605: Exception not caught: MyException:
 ```
 
 # Features
+
 * Shallow namespace `object#`.
-* Multiple inheritance powered by C3 linearization.
+* Multiple inheritances powered by C3 linearization.
 * A complete set of Python-like built-in functions.
 * True lambda with closure and named arguments.
 * True iterator and `zip()` and `enumerate()`.
@@ -117,15 +119,17 @@ E605: Exception not caught: MyException:
 * Read and write files with `open()`.
 
 # Future Work
+
 * Increase coverage of `file.vim` and `list.vim`.
-* Finish `compare.vim` for hookable comparition.
+* Finish `compare.vim` for customizable comparition.
 * Add `str.vim` for Python-like formatting.
 * Better documentation.
 * Improve performance.
 
 # Installation
+
 This plugin follows the standard runtime path structure,
-and as such it can be installed with a variety of plugin managers:
+so it can be installed with a variety of plugin managers:
 
 | Plugin Manager  | Install with... |
 | -------------   | ------------- |
@@ -149,7 +153,7 @@ and as such it can be installed with a variety of plugin managers:
 
 # License
 
-MIT License. Copyright (c) 2018 cgsdfc.
+MIT License. Copyright (c) 2018 Cong Feng.
 
 [1]: https://github.com/google/vim-maktaba
 [2]: https://github.com/junegunn/vader.vim
