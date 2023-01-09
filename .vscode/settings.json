@@ -1,8 +1,0 @@
-{
-    "grammarly.selectors": [
-        {
-            "language": "viml",
-            "scheme": "file"
-        }
-    ]
-}
