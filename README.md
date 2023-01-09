@@ -1,7 +1,5 @@
 # object.vim
 
-A minimal framework for Python-like programming in VimScript. 
-
 ```
                __      _           __
         ____  / /_    (_)__  _____/ /_
@@ -10,11 +8,9 @@ A minimal framework for Python-like programming in VimScript.
       \____/_.___/_/ /\___/\___/\__/
                 /___/
 ```
-An object-oriented framework for Vimscript that looks and feels like Python and
-strives for maximum convenience and compatibility with built-in functions.
+`object.vim` is a minimal framework for Python-like programming in VimScript.
 
-
-# Examples
+## Examples
 
 - Defining classes and creating instances.
 ```vim
@@ -104,7 +100,7 @@ call object#raise(MyException)
 E605: Exception not caught: MyException:
 ```
 
-# Features
+## Features
 
 * Shallow namespace `object#`.
 * Multiple inheritances powered by C3 linearization.
@@ -114,20 +110,12 @@ E605: Exception not caught: MyException:
 * Hash (nearly) arbitrary object.
 * Read and write files with `open()`.
 
-# Future Work
 
-* Increase coverage of `file.vim` and `list.vim`.
-* Finish `compare.vim` for customizable comparition.
-* Add `str.vim` for Python-like formatting.
-* Better documentation.
-* Improve performance.
+## Installation
 
-# Installation
+This plugin follows the standard runtime path structure, so it can be installed with a variety of plugin managers:
 
-This plugin follows the standard runtime path structure,
-so it can be installed with a variety of plugin managers:
-
-| Plugin Manager  | Install with... |
+| Plugin Manager  | Command |
 | -------------   | ------------- |
 | [NeoBundle][4] | `NeoBundle 'cgsdfc/object.vim'` |
 | [Vundle][5]    | `Plugin 'cgsdfc/object.vim'` |
@@ -137,19 +125,29 @@ so it can be installed with a variety of plugin managers:
 | [minpac][9]    | `call minpac#add('cgsdfc/object.vim')` |
 
 
-# Dependencies
+## Dependencies
 
 * [vim-maktaba][1] for handling built-in type.
 * [vader.vim][2] for unit tests.
 * [vimdoc][3] for generating the help file from comments.
 
-# Documentation
+## Documentation
 
-`:help object`
+Please read the [docs](doc/object.vim.txt) or after installation, run `:help object` to see the full documents.
 
-# License
+## Citation
 
-MIT License. Copyright (c) 2018 Cong Feng.
+If you find our software useful in your research, please consider citing us as follows:
+```bibtex
+@misc{cong_objectvim_2018,
+  title = {object.vim: {A} minimal framework for {Python}-like programming in {VimScript}.},
+  shorttitle = {object.vim},
+  url = {https://github.com/cgsdfc/object.vim},
+  abstract = {object.vim is a minimal framework for Python-like programming in VimScript. It provides some of the core features of the Python programming language in the form of VimScript functions and dictionaries, such as class-based object-oriented programming, lambda functions, iterators, and exceptions. It is also an interesting try to implement features of a high-level language in terms of another lower-level language.},
+  author = {Cong, Feng},
+  year = {2018},
+}
+```
 
 [1]: https://github.com/google/vim-maktaba
 [2]: https://github.com/junegunn/vader.vim
